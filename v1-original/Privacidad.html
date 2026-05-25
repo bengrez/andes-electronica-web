@@ -4,6 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacidad y cookies — Andes Electrónica</title>
+<script>
+// ─── Locked-palette snippet (build: light)
+// Each branch hosts the site with one palette. Override any stale localStorage
+// tweaks from another branch so the build always renders in its assigned palette.
+try {
+  var raw = localStorage.getItem('andes-tweaks');
+  var t = raw ? JSON.parse(raw) : {};
+  if (t.palette !== 'light') {
+    t.palette = 'light';
+    localStorage.setItem('andes-tweaks', JSON.stringify(t));
+  }
+} catch (e) {}
+</script>
 <meta property="og:title" content="Privacidad y cookies — Andes Electrónica">
 <meta property="og:description" content="Cómo Andes Electrónica trata tus datos personales y qué cookies utiliza este sitio. Marco Ley N° 19.628.">
 <meta property="og:type" content="website">

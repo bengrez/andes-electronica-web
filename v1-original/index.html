@@ -4,6 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Andes Electrónica</title>
+<script>
+// ─── Locked-palette snippet (build: light)
+// Each branch hosts the site with one palette. Override any stale localStorage
+// tweaks from another branch so the build always renders in its assigned palette.
+try {
+  var raw = localStorage.getItem('andes-tweaks');
+  var t = raw ? JSON.parse(raw) : {};
+  if (t.palette !== 'light') {
+    t.palette = 'light';
+    localStorage.setItem('andes-tweaks', JSON.stringify(t));
+  }
+} catch (e) {}
+</script>
 <meta name="description" content="Andes Electrónica · Ingeniería electrónica chilena desde 1991. Hardware, firmware y soporte propios para transporte, minería y telecomunicaciones.">
 <meta property="og:title" content="Andes Electrónica — Ingeniería electrónica desde 1991">
 <meta property="og:description" content="Andes Electrónica · Ingeniería electrónica chilena desde 1991. Hardware, firmware y soporte propios para transporte, minería y telecomunicaciones.">
