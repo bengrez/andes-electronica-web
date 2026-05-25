@@ -1,0 +1,31 @@
+# ─── Files NOT needed for the public site ───
+
+# Editor / sandbox state
+.design-canvas.state.json
+.DS_Store
+Thumbs.db
+
+# Exploration screenshots (not referenced by any public HTML)
+debug/
+
+# User-pasted reference images (kept for chat history, not for production)
+uploads/
+
+# Unused exploration component (not referenced by any HTML)
+design-canvas.jsx
+
+# Standalone exports / backups
+*.source.html
+*-Standalone.html
+
+# Local environment overrides (if any)
+.env
+.env.local
+.vscode/
+.idea/
+
+# Node (if a future build step is added)
+node_modules/
+dist/
+build/
+*.log

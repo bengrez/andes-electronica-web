@@ -1,0 +1,7 @@
+{
+  "_comment": "Configuration loaded at runtime by cookie-consent.jsx. Replace ga4MeasurementId with the real GA4 ID provided by JI/marketing before publishing. Until a non-empty value is set, analytics is treated as disabled even when the user has consented.",
+  "ga4MeasurementId": "",
+  "anonymizeIp": true,
+  "siteName": "Andes Electrónica",
+  "consentVersion": 1
+}
