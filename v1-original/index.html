@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Andes Electrónica</title>
+<meta name="description" content="Andes Electrónica · Ingeniería electrónica chilena desde 1991. Hardware, firmware y soporte propios para transporte, minería y telecomunicaciones.">
+<meta property="og:title" content="Andes Electrónica — Ingeniería electrónica desde 1991">
+<meta property="og:description" content="Andes Electrónica · Ingeniería electrónica chilena desde 1991. Hardware, firmware y soporte propios para transporte, minería y telecomunicaciones.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Andes Electrónica">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+  html, body { margin: 0; padding: 0; background: #05131f; }
+  body { font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  /* Tweaks panel */
+  .tweaks-panel { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: #0a1a26; color: #e8e4dc; border: 1px solid rgba(192,125,46,0.35); border-radius: 4px; padding: 18px 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); font-family: "DM Sans", sans-serif; font-size: 13px; min-width: 280px; display: none; }
+  .tweaks-panel.show { display: block; }
+  .tweaks-panel h3 { margin: 0 0 14px; font-size: 11px; letter-spacing: 0.22em; font-weight: 600; color: #c07d2e; text-transform: uppercase; font-family: "JetBrains Mono", monospace; }
+  .tweaks-row { margin-bottom: 14px; }
+  .tweaks-row label { display: block; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(232,228,220,0.5); margin-bottom: 7px; font-family: "JetBrains Mono", monospace; }
+  .tweaks-row .opts { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tweaks-row button { flex: 1; min-width: 52px; border: 1px solid rgba(232,228,220,0.18); background: transparent; color: rgba(232,228,220,0.75); padding: 7px 10px; font-size: 11.5px; border-radius: 2px; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .tweaks-row button:hover { border-color: rgba(232,228,220,0.4); color: #fff; }
+  .tweaks-row button.active { background: #c07d2e; border-color: #c07d2e; color: #0a1a26; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="tweaks-panel" id="tweaksPanel">
+  <h3>Tweaks</h3>
+  <div class="tweaks-row">
+    <label>Paleta</label>
+    <div class="opts" data-group="palette">
+      <button data-val="deep-teal">Deep Teal</button>
+      <button data-val="near-black">Near Black</button>
+      <button data-val="light">Light</button>
+    </div>
+  </div>
+  <div class="tweaks-row">
+    <label>Tipografía</label>
+    <div class="opts" data-group="typeface">
+      <button data-val="inter">DM Serif</button>
+      <button data-val="grotesk">Space Grotesk</button>
+      <button data-val="mixed">DM Serif + Sans</button>
+    </div>
+  </div>
+  <div class="tweaks-row">
+    <label>Densidad</label>
+    <div class="opts" data-group="density">
+      <button data-val="compact">Compacta</button>
+      <button data-val="comfortable">Amplia</button>
+    </div>
+  </div>
+  <div class="tweaks-row">
+    <label>Accent copper</label>
+    <div class="opts" data-group="accent">
+      <button data-val="copper">Cobre</button>
+      <button data-val="warm">Ámbar</button>
+      <button data-val="muted">Bronce</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="./shared.jsx"></script>
+<script type="text/babel" src="./site-layout.jsx"></script>
+<script type="text/babel" src="./vehicle-flow-viz.jsx"></script>
+<script type="text/babel" src="./v2-deepteal.jsx"></script>
+<script type="text/babel" src="./cookie-consent.jsx"></script>
+<script type="text/babel" src="./beta-badge.jsx"></script>
+
+<script type="text/babel">
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "palette": "light",
+  "typeface": "grotesk",
+  "density": "comfortable",
+  "accent": "copper"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [tweaks, setTweaks] = React.useState(TWEAKS);
+
+  // Apply body bg + persist tweaks so subpages match
+  React.useEffect(() => {
+    try { localStorage.setItem('andes-tweaks', JSON.stringify(tweaks)); } catch {}
+    applyBodyBg({ palette: tweaks.palette });
+  }, [tweaks]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const d = e.data || {};
+      if (d.type === '__activate_edit_mode') document.getElementById('tweaksPanel').classList.add('show');
+      if (d.type === '__deactivate_edit_mode') document.getElementById('tweaksPanel').classList.remove('show');
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+
+    const panel = document.getElementById('tweaksPanel');
+    const refresh = () => {
+      panel.querySelectorAll('.opts').forEach(g => {
+        const key = g.dataset.group;
+        g.querySelectorAll('button').forEach(b => {
+          b.classList.toggle('active', b.dataset.val === tweaks[key]);
+        });
+      });
+    };
+    refresh();
+    const handler = (ev) => {
+      const b = ev.target.closest('button[data-val]');
+      if (!b) return;
+      const key = b.parentElement.dataset.group;
+      const next = { ...tweaks, [key]: b.dataset.val };
+      setTweaks(next);
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: next }, '*');
+    };
+    panel.addEventListener('click', handler);
+    return () => { window.removeEventListener('message', onMsg); panel.removeEventListener('click', handler); };
+  }, [tweaks]);
+
+  return <V2DeepTeal density={tweaks.density} palette={tweaks.palette} typeface={tweaks.typeface} accent={tweaks.accent}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=./index.html">
+<link rel="canonical" href="./index.html">
+<title>Andes Electrónica</title>
+<script>
+// ─── Locked-palette snippet (build: near-black)
+// Each branch hosts the site with one palette. Override any stale localStorage
+// tweaks from another branch so the build always renders in its assigned palette.
+try {
+  var raw = localStorage.getItem('andes-tweaks');
+  var t = raw ? JSON.parse(raw) : {};
+  if (t.palette !== 'near-black') {
+    t.palette = 'near-black';
+    localStorage.setItem('andes-tweaks', JSON.stringify(t));
+  }
+} catch (e) {}
+</script>
+
+</head>
+<body>
+<p>Redirigiendo a <a href="./index.html">Andes Electrónica</a>…</p>
+<script>window.location.replace('./index.html');</script>
+</body>
+</html>

@@ -1,44 +1,40 @@
-# Andes Electrónica · Sitio web
+# Andes Electrónica · Sitio web — 3 variantes en preview
 
-Sitio institucional de Andes Electrónica. Build estático — listo para servir desde GitHub Pages, Netlify, Cloudflare Pages o cualquier file server.
+Sitio institucional de Andes Electrónica, en revisión interna. Tres variantes visuales conviven en este repositorio bajo subcarpetas, servidas desde GitHub Pages.
 
 ## Estructura
 
 ```
-index.html                       ← Home (entrada principal)
-Andes Home Exploration.html      ← Redirect legacy → index.html
-{Producto,Servicio,Empresa,...}.html
-*.jsx                            ← Componentes (React inline + Babel runtime)
-data/
-  runtime.config.json            ← Configuración runtime (GA4 ID, etc.)
-assets/
-  hero/                          ← Imágenes del hero (esfera AE)
-  logos/                         ← Logo Andes + logos de clientes
-  certifications/                ← Imagen del certificado ISO 9001
-  images/                        ← Fotografía y diagramas adicionales
-  maps/                          ← Mapa de Chile vectorial
+index.html         ← Redirect a v1-original/ (entrada por defecto)
+v1-original/       ← Variante 1 — paleta light, accent copper (publicada inicialmente)
+v2-deep-teal/      ← Variante 2 — paleta deep-teal
+v3-near-black/     ← Variante 3 — paleta near-black
 ```
 
-## Desplegar en GitHub Pages
+Las 3 variantes son builds estáticos autocontenidos (HTML + JSX + Babel runtime en el cliente). No requieren build step.
 
-1. Crear un repo nuevo (público o privado con Pages habilitado).
-2. Copiar el contenido de esta carpeta a la raíz del repo (o a `/docs` si se prefiere esa convención).
-3. En Settings → Pages, seleccionar la rama y carpeta correspondiente.
-4. El sitio queda disponible en `https://<usuario>.github.io/<repo>/`.
+## URLs
 
-Nota: GitHub Pages sirve archivos estáticos. El sitio NO requiere build step — Babel transpila los `.jsx` en el cliente. Si en algún momento se desea pre-compilar para mejorar tiempos de carga, ver "Próximos pasos" abajo.
+- Root (redirige a v1): `https://bengrez.github.io/andes-electronica-web/`
+- Variante 1: `https://bengrez.github.io/andes-electronica-web/v1-original/`
+- Variante 2: `https://bengrez.github.io/andes-electronica-web/v2-deep-teal/`
+- Variante 3: `https://bengrez.github.io/andes-electronica-web/v3-near-black/`
+
+## Disclaimer
+
+Las 3 variantes muestran un banner BETA persistente en esquina inferior izquierda con el texto: *"Sitio en validación — números y datos sujetos a confirmación."* — para evitar que el preview se interprete como sitio oficial mientras está expuesto en internet.
 
 ## Configurar Google Analytics
 
-Editar `data/runtime.config.json` y reemplazar `ga4MeasurementId` con el ID real (formato `G-XXXXXXXXXX`). Hasta que esté poblado, analytics queda silenciado aunque el usuario consienta cookies analíticas.
+Editar `<variante>/data/runtime.config.json` y reemplazar `ga4MeasurementId` con el ID real (formato `G-XXXXXXXXXX`). Hasta que esté poblado, analytics queda silenciado aunque el usuario consienta cookies analíticas.
 
-## Próximos pasos sugeridos (P8 + roadmap)
+## Próximos pasos sugeridos
 
-- **Build pipeline**: pre-compilar los `.jsx` con `esbuild` o `vite build` para producción. Reduce el tiempo de primera renderización.
-- **Optimización de imágenes**: convertir PNG a WebP/AVIF y servir `srcset` por resolución.
-- **Sitemap + robots.txt**: agregar si se quiere indexación específica.
-- **Página "Casos de éxito"**: out-of-scope en esta fase, anotada para release futuro.
+- Recoger feedback de stakeholders sobre las 3 variantes.
+- Consolidar en una sola y pre-compilar los `.jsx` con `esbuild` o `vite build` para producción.
+- Optimización de imágenes (WebP/AVIF + `srcset`).
+- Sitemap + robots.txt una vez decidida la variante final.
 
 ## Archivos NO necesarios para deploy
 
-Ver `.gitignore` adjunto. Se excluyen carpetas de exploración (`debug/`, `uploads/`), screenshots y archivos sandbox que no son referenciados por ningún HTML público.
+Ver `.gitignore`. Se excluyen `debug/` y `uploads/` (sandbox de exploración).
