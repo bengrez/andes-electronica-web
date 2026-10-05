@@ -2,7 +2,8 @@
 function Industrias({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, displayEditorial, mono, body } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
 
   const industries = [
     {
@@ -72,14 +73,14 @@ function Industrias({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
         <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: p.inkDim, textTransform: 'uppercase', fontWeight: 500, marginBottom: 20 }}>
           — Verticales atendidos
         </div>
-        <h2 style={{ margin: 0, ...(displayEditorial || display), fontSize: 42, lineHeight: 1.1, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
+        <h2 style={{ margin: 0, ...(displayEditorial || display), fontSize: fluid(24, 42), lineHeight: 1.1, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
           Cuatro industrias, un mismo estándar de ingeniería.
         </h2>
         <div style={{ marginTop: 24, height: 1, width: 80, background: copper }}/>
       </section>
 
       {/* ─── 4 INDUSTRIAS GRID ─── */}
-      <section style={{ padding: `40px ${pad}px 100px`, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, background: p.inkFaint }}>
+      <section style={{ padding: `40px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('repeat(2, 1fr)'), gap: 1, background: p.inkFaint }}>
         {industries.map(ind => (
           <IndustryCard key={ind.key} theme={theme} {...ind}/>
         ))}
@@ -97,6 +98,7 @@ function Industrias({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
 
 function IndustryCard({ theme, num, title, Pattern, tagline, body, stats, onClick }) {
   const { p, copper, display, displayEditorial, mono, ease, durBase } = theme;
+  const gcol = useGridCols();
   const [hover, setHover] = React.useState(false);
   return (
     <article
@@ -145,7 +147,7 @@ function IndustryCard({ theme, num, title, Pattern, tagline, body, stats, onClic
         </p>
 
         {/* Stats — 3 column compact */}
-        <div style={{ marginTop: 28, paddingTop: 24, borderTop: `1px solid ${p.inkFaint}`, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+        <div style={{ marginTop: 28, paddingTop: 24, borderTop: `1px solid ${p.inkFaint}`, display: 'grid', gridTemplateColumns: gcol('repeat(3,1fr)'), gap: 16 }}>
           {stats.map(([v, k], i) => (
             <div key={i}>
               <div style={{ ...(displayEditorial || display), fontSize: 20, lineHeight: 1, color: p.ink, letterSpacing: '-0.015em', fontWeight: 600 }}>

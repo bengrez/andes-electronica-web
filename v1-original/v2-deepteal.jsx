@@ -1,33 +1,29 @@
 // ANDES ELECTRÓNICA — Deep Teal Editorial (Palantir-style modern typography)
 // Inter tight tracking, no serifs on display headings.
 
-// ─── RotatingSpan: brief build-up animation through variants. Settles on the last value.
-//             Use for momentary attention without disrupting reading.
+// ─── RotatingSpan: muestra el valor final del listado, con una entrada suave.
+//
+// Antes recorría las variantes con setTimeout escalonados (400ms, 2400ms,
+// 4200ms en el hero). Tres problemas medidos, todos sobre la frase que carga la
+// propuesta de valor de la home:
+//   1. `rotEnter` arranca en `opacity: 0` con fill `both`, así que en la primera
+//      pintada los tres tramos salían en blanco — la frase se leía "…electrónica
+//      para ___. Tacógrafos y SACEL son la vitrina — atrás, ___ de ___ que
+//      evolucionan…", incompleta y sin sentido gramatical.
+//   2. Cada cambio de variante alteraba el largo del texto y reflowaba el
+//      párrafo completo debajo del titular, tres veces, mientras se lee.
+//   3. El último tramo recién se estabilizaba a los ~4,6 s.
+// Se conserva la firma (`variants`, `delay`, `interval`) para no tocar los sitios
+// de uso: ahora entrega directo el último valor, que es el mensaje real.
 function RotatingSpan({ variants, delay = 0, interval = 650, color }) {
-  const [idx, setIdx] = React.useState(0);
-  React.useEffect(() => {
-    let cancelled = false;
-    const timers = [];
-    variants.forEach((_, i) => {
-      if (i === 0) return;
-      timers.push(setTimeout(() => {
-        if (!cancelled) setIdx(i);
-      }, delay + interval * i));
-    });
-    return () => { cancelled = true; timers.forEach(clearTimeout); };
-  }, []);
-  return (
-    <span style={{ color }}>
-      <span key={idx} style={{
-        display: 'inline-block',
-        animation: 'rotEnter .42s cubic-bezier(0.16, 1, 0.3, 1) both',
-      }}>{variants[idx]}</span>
-    </span>
-  );
+  const settled = variants[variants.length - 1];
+  return <span style={{ color }}>{settled}</span>;
 }
 
 function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface = 'inter', accent = 'copper' }) {
-  const pad = density === 'compact' ? 40 : 72;
+  const pad = useResponsivePad(density === 'compact' ? 40 : 72);
+  const gcol = useGridCols();
+  const { isMobile, isTablet } = useBreakpoint();
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
   const ink = p.ink;
@@ -162,7 +158,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
           <div style={{ ...mono, fontSize: 13, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 32 }}>
             — Andes Electrónica · Santiago de Chile · Est. 1991
           </div>
-          <h1 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.06, letterSpacing: '-0.025em', fontWeight: 600 }}>
+          <h1 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.06, letterSpacing: '-0.025em', fontWeight: 600 }}>
             Treinta años de <span style={{ color: copper }}>electrónica chilena</span> — diseñada en casa, renovada en cada generación.
           </h1>
           {/* Editorial rule under headline */}
@@ -278,12 +274,17 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
             with what's above and below. */}
         <div style={{
           position: 'sticky',
-          top: 120,
+          // 120px libraba la nav de escritorio (logo 66 + padding). La nav móvil
+          // mide ~76px, así que fijar 120 dejaba un hueco muerto sobre el panel.
+          top: isTablet ? 76 : 120,
           background: palette === 'light' ? 'rgba(223,217,203,0.5)' : 'rgba(5,19,31,0.5)',
-          padding: `36px ${pad}px 44px`,
+          padding: `${isTablet ? 24 : 36}px ${pad}px ${isTablet ? 28 : 44}px`,
           margin: `0 -${pad}px`,
         }}>
-        <div style={{ marginBottom: 32, maxWidth: 860, marginLeft: 'auto', textAlign: 'right' }}>
+        {/* El bloque va alineado a la derecha en escritorio, contrapesando el
+            visual de la izquierda. En una sola columna ese contrapeso no existe
+            y el texto alineado a la derecha se lee peor. */}
+        <div style={{ marginBottom: 32, maxWidth: 860, marginLeft: isTablet ? 0 : 'auto', textAlign: isTablet ? 'left' : 'right' }}>
           <div style={{ ...mono, fontSize: 13, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 14 }}>Productos destacados —</div>
           <h2 style={{ margin: 0, ...display, fontSize: 34, lineHeight: 1.05, letterSpacing: '-0.035em' }}>
             Hardware nuestro, firmware nuestro,
@@ -292,7 +293,11 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
         </div>
 
         {/* tab nav */}
-        <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${p.inkFaint}`, marginBottom: 40 }}>
+        {/* Era un flex de 3 botones con `flex: 1`: como el contenido mínimo de
+            cada uno ("Tacógrafo 4.0" a 26px) no cabía en un tercio de 390px, la
+            fila desbordaba y ensanchaba todo el documento. Como grilla, colapsa
+            a una columna en móvil. */}
+        <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 0, borderBottom: `1px solid ${p.inkFaint}`, marginBottom: isTablet ? 28 : 40 }}>
           {[
             { num: '01', label: 'Tacógrafo 4.0',          sub: 'Producto' },
             { num: '02', label: 'Sistema SACEL',           sub: 'Plataforma' },
@@ -312,23 +317,23 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
               const targetTop = window.scrollY + rect.top + targetT * travel;
               window.scrollTo({ top: targetTop, behavior: 'smooth' });
             }} style={{
-              flex: 1, padding: '22px 24px', background: 'transparent', border: 'none',
+              minWidth: 0, padding: isMobile ? '16px 4px' : '22px 24px', background: 'transparent', border: 'none',
               borderBottom: activeTab === i ? `2px solid ${copper}` : '2px solid transparent',
               color: activeTab === i ? ink : `${p.inkDim}`,
               textAlign: 'left', cursor: 'pointer', transition: 'all .2s',
             }}>
-              <div style={{ ...mono, fontSize: 12, letterSpacing: '0.2em', color: activeTab === i ? copper : `${p.inkDim}` }}>{t.num} — {t.sub.toUpperCase()}</div>
-              <div style={{ ...display, fontSize: 26, marginTop: 8, fontWeight: 500, letterSpacing: '-0.02em' }}>{t.label}</div>
+              <div style={{ ...mono, fontSize: isMobile ? 10.5 : 12, letterSpacing: '0.2em', color: activeTab === i ? copper : `${p.inkDim}` }}>{t.num} — {t.sub.toUpperCase()}</div>
+              <div style={{ ...display, fontSize: isMobile ? 20 : 26, marginTop: 8, fontWeight: 500, letterSpacing: '-0.02em' }}>{t.label}</div>
             </button>
           ))}
         </div>
 
         {/* tab content */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 1fr'), gap: 60, alignItems: 'start' }}>
           <div key={`tab-${activeTab}`} style={{ animation: 'tabFadeIn .5s ease both' }}>
             {activeTab === 0 && (
               <div>
-                <h3 style={{ margin: 0, ...display, fontSize: 50, lineHeight: 1.04, letterSpacing: '-0.035em' }}>
+                <h3 style={{ margin: 0, ...display, fontSize: fluid(28, 50), lineHeight: 1.04, letterSpacing: '-0.035em' }}>
                   Tacógrafo 4.0 — el registro que<br/>la autoridad exige, y más.
                 </h3>
 
@@ -359,7 +364,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
                     <div style={{ ...mono, fontSize: 11, letterSpacing: '0.22em', color: copper, textTransform: 'uppercase', fontWeight: 600 }}>Specs</div>
                     <div style={{ ...mono, fontSize: 10, letterSpacing: '0.14em', color: `${p.inkDim}` }}>AE-T40 · REV 2.4</div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: 28, rowGap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(2, 1fr)'), columnGap: 28, rowGap: 10 }}>
                     {[
                       ['Certificación',  'Res. Exenta N°1081 — DT'],
                       ['Bus del vehículo','CAN 2.0B'],
@@ -388,13 +393,13 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
             )}
             {activeTab === 1 && (
               <div>
-                <h3 style={{ margin: 0, ...display, fontSize: 50, lineHeight: 1.04, letterSpacing: '-0.035em' }}>
+                <h3 style={{ margin: 0, ...display, fontSize: fluid(28, 50), lineHeight: 1.04, letterSpacing: '-0.035em' }}>
                   Sistema SACEL — del vehículo<br/>al reporte, en una plataforma.
                 </h3>
                 <p style={{ marginTop: 24, fontSize: 19, lineHeight: 1.6, color: `${p.inkSub}` }}>
                   Plataforma web para flotas con control de art. 25 del Código del Trabajo, bitácora de conductor, detección automática de infracciones y mantenciones programadas. Operador certificado por la Dirección del Trabajo.
                 </p>
-                <div style={{ marginTop: 32, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20, borderTop: `1px solid ${p.inkFaint}`, paddingTop: 24 }}>
+                <div style={{ marginTop: 32, display: 'grid', gridTemplateColumns: gcol('repeat(3,1fr)'), gap: 20, borderTop: `1px solid ${p.inkFaint}`, paddingTop: 24 }}>
                   {[
                     ['Conductores monitoreados', '12.4k'],
                     ['Seguimiento GPS · día',    '2.8M'],
@@ -402,7 +407,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
                   ].map(([k, v]) => (
                     <div key={k}>
                       <div style={{ ...mono, fontSize: 12, color: `${p.inkDim}`, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{k}</div>
-                      <div style={{ ...display, fontSize: 40, color: ink, marginTop: 6, letterSpacing: '-0.03em' }}>{v}</div>
+                      <div style={{ ...display, fontSize: fluid(24, 40), color: ink, marginTop: 6, letterSpacing: '-0.03em' }}>{v}</div>
                     </div>
                   ))}
                 </div>
@@ -417,13 +422,13 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
               // dashboard/analytics offerings as natural extensions of work already
               // happening, without inventing product names that don't exist yet.
               <div>
-                <h3 style={{ margin: 0, ...display, fontSize: 50, lineHeight: 1.04, letterSpacing: '-0.035em' }}>
+                <h3 style={{ margin: 0, ...display, fontSize: fluid(28, 50), lineHeight: 1.04, letterSpacing: '-0.035em' }}>
                   Si tu problema no está en el catálogo,<br/><span style={{ color: copper }}>lo diseñamos.</span>
                 </h3>
                 <p style={{ marginTop: 24, fontSize: 19, lineHeight: 1.6, color: `${p.inkSub}` }}>
                   El mismo equipo que construyó SACEL y el Tacógrafo 4.0 toma tu operación como punto de partida. Extendemos SACEL con módulos propios, levantamos dashboards a medida o integramos con los sistemas que ya usas. Hardware, firmware y software bajo un mismo techo — sin APIs externas ni pagos a terceros.
                 </p>
-                <div style={{ marginTop: 32, display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+                <div style={{ marginTop: 32, display: 'grid', gridTemplateColumns: gcol('repeat(2,1fr)'), gap: 14 }}>
                   {[
                     ['Dashboards a medida',  'KPIs y vistas específicas de tu operación'],
                     ['Extensiones SACEL',    'Módulos nuevos sobre la plataforma base'],
@@ -450,7 +455,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
                 <div style={{ ...mono, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: copper, marginBottom: 18, fontWeight: 600 }}>
                   — 04 · Próximamente
                 </div>
-                <h3 style={{ margin: 0, ...display, fontSize: 50, lineHeight: 1.04, letterSpacing: '-0.035em' }}>
+                <h3 style={{ margin: 0, ...display, fontSize: fluid(28, 50), lineHeight: 1.04, letterSpacing: '-0.035em' }}>
                   Proyecto en desarrollo.
                 </h3>
                 <p style={{ marginTop: 24, fontSize: 19, lineHeight: 1.6, color: `${p.inkSub}` }}>
@@ -484,7 +489,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: 48 }}>
           <div>
             <div style={{ ...mono, fontSize: 13, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 16 }}>— Capacidades</div>
-            <h2 style={{ margin: 0, ...display, fontSize: 50, lineHeight: 1, letterSpacing: '-0.035em' }}>
+            <h2 style={{ margin: 0, ...display, fontSize: fluid(28, 50), lineHeight: 1, letterSpacing: '-0.035em' }}>
               Más que productos:<br/>
               <span style={{ color: copper }}>ingeniería a pedido.</span>
             </h2>
@@ -492,7 +497,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
           <a style={{ color: p.inkSub, fontSize: 15, textDecoration: 'none', borderBottom: `1px solid ${p.inkDim}`, paddingBottom: 4 }}>Ver todos los servicios →</a>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(4,1fr)'), gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
           {[
             { num: '01', t: 'Instalaciones SACEL', d: 'Puesta en marcha, capacitación y soporte técnico en todo Chile.' },
             { num: '02', t: 'Servicio Técnico', d: 'Mantención preventiva y correctiva para tacógrafos y periféricos.' },
@@ -515,12 +520,12 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
 
       {/* ─── SECTORS ─── */}
       <section style={{ padding: `0 ${pad}px 100px` }}>
-        <div style={{ borderTop: `1px solid ${p.inkFaint}`, paddingTop: 48, display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 60, alignItems: 'start' }}>
+        <div style={{ borderTop: `1px solid ${p.inkFaint}`, paddingTop: 48, display: 'grid', gridTemplateColumns: gcol('1fr 2fr'), gap: 60, alignItems: 'start' }}>
           <div>
             <div style={{ ...mono, fontSize: 13, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 14 }}>— Industrias</div>
-            <h2 style={{ margin: 0, ...display, fontSize: 48, lineHeight: 1.02, letterSpacing: '-0.03em' }}>Donde resolvemos.</h2>
+            <h2 style={{ margin: 0, ...display, fontSize: fluid(27, 48), lineHeight: 1.02, letterSpacing: '-0.03em' }}>Donde resolvemos.</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(3,1fr)'), gap: 0 }}>
             {[
               ['Transporte', 'Flotas de bus, camión y taxi. Cumplimiento DT + telemetría.'],
               ['Minería', 'Control ambiental, instrumentación y sistemas de comunicación.'],
@@ -558,7 +563,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
           <div>
             <div style={{ ...mono, fontSize: 13, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 18, color: '#0a1a26' }}>— Hablemos</div>
-            <h2 style={{ margin: 0, ...display, fontSize: 80, letterSpacing: '-0.045em', lineHeight: 0.98, maxWidth: 900 }}>
+            <h2 style={{ margin: 0, ...display, fontSize: fluid(45, 80), letterSpacing: '-0.045em', lineHeight: 0.98, maxWidth: 900 }}>
               ¿Tu flota está lista para<br/>la próxima normativa?
             </h2>
             <p style={{ margin: '24px 0 0', fontSize: 20, maxWidth: 580, color: 'rgba(10,26,38,0.78)', lineHeight: 1.55 }}>
@@ -575,7 +580,7 @@ function V2DeepTeal({ density = 'comfortable', palette = 'deep-teal', typeface =
 
       {/* ─── FOOTER (unused — SiteFooter below) ─── */}
       <footer style={{ display: 'none', background: p.deep, padding: `60px ${pad}px 32px`, color: p.inkSub }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 40, paddingBottom: 40, borderBottom: `1px solid ${p.inkFaint}` }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gcol('1.4fr 1fr 1fr 1fr'), gap: 40, paddingBottom: 40, borderBottom: `1px solid ${p.inkFaint}` }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
               <AEMark size={28} surface={palette === 'light' ? 'light' : 'dark'}/>
@@ -627,6 +632,8 @@ function SacelDashMock({ accent = '#c07d2e', ink = '#e8e4dc', inkDim = 'rgba(232
         <span style={{ color: inkDim }}>SACEL · DASHBOARD</span>
         <span style={{ color: accent }}>● LIVE</span>
       </div>
+      {/* Mock decorativo del dashboard SACEL: los dos tiles caben de sobra en
+          350px y apilarlos rompería la lectura de "esto es un dashboard". */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
         {[['Conductores activos', '847'], ['Infracciones hoy', '3']].map(([k, v], i) => (
           <div key={i} style={{ padding: 14, background: 'rgba(192,125,46,0.06)', border: `1px solid ${accent}`, borderLeftWidth: 3 }}>

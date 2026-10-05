@@ -5,7 +5,8 @@
 function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
   // Last-updated date is intentionally hardcoded — legal owns this number, not the UI.
   const lastUpdated = 'Mayo 2026';
 
@@ -28,7 +29,7 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
 
       {/* ── Quick summary — non-legal, plain Spanish ── */}
       <SectionHead theme={theme} num="01" eyebrow="Resumen rápido" title="Lo esencial, en cuatro frases." accentWord="cuatro frases" border/>
-      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: gcol('repeat(4, 1fr)'), gap: 28 }}>
         {[
           ['Solo lo necesario', 'Pedimos los datos mínimos para responder tu consulta o entregar el servicio que contratas.'],
           ['No vendemos datos',  'No compartimos tu información con terceros con fines comerciales o publicitarios.'],
@@ -47,7 +48,7 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
       <SectionHead theme={theme} num="02" eyebrow="Detalle" title="Tratamiento de datos personales" accentWord="datos personales" border/>
       <article style={{ padding: `20px ${pad}px 60px`, maxWidth: 900 }}>
         <LegalBlock theme={theme} title="Qué datos recopilamos">
-          <p>Cuando completas el formulario de contacto pedimos tu nombre, empresa u organización, correo electrónico y teléfono. Adicionalmente registramos el contenido del mensaje y el tema de interés que seleccionas.</p>
+          <p>Este sitio no tiene formularios: el contacto es por correo electrónico o teléfono. Los datos que nos llegan son los que tú decides incluir en tu mensaje — normalmente tu nombre, empresa u organización, correo y teléfono, junto al contenido de la consulta.</p>
           <p>Cuando navegas el sitio, recopilamos datos técnicos básicos: tipo de navegador, sistema operativo, dirección IP, páginas visitadas y duración de la visita. Estos datos sirven para entender el comportamiento agregado y mejorar el sitio — no se cruzan con tu identidad personal.</p>
         </LegalBlock>
 
@@ -82,7 +83,7 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
             ['Marketing',   'Este sitio NO utiliza cookies de seguimiento publicitario ni de redes sociales de terceros.', '—',             'No aplica'],
           ].map(([cat, desc, dur, consent], i) => (
             <div key={i} style={{
-              display: 'grid', gridTemplateColumns: '160px 1fr 160px 200px',
+              display: 'grid', gridTemplateColumns: gcol('160px 1fr 160px 200px'),
               gap: 24, padding: '22px 24px',
               borderTop: i === 0 ? 'none' : `1px solid ${p.inkFaint}`,
               alignItems: 'baseline',
@@ -151,6 +152,7 @@ function LegalBlock({ theme, title, children }) {
   const { p, copper, display, mono } = theme;
   return (
     <div style={{ marginBottom: 48 }}>
+      {/* 40px es el canalón del signo §, no una columna de contenido: no colapsa. */}
       <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 24, marginBottom: 18 }}>
         <div style={{ ...mono, fontSize: 11, letterSpacing: '0.18em', color: copper, paddingTop: 4 }}>§</div>
         <h3 style={{ margin: 0, ...display, fontSize: 28, letterSpacing: '-0.02em', lineHeight: 1.15, color: p.ink }}>{title}</h3>

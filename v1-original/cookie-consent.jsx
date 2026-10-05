@@ -130,6 +130,11 @@ function CookieBanner({ initialOpen = true }) {
          style={{
       position: 'fixed', bottom: 20, right: 20, zIndex: 9000,
       width: 'min(420px, calc(100vw - 40px))',
+      // Sin box-sizing el `width` es sólo el contenido: los 24px de padding por
+      // lado y el borde se sumaban encima, dando una caja de 400px sobre un
+      // viewport de 390 — el banner quedaba con el borde izquierdo fuera de
+      // pantalla y el texto cortado.
+      boxSizing: 'border-box',
       background: tokens.bg, border: `1px solid ${tokens.inkFaint}`,
       borderTop: `2px solid ${copper}`,
       boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.18)',

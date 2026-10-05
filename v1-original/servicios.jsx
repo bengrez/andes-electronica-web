@@ -3,11 +3,16 @@ function Servicios({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
 
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
   const services = [
-    { label: '01 — INSTALACIÓN', title: 'Instalación y puesta en marcha', description: 'Equipos en terreno, activación de tacógrafos, integración con flota existente. Cobertura nacional.', meta: 'SLA · Nacional', href: '#' },
-    { label: '02 — SERVICIO TÉCNICO', title: 'Mantención y soporte', description: 'Taller propio, técnicos certificados, repuestos con stock. Reparación, calibración y soporte N2/N3.', meta: 'Taller Santiago · RMA', href: '#' },
-    { label: '03 — INGENIERÍA', title: 'Diseño y fabricación electrónica', description: 'PCBs, ensamble, testing y certificación para productos unitarios e industriales. Desde prototipo a serie.', meta: 'PCB · SMT · Testing', href: '#' },
-    { label: '04 — I+D', title: 'Investigación y desarrollo', description: 'Sistemas de control, reingeniería, electrónica aplicada a problemas específicos de industria.', meta: 'Control · Reversing', href: './Investigacion-Desarrollo.html' },
+    // Tres de estas tarjetas apuntaban a `href: '#'` — clickeables, sin destino.
+    // No existen páginas propias por servicio, así que llevan al contacto con el
+    // tema ya seleccionado, que es una acción real y no una promesa vacía.
+    { anchor: 'instalacion', label: '01 — INSTALACIÓN', title: 'Instalación y puesta en marcha', description: 'Equipos en terreno, activación de tacógrafos, integración con flota existente. Cobertura nacional.', meta: 'SLA · Nacional', href: './Contacto.html?topic=Servicio%20t%C3%A9cnico' },
+    { anchor: 'servicio-tecnico', label: '02 — SERVICIO TÉCNICO', title: 'Mantención y soporte', description: 'Taller propio, técnicos certificados, repuestos con stock. Reparación, calibración y soporte N2/N3.', meta: 'Taller Santiago · RMA', href: './Contacto.html?topic=Servicio%20t%C3%A9cnico' },
+    { anchor: 'diseno-fabricacion', label: '03 — INGENIERÍA', title: 'Diseño y fabricación electrónica', description: 'PCBs, ensamble, testing y certificación para productos unitarios e industriales. Desde prototipo a serie.', meta: 'PCB · SMT · Testing', href: './Contacto.html?topic=I%2BD%20%2F%20Dise%C3%B1o' },
+    { anchor: 'id', label: '04 — I+D', title: 'Investigación y desarrollo', description: 'Sistemas de control, reingeniería, electrónica aplicada a problemas específicos de industria.', meta: 'Control · Reversing', href: './Investigacion-Desarrollo.html' },
   ];
 
   return (
@@ -23,12 +28,19 @@ function Servicios({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
       />
 
       <CardGrid theme={theme} columns={2} paddingBottom={60}>
-        {services.map((s, i) => <Card key={i} theme={theme} {...s}/>)}
+        {/* El ancla permite que el footer enlace cada servicio a su tarjeta en
+            vez de mandar los 4 rótulos al tope de la misma página.
+            scrollMarginTop deja el destino bajo la nav sticky, no detrás. */}
+        {services.map((s, i) => (
+          <div key={i} id={s.anchor} style={{ display: 'grid', scrollMarginTop: 100 }}>
+            <Card theme={theme} {...s}/>
+          </div>
+        ))}
       </CardGrid>
 
       {/* Service-level commitments */}
       <SectionHead theme={theme} num="02" eyebrow="Compromisos" title="Lo que significa soporte local" accentWord="local" border/>
-      <div style={{ padding: '20px 72px 100px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('repeat(4, 1fr)'), gap: 20 }}>
         {[
           ['< 4h', 'Respuesta crítica', 'Fallos de flota activa, 24/7'],
           ['< 48h', 'Visita a terreno', 'En Región Metropolitana'],
@@ -36,7 +48,7 @@ function Servicios({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
           ['99.94%', 'Uptime plataforma', 'Último año operativo'],
         ].map(([v, t, d], i) => (
           <div key={i} style={{ background: p.surface, padding: 24, borderLeft: `2px solid ${copper}` }}>
-            <div style={{ ...display, fontSize: 36, letterSpacing: '-0.03em', color: copper, lineHeight: 1 }}>{v}</div>
+            <div style={{ ...display, fontSize: fluid(24, 36), letterSpacing: '-0.03em', color: copper, lineHeight: 1 }}>{v}</div>
             <div style={{ ...mono, fontSize: 10.5, color: p.ink, letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 12, fontWeight: 600 }}>{t}</div>
             <div style={{ fontSize: 13, color: p.inkSub, marginTop: 6, lineHeight: 1.5 }}>{d}</div>
           </div>

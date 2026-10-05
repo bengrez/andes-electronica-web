@@ -2,7 +2,9 @@
 function Tacografo40({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
+  const { isMobile } = useBreakpoint();
 
   return (
     <PageShell theme={theme} current="productos">
@@ -14,12 +16,12 @@ function Tacografo40({ palette = 'deep-teal', accent = 'copper', typeface = 'int
 
       <TacografoScroll theme={theme}/>
 
-      <section style={{ padding: `48px ${pad}px 56px`, display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 64, alignItems: 'center' }}>
+      <section style={{ padding: `48px ${pad}px 56px`, display: 'grid', gridTemplateColumns: gcol('1.15fr 1fr'), gap: 64, alignItems: 'center' }}>
         <div>
           <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 28, fontWeight: 500 }}>
             — Hardware · Tacógrafo 4.0
           </div>
-          <h1 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
+          <h1 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
             Tacógrafo <span style={{ color: copper }}>4.0</span> — registro certificado de conducción para flota de transporte público y carga.
           </h1>
           <div style={{ marginTop: 32, height: 1, width: 96, background: copper }}/>
@@ -34,13 +36,16 @@ function Tacografo40({ palette = 'deep-teal', accent = 'copper', typeface = 'int
             <a href="#specs" style={{ color: p.inkSub, textDecoration: 'none', borderBottom: `1px solid ${p.inkFaint}`, paddingBottom: 4 }}>Ver hoja técnica</a>
           </div>
         </div>
-        <div style={{ background: p.surface, border: `1px solid ${p.inkFaint}`, padding: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <TacoDevice w={360} accent={copper}/>
+        {/* El equipo se dibujaba a 360px fijos + 40 de padding por lado: 442px de
+            caja contra un viewport de 390, y era el único desborde que quedaba en
+            el sitio. */}
+        <div style={{ background: p.surface, border: `1px solid ${p.inkFaint}`, padding: isMobile ? 16 : 40, boxSizing: 'border-box', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <TacoDevice w={isMobile ? 270 : 360} accent={copper}/>
         </div>
       </section>
 
       <SectionHead theme={theme} num="02" eyebrow="Features" title="Qué lo hace distinto" accentWord="distinto" border/>
-      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 24 }}>
         {[
           ['Caja negra 365 días', 'Memoria flash con registro continuo. Extracción forense ante incidente.'],
           ['GNSS multiconstelación', 'GPS + GLONASS + Galileo. HDOP < 1.5 en operación típica.'],

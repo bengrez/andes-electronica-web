@@ -2,7 +2,9 @@
 function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
+  const { isMobile } = useBreakpoint();
 
   // Valid topic values must match exactly what the segmented chips render below
   // — if the URL param doesn't match, we fall back to the default.
@@ -19,18 +21,35 @@ function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter'
     return 'SACEL';
   }, []);
 
-  const [form, setForm] = React.useState({
-    name: '', company: '', email: '', phone: '', topic: initialTopic, topicOther: '', fleet: '', message: ''
-  });
-  const [status, setStatus] = React.useState('idle'); // idle | sending | sent
-
-  const submit = (e) => {
-    e.preventDefault();
-    setStatus('sending');
-    setTimeout(() => setStatus('sent'), 1100);
-  };
+  // El sitio es estático y no tiene backend, así que no hay formulario que enviar:
+  // el canal real es correo y teléfono (decisión de proyecto — ver CONTEXT.md).
+  // Las chips de tema no "envían" nada; arman el asunto y el cuerpo de un mailto:
+  // para que la consulta llegue ya clasificada y no haya promesa de respuesta
+  // que el sitio no pueda cumplir.
+  const [form, setForm] = React.useState({ topic: initialTopic, topicOther: '' });
 
   const update = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const CONTACT_EMAIL = 'contacto@andeselec.com';
+  const mailtoHref = React.useMemo(() => {
+    const tema = form.topic === 'Otro' && form.topicOther.trim()
+      ? form.topicOther.trim()
+      : form.topic;
+    const subject = `Consulta — ${tema}`;
+    const body = [
+      'Hola equipo de Andes Electrónica,',
+      '',
+      `Tema: ${tema}`,
+      '',
+      'Empresa / flota:',
+      'Tamaño de operación:',
+      'Teléfono de contacto:',
+      '',
+      'Consulta:',
+      '',
+    ].join('\n');
+    return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }, [form.topic, form.topicOther]);
 
   const input = {
     width: '100%', background: 'transparent', border: 'none',
@@ -51,7 +70,7 @@ function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter'
           <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 28, fontWeight: 500 }}>
             — Contacto
           </div>
-          <h1 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600 }}>
+          <h1 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600 }}>
             Para cotizaciones, soporte técnico y proyectos de ingeniería <span style={{ color: copper }}>a medida</span>.
           </h1>
           <div style={{ marginTop: 32, height: 1, width: 96, background: copper }}/>
@@ -59,171 +78,120 @@ function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter'
             Respondemos en menos de 24 horas hábiles con una propuesta concreta. Atención directa de un ingeniero — sin formularios genéricos ni intermediarios comerciales.
           </p>
           <div style={{ marginTop: 32, ...mono, fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: p.inkDim, fontWeight: 500 }}>
-            Santiago de Chile &nbsp;·&nbsp; Lun – Vie 08:30 – 18:00 &nbsp;·&nbsp; Soporte 24/7 para clientes con contrato
+            Santiago de Chile &nbsp;·&nbsp; Lun – Vie 08:00 – 17:00 &nbsp;·&nbsp; Soporte 24/7 para clientes con contrato
           </div>
         </section>
 
         {/* ─── FORM + SIDEBAR ─── */}
-        <section style={{ padding: `40px ${pad}px 100px`, display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 72, alignItems: 'start' }}>
+        <section style={{ padding: `40px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('1.4fr 1fr'), gap: 72, alignItems: 'start' }}>
           {/* Form */}
-          <div style={{ background: 'rgba(8,32,47,0.4)', border: `1px solid ${p.inkFaint}`, padding: 48, backdropFilter: 'blur(6px)' }}>
-            {status === 'sent' ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-                <div style={{ width: 56, height: 56, borderRadius: '50%', border: `2px solid ${copper}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 12L10 17L20 7" stroke={copper} strokeWidth="2.5" strokeLinecap="square"/></svg>
-                </div>
-                <h2 style={{ margin: 0, ...display, fontSize: 44, letterSpacing: '-0.03em' }}>Mensaje recibido.</h2>
-                <p style={{ margin: '16px auto 0', fontSize: 16, color: p.inkSub, maxWidth: 440, lineHeight: 1.55 }}>
-                  Un ingeniero de Andes Electrónica revisará tu solicitud y responderá a <span style={{ color: copper }}>{form.email || 'tu correo'}</span> en menos de 24 horas hábiles.
-                </p>
-                <div style={{ ...mono, fontSize: 11, letterSpacing: '0.16em', color: p.inkDim, marginTop: 28, textTransform: 'uppercase' }}>
-                  Ref · AE-{new Date().getTime().toString(36).toUpperCase().slice(-6)}
-                </div>
+          {/* El fondo estaba fijado a un teal oscuro translúcido, pensado para las
+              paletas oscuras. Sobre la paleta light quedaba un bloque gris sucio,
+              así que ahora se deriva de la paleta activa. */}
+          <div style={{
+            background: palette === 'light' ? p.surface : 'rgba(8,32,47,0.4)',
+            border: `1px solid ${p.inkFaint}`,
+            padding: isMobile ? 22 : 48, boxSizing: 'border-box', minWidth: 0,
+            backdropFilter: palette === 'light' ? 'none' : 'blur(6px)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, paddingBottom: 16, borderBottom: `1px solid ${p.inkFaint}` }}>
+              <div style={{ ...mono, fontSize: 11, letterSpacing: '0.2em', color: copper, textTransform: 'uppercase' }}>● Escríbenos directo</div>
+              <div style={{ ...mono, fontSize: 10, letterSpacing: '0.14em', color: p.inkDim }}>Sin intermediarios</div>
+            </div>
+
+            <p style={{ margin: '0 0 32px', fontSize: 16, lineHeight: 1.6, color: p.inkSub, maxWidth: 520 }}>
+              Elige el tema de tu consulta y abre un correo con el asunto y la plantilla ya armados. Llega directo a un ingeniero de Andes Electrónica.
+            </p>
+
+            <div style={{ marginBottom: 32 }}>
+              <div style={label} id="topic-label">01 — Tema de interés</div>
+              {/* Native radio group hidden visually but available to screen readers
+                  and keyboard users; the visible chips below double as <label>s so
+                  clicking a chip toggles its radio. role="radiogroup" gives AT a
+                  single container to navigate. El tema elegido arma el asunto del
+                  mailto — no se envía a ningún servidor. */}
+              <div role="radiogroup" aria-labelledby="topic-label"
+                   style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                {TOPICS.map(t => {
+                  const id = `topic-${t.replace(/[^a-z0-9]/gi, '')}`;
+                  const checked = form.topic === t;
+                  return (
+                    <label key={t} htmlFor={id} style={{
+                      ...mono, fontSize: 11, letterSpacing: '0.08em', padding: '9px 14px',
+                      background: checked ? copper : 'transparent',
+                      border: `1px solid ${checked ? copper : p.inkFaint}`,
+                      color: checked ? p.onAccent : p.inkSub,
+                      cursor: 'pointer', borderRadius: 2, fontWeight: 500,
+                      display: 'inline-flex', alignItems: 'center',
+                      transition: 'background .15s, border-color .15s, color .15s',
+                    }}>
+                      <input type="radio" name="topic" id={id} value={t}
+                        checked={checked}
+                        onChange={() => setForm({ ...form, topic: t })}
+                        style={{
+                          // Visually hidden but focusable — accessible-but-styled radio.
+                          position: 'absolute', width: 1, height: 1, margin: -1,
+                          padding: 0, border: 0, clip: 'rect(0 0 0 0)', overflow: 'hidden',
+                        }}/>
+                      {t}
+                    </label>
+                  );
+                })}
               </div>
-            ) : (
-              <form onSubmit={submit}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36, paddingBottom: 16, borderBottom: `1px solid ${p.inkFaint}` }}>
-                  <div style={{ ...mono, fontSize: 11, letterSpacing: '0.2em', color: copper, textTransform: 'uppercase' }}>● FORMULARIO DE CONTACTO</div>
-                  <div style={{ ...mono, fontSize: 10, letterSpacing: '0.14em', color: p.inkDim }}>CIFRADO · TLS 1.3</div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28, marginBottom: 28 }}>
-                  <div>
-                    <div style={label}>01 — Nombre</div>
-                    <input style={input} value={form.name} onChange={update('name')} required placeholder="Ej. María González"/>
-                  </div>
-                  <div>
-                    <div style={label}>02 — Empresa</div>
-                    <input style={input} value={form.company} onChange={update('company')} placeholder="Empresa o flota"/>
-                  </div>
-                  <div>
-                    <div style={label}>03 — Correo</div>
-                    <input type="email" style={input} value={form.email} onChange={update('email')} required placeholder="correo@empresa.cl"/>
-                  </div>
-                  <div>
-                    <div style={label}>04 — Teléfono</div>
-                    <input style={input} value={form.phone} onChange={update('phone')} placeholder="+56 9 ..."/>
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 28 }}>
-                  <div style={label} id="topic-label">05 — Tema de interés</div>
-                  {/* Native radio group hidden visually but available to screen readers
-                      and keyboard users; the visible chips below double as <label>s so
-                      clicking a chip toggles its radio. role="radiogroup" gives AT a
-                      single container to navigate. */}
-                  <div role="radiogroup" aria-labelledby="topic-label"
-                       style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                    {TOPICS.map(t => {
-                      const id = `topic-${t.replace(/[^a-z0-9]/gi, '')}`;
-                      const checked = form.topic === t;
-                      return (
-                        <label key={t} htmlFor={id} style={{
-                          ...mono, fontSize: 11, letterSpacing: '0.08em', padding: '9px 14px',
-                          background: checked ? copper : 'transparent',
-                          border: `1px solid ${checked ? copper : p.inkFaint}`,
-                          color: checked ? p.onAccent : p.inkSub,
-                          cursor: 'pointer', borderRadius: 2, fontWeight: 500,
-                          display: 'inline-flex', alignItems: 'center',
-                          transition: 'background .15s, border-color .15s, color .15s',
-                        }}>
-                          <input type="radio" name="topic" id={id} value={t}
-                            checked={checked}
-                            onChange={() => setForm({ ...form, topic: t })}
-                            style={{
-                              // Visually hidden but focusable — accessible-but-styled radio.
-                              position: 'absolute', width: 1, height: 1, margin: -1,
-                              padding: 0, border: 0, clip: 'rect(0 0 0 0)', overflow: 'hidden',
-                            }}/>
-                          {t}
-                        </label>
-                      );
-                    })}
-                  </div>
-                  {/* When the user picks "Otro" we expand a free-text field so the
-                      consulta doesn't land vague. Hidden when any specific topic is
-                      selected — the chip + free text together replace what a generic
-                      dropdown would have done. */}
-                  {form.topic === 'Otro' && (
-                    <div style={{ marginTop: 16 }}>
-                      <input
-                        style={input}
-                        value={form.topicOther || ''}
-                        onChange={update('topicOther')}
-                        placeholder="¿Sobre qué necesitas hablar? Ej. integración con un ERP, repuestos para un equipo antiguo…"
-                        aria-label="Describe brevemente tu consulta"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ marginBottom: 28 }}>
-                  <div style={label} id="fleet-label">06 — Tamaño de flota / operación (opcional)</div>
-                  <div role="radiogroup" aria-labelledby="fleet-label"
-                       style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                    {['< 10', '10–50', '50–200', '200–500', '500+', 'N/A'].map(t => {
-                      const id = `fleet-${t.replace(/[^a-z0-9]/gi, '')}`;
-                      const checked = form.fleet === t;
-                      return (
-                        <label key={t} htmlFor={id} style={{
-                          ...mono, fontSize: 11, letterSpacing: '0.06em', padding: '9px 14px',
-                          background: checked ? 'rgba(192,125,46,0.14)' : 'transparent',
-                          border: `1px solid ${checked ? copper : p.inkFaint}`,
-                          color: checked ? copper : p.inkSub,
-                          cursor: 'pointer', borderRadius: 2, fontWeight: 500,
-                          display: 'inline-flex', alignItems: 'center',
-                          transition: 'background .15s, border-color .15s, color .15s',
-                        }}>
-                          <input type="radio" name="fleet" id={id} value={t}
-                            checked={checked}
-                            onChange={() => setForm({ ...form, fleet: t })}
-                            style={{ position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, border: 0, clip: 'rect(0 0 0 0)', overflow: 'hidden' }}/>
-                          {t}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 32 }}>
-                  <div style={label}>07 — Mensaje</div>
-                  <textarea
-                    style={{ ...input, minHeight: 120, resize: 'vertical', paddingTop: 14, fontFamily: 'inherit' }}
-                    value={form.message} onChange={update('message')} required
-                    placeholder="Describe brevemente tu proyecto, normativa a cumplir, o situación actual..."
+              {/* When the user picks "Otro" we expand a free-text field so the
+                  consulta doesn't land vague. Lo escrito acá reemplaza al tema
+                  en el asunto del correo. */}
+              {form.topic === 'Otro' && (
+                <div style={{ marginTop: 16 }}>
+                  <input
+                    style={input}
+                    value={form.topicOther || ''}
+                    onChange={update('topicOther')}
+                    placeholder="¿Sobre qué necesitas hablar? Ej. integración con un ERP, repuestos para un equipo antiguo…"
+                    aria-label="Describe brevemente tu consulta"
                   />
                 </div>
+              )}
+            </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-                  <div style={{ ...mono, fontSize: 10.5, letterSpacing: '0.14em', color: p.inkDim, maxWidth: 340 }}>
-                    Al enviar aceptas nuestra política de privacidad. No compartimos datos con terceros.
-                  </div>
-                  <button type="submit" disabled={status === 'sending'} style={{
-                    background: copper, color: p.onAccent, border: 'none',
-                    padding: '16px 36px', fontSize: 14, fontWeight: 600,
-                    letterSpacing: '0.02em', cursor: status === 'sending' ? 'wait' : 'pointer',
-                    borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 10,
-                    opacity: status === 'sending' ? 0.7 : 1, ...body,
-                  }}>
-                    {status === 'sending' ? 'Enviando…' : <>Enviar mensaje <span>→</span></>}
-                  </button>
-                </div>
-              </form>
-            )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center' }}>
+              <a href={mailtoHref} style={{
+                background: copper, color: p.onAccent, border: `1px solid ${copper}`,
+                padding: '16px 32px', fontSize: 15, fontWeight: 600,
+                letterSpacing: '0.02em', textDecoration: 'none',
+                borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 10,
+                ...body,
+              }}>
+                Escribir a {CONTACT_EMAIL} <span aria-hidden="true">→</span>
+              </a>
+              <a href="tel:+56223478700" style={{
+                color: p.ink, textDecoration: 'none',
+                border: `1px solid ${p.inkFaint}`,
+                padding: '16px 28px', fontSize: 15, fontWeight: 500,
+                borderRadius: 2, display: 'inline-flex', alignItems: 'center', gap: 10,
+                ...body,
+              }}>
+                o llamar al +56 2 2347 8700
+              </a>
+            </div>
+
+            <div style={{ ...mono, fontSize: 10.5, letterSpacing: '0.14em', color: p.inkDim, marginTop: 24, lineHeight: 1.7, maxWidth: 460 }}>
+              La plantilla del correo ya trae los campos que necesitamos: empresa, tamaño de operación y un teléfono de contacto.
+            </div>
           </div>
 
           {/* Sidebar — direct channels */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 16 }}>— Contacto directo</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 36, letterSpacing: '-0.03em', lineHeight: 1.05 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(24, 36), letterSpacing: '-0.03em', lineHeight: 1.05 }}>
                 ¿Prefieres ir al grano?
               </h2>
             </div>
 
             {[
               { label: 'Correo',   value: 'contacto@andeselec.com', sub: 'Ventas, cotizaciones, soporte', href: 'mailto:contacto@andeselec.com', icon: '✉', iconLabel: 'Correo electrónico' },
-              { label: 'Teléfono', value: '+56 2 2347 8700',         sub: 'Lun a Vie · 8:30 – 18:00',      href: 'tel:+56223478700',           icon: '☏', iconLabel: 'Teléfono' },
+              { label: 'Teléfono', value: '+56 2 2347 8700',         sub: 'Lun a Vie · 8:00 – 17:00',      href: 'tel:+56223478700',           icon: '☏', iconLabel: 'Teléfono' },
             ].map((c, i) => (
               <a key={i} href={c.href}
                 aria-label={`${c.label}: ${c.value}`}
@@ -247,16 +215,16 @@ function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter'
 
         {/* ─── OFICINA + MAPA ─── */}
         <section style={{ background: p.surface, padding: `90px ${pad}px`, borderTop: `1px solid ${p.inkFaint}`, borderBottom: `1px solid ${p.inkFaint}`, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 64, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 1.2fr'), gap: 64, alignItems: 'start' }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 16 }}>— Oficina central</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 56, letterSpacing: '-0.035em', lineHeight: 1 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(31, 56), letterSpacing: '-0.035em', lineHeight: 1 }}>
                 Santiago, Chile.<br/><span style={{ color: copper }}>Ñuñoa.</span>
               </h2>
               <div style={{ marginTop: 36, display: 'grid', gridTemplateColumns: '1fr', gap: 22 }}>
                 {[
                   ['Dirección', 'Carmen Covarrubias 398\nÑuñoa, Región Metropolitana\nChile'],
-                  ['Horario', 'Lunes a Viernes\n8:30 – 18:00 hrs'],
+                  ['Horario', 'Lunes a Viernes\n8:00 – 17:00 hrs'],
                   ['Estacionamiento', 'Disponible para clientes\ncon cita previa'],
                 ].map(([k, v]) => (
                   <div key={k} style={{ borderTop: `1px solid ${p.inkFaint}`, paddingTop: 14 }}>
@@ -303,10 +271,10 @@ function Contacto({ palette = 'deep-teal', accent = 'copper', typeface = 'inter'
 
         {/* ─── FAQ ─── */}
         <section style={{ padding: `100px ${pad}px`, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 64, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 1.6fr'), gap: 64, alignItems: 'start' }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 16 }}>— Preguntas frecuentes</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 48, letterSpacing: '-0.035em', lineHeight: 1.02 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(27, 48), letterSpacing: '-0.035em', lineHeight: 1.02 }}>
                 Antes de escribirnos, quizás esto ayude.
               </h2>
             </div>

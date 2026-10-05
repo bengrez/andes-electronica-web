@@ -3,12 +3,14 @@ function Productos({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
 
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
   const products = [
     {
       label: '01 — PLATAFORMA',
       title: 'Sistema SACEL',
       description: 'Control de asistencia, horas de conducción y monitoreo de flota en tiempo real. Reportes DT-24 y detección de infracciones art. 25.',
-      meta: '5 000+ tacógrafos · 1 000+ buses',
+      meta: 'Plataforma web · Reportes DT-24 · Tiempo real',
       href: './Sistema-SACEL.html',
       featured: true,
     },
@@ -37,7 +39,7 @@ function Productos({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
         title="Hardware y plataforma de gestión de flota desarrollados íntegramente en Chile."
         accentWord="íntegramente"
         credentials="ISO 9001:2015 · Res. DT N°139/2009 · Res. Exenta N°1081 — DT"
-        subtitle="Tacógrafos certificados, plataforma de gestión de flota y periféricos integrados — un stack completo operando sobre más de 1 000 buses en el país."
+        subtitle="Tacógrafos certificados, plataforma de gestión de flota y periféricos integrados — un stack completo operando en flotas de transporte a lo largo del país."
       />
 
       <CardGrid theme={theme} columns={3} paddingBottom={60}>
@@ -46,7 +48,7 @@ function Productos({ palette = 'deep-teal', accent = 'copper', typeface = 'inter
 
       {/* Comparativa / por qué nosotros */}
       <SectionHead theme={theme} num="02" eyebrow="Ventaja operacional" title="Por qué integramos todo el stack" accentWord="todo" border/>
-      <div style={{ padding: '20px 72px 100px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 28 }}>
         {[
           ['Hardware propio', 'Diseñamos el circuito, elegimos los componentes. No dependemos de SKUs descontinuados ni de proveedores offshore.'],
           ['Firmware propio', 'Actualizaciones OTA, parches de seguridad, nuevos reportes — sin esperar una release externa.'],

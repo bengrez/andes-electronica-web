@@ -1,6 +1,73 @@
 // Shared primitives for all Andes Electrónica home variations
 // Each variation imports nothing — they read window.* globals. Keep styles scoped.
 
+// ─── Responsive primitives ────────────────────────────────────────────────────
+// Todo el sitio está escrito con estilos inline de React, que le ganan en
+// especificidad a cualquier hoja de estilos. Por eso las media queries no sirven
+// acá salvo a punta de `!important`: en vez de eso leemos los breakpoints desde
+// JS con matchMedia y ramificamos los objetos de estilo. Un solo listener por
+// breakpoint, compartido por todos los componentes que lo usen.
+const BREAKPOINTS = { mobile: 720, tablet: 1080 };
+
+function useBreakpoint() {
+  const read = () => {
+    if (typeof window === 'undefined') return { isMobile: false, isTablet: false };
+    const w = window.innerWidth;
+    return { isMobile: w <= BREAKPOINTS.mobile, isTablet: w <= BREAKPOINTS.tablet };
+  };
+  const [bp, setBp] = React.useState(read);
+  React.useEffect(() => {
+    const mMobile = window.matchMedia(`(max-width: ${BREAKPOINTS.mobile}px)`);
+    const mTablet = window.matchMedia(`(max-width: ${BREAKPOINTS.tablet}px)`);
+    const onChange = () => setBp(read());
+    mMobile.addEventListener('change', onChange);
+    mTablet.addEventListener('change', onChange);
+    onChange();
+    return () => {
+      mMobile.removeEventListener('change', onChange);
+      mTablet.removeEventListener('change', onChange);
+    };
+  }, []);
+  return bp;
+}
+
+// El padding lateral de página (72px de diseño) ahoga la lectura en pantallas
+// chicas. Cada primitiva recibe su `pad` por prop; esto lo reduce según ancho
+// sin obligar a tocar todas las páginas que lo pasan.
+function useResponsivePad(pad = 72) {
+  const { isMobile, isTablet } = useBreakpoint();
+  if (isMobile) return 20;
+  if (isTablet) return 40;
+  return pad;
+}
+
+// Las páginas están llenas de grillas escritas para desktop ('repeat(4, 1fr)',
+// '1.4fr 1fr'…). Este helper traduce esa misma especificación al ancho actual sin
+// obligar a reescribir cada layout: 1 columna en móvil, un máximo de 2 en tablet.
+// Si una grilla necesita otra cosa en tablet, se pasa como segundo argumento.
+function useGridCols() {
+  const { isMobile, isTablet } = useBreakpoint();
+  return (desktop, tabletOverride) => {
+    if (isMobile) return '1fr';
+    if (isTablet) {
+      if (tabletOverride) return tabletOverride;
+      const repeated = /^repeat\((\d+)\s*,/.exec(desktop);
+      if (repeated) return `repeat(${Math.min(2, Number(repeated[1]))}, minmax(0, 1fr))`;
+      return '1fr';
+    }
+    return desktop;
+  };
+}
+
+// Tipografía fluida: `clamp()` funciona perfecto en estilos inline, así que los
+// tamaños de display pasan de píxeles fijos a un rango. `min` es el tamaño en
+// móvil, `max` el de diseño en desktop.
+function fluid(min, max, minVw = 360, maxVw = 1440) {
+  const slope = (max - min) / (maxVw - minVw);
+  const intercept = min - slope * minVw;
+  return `clamp(${min}px, ${intercept.toFixed(2)}px + ${(slope * 100).toFixed(3)}vw, ${max}px)`;
+}
+
 // ─── Client logos (real images — white on transparent, intended for dark surfaces)
 const __r = (id, fallback) => (window.__resources && window.__resources[id]) || fallback;
 
@@ -260,7 +327,10 @@ if (typeof document !== 'undefined' && !document.getElementById('__andes_global_
   document.head.appendChild(css);
 }
 
-Object.assign(window, { ClientLogos, AEMark, TacoDevice, ArchDiagram, StatsStrip, CountUp });
+Object.assign(window, {
+  ClientLogos, AEMark, TacoDevice, ArchDiagram, StatsStrip, CountUp,
+  useBreakpoint, useResponsivePad, useGridCols, fluid, BREAKPOINTS,
+});
 
 // ─── Stats strip — reused on Home AND Empresa pages.
 // Each stat can be a static value or an interactive link (ISO 9001 → certificate
@@ -268,6 +338,8 @@ Object.assign(window, { ClientLogos, AEMark, TacoDevice, ArchDiagram, StatsStrip
 // full `theme` object plus the page padding.
 function StatsStrip({ theme, pad = 72 }) {
   const { p, copper, display } = theme;
+  const { isMobile, isTablet } = useBreakpoint();
+  const rpad = useResponsivePad(pad);
   const ref = React.useRef(null);
   const [started, setStarted] = React.useState(false);
   // Canonical 4 facts about the company. To add a 5th stat update gridTemplateColumns below.
@@ -288,8 +360,8 @@ function StatsStrip({ theme, pad = 72 }) {
   }, [started]);
 
   return (
-    <section ref={ref} style={{ background: p.surface, padding: `52px ${pad}px`, borderTop: `1px solid ${copper}55`, borderBottom: `1px solid ${p.inkFaint}` }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 36 }}>
+    <section ref={ref} style={{ background: p.surface, padding: `52px ${rpad}px`, borderTop: `1px solid ${copper}55`, borderBottom: `1px solid ${p.inkFaint}` }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: isMobile ? 28 : 36 }}>
         {stats.map((s, i) => {
           // Each stat is interactive when it has an href — promotes the item to
           // a real link with a subtle hover reaction (copper shift on the value,
@@ -297,7 +369,7 @@ function StatsStrip({ theme, pad = 72 }) {
           // visually identical to a plain div.
           const inner = (
             <React.Fragment>
-              <div className="stat-value" style={{ ...display, fontSize: 44, lineHeight: 1, color: p.ink, letterSpacing: '-0.035em', fontWeight: 600, fontVariantNumeric: 'tabular-nums', transition: 'color .25s ease, transform .25s ease', display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+              <div className="stat-value" style={{ ...display, fontSize: fluid(32, 44), lineHeight: 1, color: p.ink, letterSpacing: '-0.035em', fontWeight: 600, fontVariantNumeric: 'tabular-nums', transition: 'color .25s ease, transform .25s ease', display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
                 {s.staticVal}
                 {s.href && (
                   <span aria-hidden="true" className="stat-arrow" style={{ ...display, fontSize: 22, color: copper, opacity: 0, transform: 'translateX(-6px)', transition: 'opacity .25s ease, transform .25s ease' }}>→</span>
@@ -309,9 +381,14 @@ function StatsStrip({ theme, pad = 72 }) {
               )}
             </React.Fragment>
           );
+          // El separador vertical sólo tiene sentido entre columnas de la misma
+          // fila: en 1 columna desaparece, en 2 columnas se omite en cada primera
+          // celda de fila (índices pares).
+          const perRow = isMobile ? 1 : isTablet ? 2 : 4;
+          const firstInRow = i % perRow === 0;
           const cellStyle = {
-            borderLeft: i === 0 ? 'none' : `1px solid ${p.inkFaint}`,
-            paddingLeft: i === 0 ? 0 : 36,
+            borderLeft: firstInRow ? 'none' : `1px solid ${p.inkFaint}`,
+            paddingLeft: firstInRow ? 0 : 36,
           };
           if (s.href) {
             return (

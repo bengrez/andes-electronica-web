@@ -124,7 +124,8 @@ function StackDiagram({ theme }) {
 function InvestigacionDesarrollo({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
-  const pad = 72;
+  const pad = useResponsivePad(72);
+  const gcol = useGridCols();
 
   return (
     <PageShell theme={theme} current="investigacion">
@@ -141,7 +142,7 @@ function InvestigacionDesarrollo({ palette = 'deep-teal', accent = 'copper', typ
 
       {/* Areas */}
       <SectionHead theme={theme} num="01" eyebrow="Áreas de trabajo" title="Dónde concentramos el esfuerzo" accentWord="esfuerzo" border/>
-      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: gcol('1fr 1fr'), gap: 28 }}>
         {[
           ['Sistemas de control embebidos', 'Firmware de tiempo real, integración de sensores, control PID, comunicación industrial (CAN, RS-485, Modbus).'],
           ['Reingeniería de electrónica legacy', 'Recuperar funcionalidad de equipos sin soporte del fabricante original. Ingeniería inversa, redibujo de esquemáticos, fabricación de repuestos.'],
@@ -158,7 +159,7 @@ function InvestigacionDesarrollo({ palette = 'deep-teal', accent = 'copper', typ
 
       {/* Process */}
       <SectionHead theme={theme} num="02" eyebrow="Proceso" title="Cómo abordamos un proyecto nuevo" accentWord="nuevo" border/>
-      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: gcol('repeat(4, 1fr)'), gap: 16 }}>
         {[
           ['Brief técnico', 'Entendemos requisito, entorno operacional, normativa, volumen. Una semana.', '1–2 sem'],
           ['Factibilidad', 'Entregamos propuesta con arquitectura, cronograma y costo. Firma de alcance.', '2–3 sem'],
@@ -176,7 +177,7 @@ function InvestigacionDesarrollo({ palette = 'deep-teal', accent = 'copper', typ
 
       {/* Sample projects */}
       <SectionHead theme={theme} num="03" eyebrow="Proyectos" title="Ejemplos recientes" accentWord="recientes" border/>
-      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 28 }}>
         {[
           { y: '2024', t: 'Gateway de telemetría minero', d: 'Adquisición CAN/Modbus → plataforma cloud. Entorno +45°C, vibración severa.', m: 'Minería privada' },
           { y: '2023', t: 'Tacógrafo 4.0 — rediseño', d: 'Nueva generación con 4G nativo, GNSS multiconstelación y SmartCard.', m: 'Producto interno' },

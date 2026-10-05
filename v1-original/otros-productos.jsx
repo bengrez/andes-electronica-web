@@ -2,7 +2,8 @@
 function OtrosProductos({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
 
   // Placeholder products — will be replaced with real catalogue
   const items = [
@@ -42,7 +43,7 @@ function OtrosProductos({ palette = 'deep-teal', accent = 'copper', typeface = '
 
       {/* Placeholder note — remove when real content is added */}
       <SectionHead theme={theme} num="02" eyebrow="Catálogo en construcción" title="¿Buscas un equipo específico?" accentWord="específico"/>
-      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('1fr 1fr'), gap: 40 }}>
         <p style={{ margin: 0, fontSize: 17, color: p.inkSub, lineHeight: 1.65 }}>
           Esta página será actualizada con el listado completo de equipos complementarios — repuestos certificados, accesorios para tacógrafos, módulos de comunicación, sensores y desarrollos por demanda.
         </p>

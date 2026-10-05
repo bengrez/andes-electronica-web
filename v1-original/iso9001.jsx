@@ -7,7 +7,8 @@
 function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
   const isLight = palette === 'light';
 
   return (
@@ -29,7 +30,7 @@ function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
       {/* ── Certificate placeholder ── */}
       <SectionHead theme={theme} num="01" eyebrow="El documento" title="Certificado oficial" accentWord="oficial" border/>
-      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 56, alignItems: 'start' }}>
+      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: gcol('1.2fr 1fr'), gap: 56, alignItems: 'start' }}>
         {/* Visual slot for the actual cert PDF/image. Aspect ratio targets a
             typical A4 portrait scan; can be swapped to landscape later if the
             certificate file is wider. */}
@@ -126,7 +127,7 @@ function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
           Texto literal del alcance · Bureau Veritas Certification Chile
         </div>
       </div>
-      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: gcol('repeat(4, 1fr)'), gap: 28 }}>
         {[
           ['Venta',                    'Comercialización de tacógrafos y equipos electrónicos asociados al monitoreo de transporte.'],
           ['Diseño y desarrollo',      'Ingeniería de hardware y firmware de tacógrafos y periféricos, realizada en Chile.'],
@@ -143,7 +144,7 @@ function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
       {/* ── What this means for the customer ── */}
       <SectionHead theme={theme} num="03" eyebrow="Qué significa para ti" title="Beneficio concreto del cliente" accentWord="del cliente" border/>
-      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 80px`, display: 'grid', gridTemplateColumns: gcol('repeat(2, 1fr)'), gap: 28 }}>
         {[
           ['Procesos documentados',     'Cada etapa de un proyecto — desde la cotización hasta la entrega — sigue un procedimiento escrito y auditable. Nada depende de la memoria de una persona.'],
           ['Trazabilidad por unidad',   'Cada equipo fabricado tiene su número de serie y su historia: lote de componentes, fecha de ensamble, pruebas realizadas, técnico responsable.'],
@@ -160,7 +161,7 @@ function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
       {/* ── History / timeline placeholder ── */}
       <SectionHead theme={theme} num="04" eyebrow="Historia" title="Trayectoria de la certificación" accentWord="de la certificación" border/>
       <div style={{ padding: `20px ${pad}px 80px` }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, position: 'relative' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(4, 1fr)'), gap: 0, position: 'relative' }}>
           {/* Connector rail */}
           <div aria-hidden="true" style={{
             position: 'absolute', left: 24, right: 24, top: 30, height: 1,
@@ -188,7 +189,7 @@ function ISO9001({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
       {/* ── Cross-references to other credentials ── */}
       <SectionHead theme={theme} num="05" eyebrow="Otras acreditaciones" title="No es la única" accentWord="la única" border/>
-      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 28 }}>
+      <div style={{ padding: `20px ${pad}px 100px`, display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 28 }}>
         {[
           ['Resolución DT N°139/2009', 'Operador certificado por la Dirección del Trabajo para sistemas electrónicos de control de jornada y asistencia.'],
           ['Resolución Exenta N°1081 — DT',   'Tacógrafo Andes aprobado por la Dirección del Trabajo como equipo de registro de conducción para transporte.'],

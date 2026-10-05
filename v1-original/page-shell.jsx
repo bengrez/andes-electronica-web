@@ -3,6 +3,8 @@
 
 function PageHero({ theme, eyebrow, title, subtitle, accentWord, pad = 72, credentials, aside }) {
   const { p, copper, display, mono, body } = theme;
+  const { isTablet } = useBreakpoint();
+  const rpad = useResponsivePad(pad);
   // Inject copper accent word if present
   let titleNode = title;
   if (accentWord && typeof title === 'string') {
@@ -20,7 +22,9 @@ function PageHero({ theme, eyebrow, title, subtitle, accentWord, pad = 72, crede
       <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 28 }}>
         — {eyebrow}
       </div>
-      <h1 style={{ margin: 0, ...display, fontSize: aside ? 48 : 56, lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600 }}>
+      {/* De 56px fijos a un rango: en 390px de ancho el título se salía de la
+          pantalla y cortaba palabras largas ("íntegramente", "desarrollados"). */}
+      <h1 style={{ margin: 0, ...display, fontSize: aside ? fluid(30, 48) : fluid(32, 56), lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600, overflowWrap: 'break-word' }}>
         {titleNode}
       </h1>
       <div style={{ marginTop: 32, height: 1, width: 96, background: copper }}/>
@@ -37,9 +41,9 @@ function PageHero({ theme, eyebrow, title, subtitle, accentWord, pad = 72, crede
     </div>
   );
   return (
-    <section style={{ padding: `64px ${pad}px 56px`, position: 'relative' }}>
+    <section style={{ padding: `${isTablet ? 40 : 64}px ${rpad}px ${isTablet ? 40 : 56}px`, position: 'relative' }}>
       {aside ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(280px, 0.9fr)', gap: 56, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : 'minmax(0, 1.4fr) minmax(280px, 0.9fr)', gap: isTablet ? 36 : 56, alignItems: 'center' }}>
           {editorial}
           <div style={{ alignSelf: 'center' }}>{aside}</div>
         </div>
@@ -50,6 +54,8 @@ function PageHero({ theme, eyebrow, title, subtitle, accentWord, pad = 72, crede
 
 function SectionHead({ theme, num, eyebrow, title, accentWord, pad = 72, border = true }) {
   const { p, copper, display, mono } = theme;
+  const { isMobile, isTablet } = useBreakpoint();
+  const rpad = useResponsivePad(pad);
   let titleNode = title;
   if (accentWord && typeof title === 'string') {
     const parts = title.split(accentWord);
@@ -58,7 +64,7 @@ function SectionHead({ theme, num, eyebrow, title, accentWord, pad = 72, border 
       : [<span key={i} style={{ color: copper, fontStyle: 'italic' }}>{accentWord}</span>, part]);
   }
   return (
-    <div style={{ padding: `0 ${pad}px`, paddingTop: 90, paddingBottom: 40, display: 'grid', gridTemplateColumns: '80px 1fr', gap: 32, borderTop: border ? `1px solid ${p.inkFaint}` : 'none', marginTop: border ? 0 : 0 }}>
+    <div style={{ padding: `0 ${rpad}px`, paddingTop: isTablet ? 56 : 90, paddingBottom: isTablet ? 28 : 40, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '80px 1fr', gap: isMobile ? 10 : 32, borderTop: border ? `1px solid ${p.inkFaint}` : 'none', marginTop: border ? 0 : 0 }}>
       <div style={{ ...mono, fontSize: 11, color: copper, letterSpacing: '0.14em' }}>
         {num}
       </div>
@@ -66,7 +72,7 @@ function SectionHead({ theme, num, eyebrow, title, accentWord, pad = 72, border 
         <div style={{ ...mono, fontSize: 11, color: copper, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 500, marginBottom: 14 }}>
           {eyebrow}
         </div>
-        <h2 style={{ margin: 0, ...display, fontSize: 58, lineHeight: 0.98, letterSpacing: '-0.035em', maxWidth: 900 }}>
+        <h2 style={{ margin: 0, ...display, fontSize: fluid(30, 58), lineHeight: 1.02, letterSpacing: '-0.035em', maxWidth: 900, overflowWrap: 'break-word' }}>
           {titleNode}
         </h2>
       </div>
@@ -76,8 +82,13 @@ function SectionHead({ theme, num, eyebrow, title, accentWord, pad = 72, border 
 
 // Card grid used across index pages
 function CardGrid({ theme, columns = 3, gap = 28, children, pad = 72, paddingTop = 20, paddingBottom = 100 }) {
+  const { isMobile, isTablet } = useBreakpoint();
+  const rpad = useResponsivePad(pad);
+  // 3 columnas en 390px daban tarjetas de ~110px con las palabras cortadas a la
+  // mitad. Una columna en móvil, dos en tablet (o menos, si la página pidió menos).
+  const cols = isMobile ? 1 : isTablet ? Math.min(2, columns) : columns;
   return (
-    <div style={{ padding: `${paddingTop}px ${pad}px ${paddingBottom}px`, display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+    <div style={{ padding: `${paddingTop}px ${rpad}px ${isTablet ? Math.min(paddingBottom, 60) : paddingBottom}px`, display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap }}>
       {children}
     </div>
   );
@@ -85,6 +96,7 @@ function CardGrid({ theme, columns = 3, gap = 28, children, pad = 72, paddingTop
 
 function Card({ theme, label, title, description, meta, href, image, featured, children, icon }) {
   const { p, copper, accentSoft, display, mono, body, ease, durBase, durSlow, shadowCard, shadowHover, rMd } = theme;
+  const { isMobile } = useBreakpoint();
   const [hover, setHover] = React.useState(false);
   const borderColor = featured ? copper : p.inkFaint;
   const bg = featured ? `${copper}10` : p.surface;
@@ -94,7 +106,7 @@ function Card({ theme, label, title, description, meta, href, image, featured, c
        style={{
          display: 'flex', flexDirection: 'column', position: 'relative',
          background: bg, border: `1px solid ${hover ? copper : borderColor}`,
-         padding: 30, minHeight: 360,
+         padding: isMobile ? 22 : 30, minHeight: isMobile ? 0 : 360,
          textDecoration: 'none', color: p.ink,
          borderRadius: rMd,
          boxShadow: hover ? shadowHover : shadowCard,
@@ -142,10 +154,13 @@ function Card({ theme, label, title, description, meta, href, image, featured, c
 // Spec table (key → value rows)
 function SpecTable({ theme, rows, columns = 2 }) {
   const { p, copper, mono } = theme;
+  const { isMobile, isTablet } = useBreakpoint();
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: `0 48px` }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isTablet ? 1 : columns}, minmax(0, 1fr))`, gap: `0 48px` }}>
       {rows.map(([k, v], i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 14, padding: '14px 0', borderBottom: `1px solid ${p.inkFaint}`, alignItems: 'baseline' }}>
+        // En móvil la etiqueta de 140px dejaba al valor con ~5 caracteres útiles;
+        // ahí la fila pasa a etiqueta arriba y valor abajo.
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '140px 1fr', gap: isMobile ? 4 : 14, padding: '14px 0', borderBottom: `1px solid ${p.inkFaint}`, alignItems: 'baseline' }}>
           <div style={{ ...mono, fontSize: 10.5, color: p.inkDim, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{k}</div>
           <div style={{ fontSize: 14, color: p.ink, lineHeight: 1.45 }}>{v}</div>
         </div>
@@ -157,8 +172,9 @@ function SpecTable({ theme, rows, columns = 2 }) {
 // Breadcrumb — above the hero
 function Breadcrumb({ theme, items, pad = 72 }) {
   const { p, copper, mono } = theme;
+  const rpad = useResponsivePad(pad);
   return (
-    <div style={{ padding: `28px ${pad}px 0`, ...mono, fontSize: 11, letterSpacing: '0.14em', color: p.inkDim, textTransform: 'uppercase' }}>
+    <div style={{ padding: `28px ${rpad}px 0`, ...mono, fontSize: 11, letterSpacing: '0.14em', color: p.inkDim, textTransform: 'uppercase' }}>
       {items.map((it, i) => (
         <React.Fragment key={i}>
           {i > 0 && <span style={{ margin: '0 10px', color: p.inkFaint }}>/</span>}
@@ -174,6 +190,8 @@ function Breadcrumb({ theme, items, pad = 72 }) {
 // Simple CTA band — reused across pages
 function CTABand({ theme, title, accentWord, primary, secondary, eyebrow, pad = 72 }) {
   const { p, copper, display, mono, ease, durBase, shadowCTA, shadowCTAHover, rPill } = theme;
+  const { isTablet } = useBreakpoint();
+  const rpad = useResponsivePad(pad);
   let titleNode = title;
   if (accentWord && typeof title === 'string') {
     const parts = title.split(accentWord);
@@ -182,7 +200,7 @@ function CTABand({ theme, title, accentWord, primary, secondary, eyebrow, pad = 
       : [<span key={i} style={{ fontStyle: 'italic' }}>{accentWord}</span>, part]);
   }
   return (
-    <section style={{ background: copper, color: p.onAccent, padding: `90px ${pad}px`, position: 'relative', zIndex: 2, overflow: 'hidden' }}>
+    <section style={{ background: copper, color: p.onAccent, padding: `${isTablet ? 56 : 90}px ${rpad}px`, position: 'relative', zIndex: 2, overflow: 'hidden' }}>
       {/* subtle ring decoration (DS hero motif on dark — borrowed for the copper band) */}
       <div aria-hidden="true" style={{ position: 'absolute', right: -120, top: -120, width: 420, height: 420, border: `1px solid rgba(10,26,38,0.14)`, borderRadius: '50%' }}/>
       <div aria-hidden="true" style={{ position: 'absolute', right: 60, top: 60, width: 220, height: 220, border: `1px solid rgba(10,26,38,0.10)`, borderRadius: '50%' }}/>
@@ -191,7 +209,7 @@ function CTABand({ theme, title, accentWord, primary, secondary, eyebrow, pad = 
           {eyebrow && (
             <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 18, color: p.onAccent, opacity: 0.85 }}>— {eyebrow}</div>
           )}
-          <h2 style={{ margin: 0, ...display, fontSize: 64, letterSpacing: '-0.035em', lineHeight: 1.02 }}>
+          <h2 style={{ margin: 0, ...display, fontSize: fluid(32, 64), letterSpacing: '-0.035em', lineHeight: 1.04, overflowWrap: 'break-word' }}>
             {titleNode}
           </h2>
         </div>

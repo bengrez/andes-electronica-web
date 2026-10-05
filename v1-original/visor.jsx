@@ -2,7 +2,8 @@
 function VisorVI7GPS({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
 
   return (
     <PageShell theme={theme} current="productos">
@@ -12,12 +13,12 @@ function VisorVI7GPS({ palette = 'deep-teal', accent = 'copper', typeface = 'int
         { label: 'Visor VI7GPS' }
       ]}/>
 
-      <section style={{ padding: `48px ${pad}px 56px`, display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 64, alignItems: 'center' }}>
+      <section style={{ padding: `48px ${pad}px 56px`, display: 'grid', gridTemplateColumns: gcol('1.15fr 1fr'), gap: 64, alignItems: 'center' }}>
         <div>
           <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 28, fontWeight: 500 }}>
             — Periférico · Visor VI7GPS
           </div>
-          <h1 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
+          <h1 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 760, fontWeight: 600 }}>
             Visor <span style={{ color: copper }}>VI7GPS</span> — display dual de velocidad para cabina y pasajeros con integración CAN al tacógrafo.
           </h1>
           <div style={{ marginTop: 32, height: 1, width: 96, background: copper }}/>
@@ -33,7 +34,7 @@ function VisorVI7GPS({ palette = 'deep-teal', accent = 'copper', typeface = 'int
           </div>
         </div>
         <div style={{ background: '#000', border: `1px solid ${p.inkFaint}`, padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320 }}>
-          <div style={{ ...mono, fontSize: 180, fontWeight: 700, color: copper, letterSpacing: '-0.04em', lineHeight: 1 }}>078</div>
+          <div style={{ ...mono, fontSize: fluid(101, 180), fontWeight: 700, color: copper, letterSpacing: '-0.04em', lineHeight: 1 }}>078</div>
           <div style={{ ...mono, fontSize: 16, color: 'rgba(232,228,220,0.6)', letterSpacing: '0.24em', marginTop: 8 }}>KM/H</div>
           <div style={{ marginTop: 28, display: 'flex', gap: 14, ...mono, fontSize: 10, color: 'rgba(232,228,220,0.42)', letterSpacing: '0.16em' }}>
             <span>GNSS</span><span>·</span><span>CAN</span><span>·</span><span>OK</span>
@@ -42,7 +43,7 @@ function VisorVI7GPS({ palette = 'deep-teal', accent = 'copper', typeface = 'int
       </section>
 
       <SectionHead theme={theme} num="02" eyebrow="Features" title="Pensado para cabina y pasajero" border/>
-      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div style={{ padding: `20px ${pad}px 60px`, display: 'grid', gridTemplateColumns: gcol('repeat(3, 1fr)'), gap: 24 }}>
         {[
           ['Display dual', 'Cara frontal para conductor + cara posterior visible para pasajeros.'],
           ['Alertas configurables', 'Parpadeo a umbrales definidos por flota. 3 zonas (caution / warn / crit).'],

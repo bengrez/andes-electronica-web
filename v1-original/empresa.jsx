@@ -4,7 +4,8 @@
 function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' } = {}) {
   const theme = resolveTheme({ palette, accent, typeface });
   const { p, copper, display, mono, body } = theme;
-  const pad = 72;
+  const gcol = useGridCols();
+  const pad = useResponsivePad(72);
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', background: p.bg, backgroundAttachment: 'fixed', color: p.ink, ...body, position: 'relative' }}>
@@ -17,11 +18,11 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
           <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 28, fontWeight: 500 }}>
             — Empresa · Quiénes somos
           </div>
-          <h1 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600 }}>
+          <h1 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.06, letterSpacing: '-0.025em', maxWidth: 1000, fontWeight: 600 }}>
             Ingeniería electrónica chilena que <span style={{ color: copper }}>diseña, fabrica y mantiene</span> sus propios productos desde 1991.
           </h1>
           <div style={{ marginTop: 32, height: 1, width: 96, background: copper }}/>
-          <div style={{ marginTop: 36, display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 64, alignItems: 'start' }}>
+          <div style={{ marginTop: 36, display: 'grid', gridTemplateColumns: gcol('1.1fr 1fr'), gap: 64, alignItems: 'start' }}>
             <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: p.inkSub, maxWidth: 600 }}>
               Hardware y firmware propios para transporte, minería, defensa y telecomunicaciones. No revendemos equipos: diseñamos cada circuito, escribimos cada línea de firmware y damos soporte directo con ingenieros en Chile.
             </p>
@@ -42,10 +43,10 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
         {/* ─── HISTORIA · canonical paragraph + historic logo ─── */}
         <section style={{ padding: `100px ${pad}px 60px`, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 72, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('1.2fr 1fr'), gap: 72, alignItems: 'start' }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 18 }}>— Historia</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 44, lineHeight: 1.08, letterSpacing: '-0.03em', maxWidth: 720, fontWeight: 600 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(25, 44), lineHeight: 1.08, letterSpacing: '-0.03em', maxWidth: 720, fontWeight: 600 }}>
                 Una empresa de servicios, especializada en <span style={{ color: copper }}>soluciones tecnológicas</span>.
               </h2>
               <div style={{ marginTop: 28, height: 1, width: 64, background: copper }}/>
@@ -71,10 +72,10 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
         {/* ─── RUBROS ATENDIDOS ─── */}
         <section style={{ padding: `100px ${pad}px 60px`, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, marginBottom: 48 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 2fr'), gap: 64, marginBottom: 48 }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 18 }}>— Rubros atendidos</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 44, lineHeight: 1.08, letterSpacing: '-0.03em', fontWeight: 600 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(25, 44), lineHeight: 1.08, letterSpacing: '-0.03em', fontWeight: 600 }}>
                 Seis sectores, una misma <span style={{ color: copper }}>ingeniería</span>.
               </h2>
             </div>
@@ -82,7 +83,7 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
               Hemos construido capacidades específicas para cada sector — desde la normativa del transporte público hasta los protocolos de comunicación industriales de la minería.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(3,1fr)'), gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
             {[
               ['Transporte', 'Tacógrafos, SACEL y telemetría para flotas de buses y camiones.'],
               ['Minería', 'Electrónica especializada y reingeniería de equipamiento industrial.'],
@@ -102,10 +103,10 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
 
         {/* ─── CAPACIDADES ─── */}
         <section style={{ padding: `120px ${pad}px 80px`, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 80, marginBottom: 48 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 2fr'), gap: 80, marginBottom: 48 }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', marginBottom: 18 }}>— Capacidades</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 52, lineHeight: 1, letterSpacing: '-0.035em' }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(29, 52), lineHeight: 1, letterSpacing: '-0.035em' }}>
                 Qué hacemos<br/>
                 <span style={{ color: copper }}>bajo el mismo techo.</span>
               </h2>
@@ -115,7 +116,7 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gcol('repeat(2,1fr)'), gap: 1, background: p.inkFaint, border: `1px solid ${p.inkFaint}` }}>
             {[
               { n: '01', t: 'Diseño electrónico', d: 'PCBs de alta densidad, ruteo mixto analógico/digital, simulación y validación por ciclos térmicos y EMI.', details: ['Altium · KiCad', 'Prototipado propio', 'Simulación SPICE'] },
               { n: '02', t: 'Fabricación y ensamble', d: 'Producción de series unitarias e industriales. Programación de firmware en planta, pruebas funcionales completas.', details: ['SMT · THT', 'Unit y batch', 'QA por unidad'] },
@@ -136,7 +137,7 @@ function Empresa({ palette = 'deep-teal', accent = 'copper', typeface = 'inter' 
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
             <div>
               <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 18, color: p.onAccent }}>— Trabajemos juntos</div>
-              <h2 style={{ margin: 0, ...display, fontSize: 64, letterSpacing: '-0.045em', lineHeight: 0.98, maxWidth: 780 }}>
+              <h2 style={{ margin: 0, ...display, fontSize: fluid(36, 64), letterSpacing: '-0.045em', lineHeight: 0.98, maxWidth: 780 }}>
                 ¿Un proyecto que requiere<br/>electrónica seria?
               </h2>
               <p style={{ margin: '22px 0 0', fontSize: 17, maxWidth: 560, color: 'rgba(10,26,38,0.75)', lineHeight: 1.5 }}>
@@ -197,6 +198,11 @@ function CapabilityCard({ c, theme }) {
 // ─── Vertical scroll-reactive timeline
 function VerticalTimeline({ theme, pad }) {
   const { p, copper, display, mono } = theme;
+  // El riel vertical está anclado a `left: 369`, una coordenada calculada para
+  // la grilla de 4 columnas de cada hito. Cuando esa grilla colapsa a una sola
+  // columna el riel queda huérfano —y además sobresalía 1px del viewport—, así
+  // que la línea de tiempo se lee como lista cronológica apilada.
+  const { isTablet } = useBreakpoint();
   const milestones = [
     {
       year: '1991',
@@ -246,16 +252,16 @@ function VerticalTimeline({ theme, pad }) {
     <section style={{ padding: `120px ${pad}px 40px`, position: 'relative', zIndex: 2 }}>
       <div style={{ marginBottom: 80, maxWidth: 860 }}>
         <div style={{ ...mono, fontSize: 11, letterSpacing: '0.24em', color: copper, textTransform: 'uppercase', fontWeight: 500, marginBottom: 18 }}>— Historia</div>
-        <h2 style={{ margin: 0, ...display, fontSize: 56, lineHeight: 1.04, letterSpacing: '-0.04em' }}>
+        <h2 style={{ margin: 0, ...display, fontSize: fluid(31, 56), lineHeight: 1.04, letterSpacing: '-0.04em' }}>
           +30 años <span style={{ color: copper }}>construyendo</span> en Chile.
         </h2>
       </div>
 
       <div style={{ position: 'relative' }}>
         {/* vertical spine */}
-        <div style={{ position: 'absolute', left: 369, top: 0, bottom: 0, width: 2, background: p.inkFaint }}/>
+        {!isTablet && <div style={{ position: 'absolute', left: 369, top: 0, bottom: 0, width: 2, background: p.inkFaint }}/>}
         {/* progress fill */}
-        <TimelineSpine copper={copper} p={p}/>
+        {!isTablet && <TimelineSpine copper={copper} p={p}/>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 60 }}>
           {milestones.map((m, i) => (
@@ -307,6 +313,8 @@ function TimelineSpine({ copper, p }) {
 // ─── Individual milestone with IntersectionObserver reveal
 function Milestone({ m, theme, isLast }) {
   const { p, copper, display, mono } = theme;
+  const gcol = useGridCols();
+  const { isTablet } = useBreakpoint();
   const ref = React.useRef(null);
   const [active, setActive] = React.useState(false);
 
@@ -322,12 +330,14 @@ function Milestone({ m, theme, isLast }) {
 
   return (
     <div ref={ref} style={{
-      display: 'grid', gridTemplateColumns: '220px 120px 60px 1fr',
+      display: 'grid', gridTemplateColumns: gcol('220px 120px 60px 1fr'),
       gap: 0, alignItems: 'start',
       opacity: active ? 1 : 0.15,
       transform: active ? 'translateY(0)' : 'translateY(24px)',
       transition: 'opacity .7s ease, transform .7s ease',
-      minHeight: 280,
+      // 280px por hito reservaban espacio para las 4 columnas; apilados, ese
+      // alto sólo genera huecos.
+      minHeight: isTablet ? 0 : 280,
     }}>
       {/* image column — placeholder for hito visual */}
       <div style={{ paddingRight: 16, paddingTop: 4, display: 'flex', justifyContent: 'flex-end' }}>
@@ -346,7 +356,7 @@ function Milestone({ m, theme, isLast }) {
 
       {/* year column */}
       <div style={{ textAlign: 'right', paddingRight: 20, paddingTop: 4 }}>
-        <div style={{ ...display, fontSize: 44, lineHeight: 1, color: active ? p.ink : p.inkDim, letterSpacing: '-0.04em', transition: 'color .5s' }}>{m.year}</div>
+        <div style={{ ...display, fontSize: fluid(25, 44), lineHeight: 1, color: active ? p.ink : p.inkDim, letterSpacing: '-0.04em', transition: 'color .5s' }}>{m.year}</div>
         <div style={{ ...mono, fontSize: 10, letterSpacing: '0.18em', color: copper, textTransform: 'uppercase', marginTop: 8 }}>{m.tag}</div>
       </div>
 

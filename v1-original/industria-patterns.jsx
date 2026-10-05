@@ -314,6 +314,10 @@ function PatternSalud({ accent, ink, active }) {
 // Real geographic SVG (1640x280, horizontal) — we rotate -90deg to render vertically.
 // Pin positions are in the ORIGINAL horizontal coordinate space.
 function ChileMap({ accent, ink, inkSub, inkDim, inkFaint, surface }) {
+  // Este archivo quedó fuera del pase de grillas del sprint responsive: sólo se
+  // le aplicó tipografía fluida. El mapa + copy seguía en 2 columnas fijas.
+  const gcol = useGridCols();
+  const { isTablet } = useBreakpoint();
   const [hover, setHover] = React.useState(null);
   const [svgMarkup, setSvgMarkup] = React.useState(null);
   const containerRef = React.useRef(null);
@@ -352,7 +356,7 @@ function ChileMap({ accent, ink, inkSub, inkDim, inkFaint, surface }) {
   const rotPin = (n) => ({ ...n, rx: n.y, ry: 1640 - n.x });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 64, alignItems: 'center', minHeight: 600 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: gcol('1fr 1.2fr'), gap: isTablet ? 32 : 64, alignItems: 'center', minHeight: isTablet ? 0 : 600 }}>
       {/* Left: Map (rotated to vertical) */}
       <div ref={containerRef} style={{ position: 'relative', height: 620, display: 'flex', justifyContent: 'center' }}>
         <svg
@@ -429,7 +433,7 @@ function ChileMap({ accent, ink, inkSub, inkDim, inkFaint, surface }) {
         <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.22em', color: inkDim, textTransform: 'uppercase', fontWeight: 500, marginBottom: 24 }}>
           — Despliegue operacional
         </div>
-        <h3 style={{ margin: 0, fontFamily: '"DM Serif Display", serif', fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.02em', color: ink, fontWeight: 400, maxWidth: 520 }}>
+        <h3 style={{ margin: 0, fontFamily: '"DM Serif Display", serif', fontSize: fluid(24, 38), lineHeight: 1.1, letterSpacing: '-0.02em', color: ink, fontWeight: 400, maxWidth: 520 }}>
           Equipos en operación desde Antofagasta hasta Magallanes.
         </h3>
         <div style={{ marginTop: 28, height: 1, width: 64, background: accent }}/>
@@ -441,7 +445,7 @@ function ChileMap({ accent, ink, inkSub, inkDim, inkFaint, surface }) {
             { v: '15', sub: 'REGIONES', d: 'Cobertura nacional' },
             { v: '6', sub: 'INDUSTRIAS', d: 'Verticales activos' },
             { v: '140+', sub: 'OPERADORES', d: 'Flotas y plantas' },
-            { v: '5.000+', sub: 'EQUIPOS', d: 'En operación continua' },
+            { v: 'ISO 9001', sub: 'CALIDAD', d: 'Certificación vigente' },
           ].map((s, i) => (
             <div key={i} style={{
               padding: '20px 22px', borderRight: `1px solid ${inkFaint}`, borderBottom: `1px solid ${inkFaint}`,
