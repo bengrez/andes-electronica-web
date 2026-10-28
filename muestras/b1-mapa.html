@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muestra B1: Mapa | Andes Electrónica</title>
+<style>
+@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4.woff2") format("woff2"); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4-italica.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("../fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
+:root {
+  --noche: #000a33;
+  --azul: #00104f;
+  --marfil: #f2ede3;
+  --marfil-2: rgba(242, 237, 227, .72);
+  --cobre: #d08a3e;          /* sobre la noche: 6,9:1 */
+  --cobre-texto: #8f5213;    /* sobre el marfil: 5,9:1 */
+  --tinta-2: #3d4466;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--marfil); color: var(--azul); font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+body { margin: 0; overflow-x: hidden; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--cobre); outline-offset: 3px; }
+
+.portada { position: relative; min-height: min(100svh, 1000px); background: radial-gradient(130% 100% at 65% 70%, #0a1a5c 0%, var(--noche) 62%); color: var(--marfil); display: flex; flex-direction: column; overflow: hidden; }
+.portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* el mapa es más grande que la portada para que la cámara pueda inclinarse y desplazarse sin mostrar bordes */
+.camara { position: absolute; inset: -9% -7%; transform-origin: 60% 70%; will-change: transform; }
+.portada::before { /* legibilidad del texto: la noche se espesa a la izquierda */
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,10,51,.8) 0%, transparent 15%), linear-gradient(90deg, rgba(0,10,51,.9) 0%, rgba(0,10,51,.72) 34%, rgba(0,10,51,.2) 52%, transparent 64%);
+}
+.barra, .heroe, .pausa { position: relative; z-index: 2; }
+.barra { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 1.5rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2.5rem; }
+.marca { display: flex; align-items: center; gap: .75rem; text-decoration: none; margin-right: auto; }
+.marca img { width: 2.4rem; height: auto; filter: brightness(0) invert(1); }
+.marca b { font: 600 1.05rem/1 "DM Sans", sans-serif; letter-spacing: -.01em; }
+.nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.8rem; }
+.nav a { text-decoration: none; font-size: .95rem; color: var(--marfil-2); }
+.nav a:hover, .nav a[aria-current] { color: var(--marfil); }
+
+.heroe { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(3rem, 9vh, 7rem) 0 0; flex: 1; }
+.sello { font: 500 .8rem/1 "Plex Mono", monospace; color: var(--cobre); letter-spacing: .02em; }
+h1 { margin-top: 1.5rem; font: 400 clamp(2.7rem, 6.4vw, 5.6rem)/1 "Source Serif", Georgia, serif; font-optical-sizing: auto; letter-spacing: -.025em; max-width: 12ch; }
+h1 em { font-style: italic; color: var(--cobre); }
+.entrada { margin-top: 1.75rem; font-size: clamp(1.08rem, 1.5vw, 1.25rem); color: var(--marfil-2); max-width: 31rem; }
+.acciones { margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; }
+.boton { display: inline-flex; padding: .9rem 1.5rem; background: var(--marfil); color: var(--azul); text-decoration: none; font-weight: 500; border-radius: 999px; }
+.boton:hover { background: #fff; }
+.enlace { color: var(--marfil); text-decoration: none; border-bottom: 1px solid var(--cobre); padding-bottom: .2rem; }
+
+@media (max-width: 47.5rem) {
+  .heroe { padding-bottom: 26rem; }
+  .portada::before { background: linear-gradient(180deg, rgba(0,10,51,.88) 0%, rgba(0,10,51,.7) 45%, transparent 68%); }
+}
+.pausa { align-self: flex-end; margin: 0 1.25rem 1.25rem 0; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--marfil-2); background: rgba(0,10,51,.5); border: 1px solid rgba(242,237,227,.25); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.pausa:hover { color: var(--marfil); border-color: var(--marfil-2); }
+
+.seccion { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(4.5rem, 10vw, 8rem) 0; }
+.cabeza { display: grid; gap: 1.25rem 4rem; grid-template-columns: 1fr; align-items: end; }
+@media (min-width: 52rem) { .cabeza { grid-template-columns: 6fr 5fr; } }
+h2 { font: 400 clamp(2rem, 4vw, 3.3rem)/1.05 "Source Serif", Georgia, serif; letter-spacing: -.02em; }
+h2 em { font-style: italic; color: var(--cobre-texto); }
+.cabeza p { color: var(--tinta-2); }
+.fichas { margin-top: 4rem; display: grid; gap: 3rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.fichas li { border-top: 1px solid rgba(0,16,79,.2); padding-top: 1.5rem; }
+.fichas h3 { font: 500 1.6rem/1.15 "Source Serif", Georgia, serif; letter-spacing: -.01em; }
+.fichas p { margin-top: .75rem; color: var(--tinta-2); }
+
+.pie { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 2.5rem 0 6rem; border-top: 1px solid rgba(0,16,79,.15); font-size: .85rem; color: var(--tinta-2); display: grid; gap: .4rem; }
+.cambio { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 5; display: flex; gap: .25rem; padding: .3rem; background: rgba(0,16,79,.92); border-radius: 999px; font: 500 .78rem/1 "Plex Mono", monospace; box-shadow: 0 0 0 1px rgba(242,237,227,.2); }
+.cambio a { color: #e9e5dc; text-decoration: none; white-space: nowrap; padding: .5rem .85rem; border-radius: 999px; }
+.cambio a[aria-current] { background: #f3efe6; color: var(--azul); }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <div class="camara" aria-hidden="true"><canvas id="flota" data-relieve="../img/relieve-noche.webp"></canvas></div>
+  <canvas id="flota-reg" aria-hidden="true"></canvas>
+  <header class="barra">
+    <a class="marca" href="#"><img src="../img/logo-andes.svg" alt="" width="38" height="34"><b>Andes Electrónica</b></a>
+    <nav class="nav" aria-label="Principal"><ul>
+      <li><a href="#" aria-current="page">Inicio</a></li><li><a href="#">Productos</a></li><li><a href="#">SACEL</a></li>
+      <li><a href="#">Servicios</a></li><li><a href="#">Empresa</a></li><li><a href="#">Contacto</a></li>
+    </ul></nav>
+  </header>
+  <main class="heroe">
+    <p class="sello">Andes Electrónica · desde 1991</p>
+    <h1>Cada viaje llega a <em>SACEL.</em></h1>
+    <p class="entrada">Tacógrafos a bordo que registran cada viaje y una plataforma que lo reúne todo. Electrónica diseñada y mantenida en Chile.</p>
+    <div class="acciones">
+      <a class="boton" href="#">Conocer SACEL</a>
+      <a class="enlace" href="#">Ver productos</a>
+    </div>
+  </main>
+  <button class="pausa" type="button" aria-pressed="false">Pausar animación</button>
+</div>
+
+<section class="seccion" aria-labelledby="t-prod">
+  <div class="cabeza">
+    <h2 id="t-prod">Del vehículo <em>a la plataforma.</em></h2>
+    <p>Hardware certificado a bordo y una plataforma que deja los datos listos para cumplir la norma y operar la flota.</p>
+  </div>
+  <ul class="fichas">
+    <li><h3>Tacógrafo 4.0</h3><p>Registro certificado de conducción con GNSS, SmartCard, CAN bus y transmisión cifrada.</p></li>
+    <li><h3>Sistema SACEL</h3><p>Asistencia, horas de conducción y monitoreo de flota en tiempo real. Reportes DT-24.</p></li>
+    <li><h3>Visor VI7GPS</h3><p>Display dual de velocidad para cabina y pasajeros, con alertas visuales de excesos.</p></li>
+  </ul>
+</section>
+
+<footer class="pie">
+  <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago</p>
+  <p>Mapa de la portada: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL). Relieve: Terrain Tiles (Mapzen, AWS Open Data).</p>
+</footer>
+
+<nav class="cambio" aria-label="Muestras">
+  <a href="b1-mapa.html" aria-current="page">B1 · Mapa</a><a href="b2-cordillera.html">B2 · Cordillera</a><a href="b-flota.html">B · anterior</a>
+</nav>
+
+<script src="../datos/h25.js"></script>
+<script src="../flota-sim.js"></script>
+<script src="../flota-mapa.js"></script>
+</body>
+</html>

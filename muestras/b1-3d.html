@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muestra B1 3D: Descenso | Andes Electrónica</title>
+<meta name="color-scheme" content="dark light">
+<script>
+/* Antes de pintar: tema (el elegido, o el del sistema) y tamaño inicial del logo. */
+(function () {
+  var d = document.documentElement, t = null;
+  try { t = localStorage.getItem("tema"); } catch (e) {}
+  if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+  d.setAttribute("data-tema", t);
+  d.style.setProperty("--logo", matchMedia("(prefers-reduced-motion: reduce)").matches ? "1.7" : "4");
+})();
+</script>
+<style>
+@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4.woff2") format("woff2"); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4-italica.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("../fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
+/* ─── temas ─── */
+:root, :root[data-tema="oscuro"] {
+  --pagina: #01030f;          /* fondo de las secciones */
+  --tinta: #f2ede3;
+  --tinta-2: rgba(242, 237, 227, .74);
+  --linea: rgba(242, 237, 227, .16);
+  --acento: #d99a55;          /* cobre sobre la noche: 7,9:1 */
+  --boton: #f2ede3; --boton-tinta: #00104f;
+  --cielo: linear-gradient(180deg, #000004 0%, #01030f 55%, #040b2e 100%);
+  --velo: linear-gradient(180deg, rgba(0,2,12,.8) 0%, transparent 16%), linear-gradient(90deg, rgba(0,2,12,.9) 0%, rgba(0,2,12,.72) 34%, rgba(0,2,12,.2) 52%, transparent 64%);
+  --velo-movil: linear-gradient(180deg, rgba(0,2,12,.9) 0%, rgba(0,2,12,.75) 62%, transparent 86%);
+  --logo-filtro: brightness(0) invert(1);
+  --cambio-fondo: rgba(242,237,227,.1);
+}
+:root[data-tema="claro"] {
+  --pagina: #f3efe6;
+  --tinta: #00104f;
+  --tinta-2: #3d4466;
+  --linea: rgba(0, 16, 79, .16);
+  --acento: #8f5213;          /* cobre sobre el marfil: 5,9:1 */
+  --boton: #00104f; --boton-tinta: #f3efe6;
+  --cielo: linear-gradient(180deg, #8db8e0 0%, #cfe0ee 55%, #f4e6cc 100%);
+  --velo: linear-gradient(180deg, rgba(246,243,236,.85) 0%, transparent 16%), linear-gradient(90deg, rgba(246,243,236,.94) 0%, rgba(246,243,236,.8) 34%, rgba(246,243,236,.25) 52%, transparent 64%);
+  --velo-movil: linear-gradient(180deg, rgba(246,243,236,.95) 0%, rgba(246,243,236,.85) 62%, transparent 86%);
+  --logo-filtro: none;
+  --cambio-fondo: rgba(0,16,79,.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--pagina); color: var(--tinta); font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+body { margin: 0; overflow-x: hidden; }
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+
+/* ─── portada con descenso: queda fija mientras se recorre .recorrido ─── */
+.recorrido { height: 420vh; }   /* descenso en la primera mitad; la segunda, con la cámara quieta */
+.portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
+.portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }
+.camara { position: absolute; inset: -9% -7%; display: none; }
+.sin-3d .recorrido, .sin-3d .portada { height: auto; }
+.sin-3d .portada { position: relative; min-height: min(100svh, 1000px); }
+.sin-3d #flota3d, .sin-3d #cielo { display: none; }
+.sin-3d .camara { display: block; }
+@media (prefers-reduced-motion: reduce) { .recorrido { height: auto; } .portada { position: relative; } }
+
+.barra, .heroe, .pausa { position: relative; z-index: 2; }
+.barra { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 1.25rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; }
+.marca { display: flex; align-items: center; gap: .8rem; text-decoration: none; margin-right: auto; }
+.marca img { width: calc(2.4rem * var(--logo, 1)); height: auto; filter: var(--logo-filtro); transition: width .08s linear; }
+.marca b { font: 600 1.05rem/1 "DM Sans", sans-serif; letter-spacing: -.01em; }
+.nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.6rem; }
+.nav a { text-decoration: none; font-size: .95rem; color: var(--tinta-2); }
+.nav a:hover, .nav a[aria-current] { color: var(--tinta); }
+.tema { font: 500 .78rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: none; border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.tema:hover { color: var(--tinta); border-color: var(--tinta-2); }
+
+.heroe { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(2rem, 7vh, 6rem) 0 0; flex: 1; }
+.sello { font: 500 .8rem/1 "Plex Mono", monospace; color: var(--acento); letter-spacing: .02em; }
+h1 { margin-top: 1.5rem; font: 400 clamp(2.7rem, 6.4vw, 5.6rem)/1 "Source Serif", Georgia, serif; letter-spacing: -.025em; max-width: 12ch; }
+h1 em { font-style: italic; color: var(--acento); }
+.entrada { margin-top: 1.75rem; font-size: clamp(1.08rem, 1.5vw, 1.25rem); color: var(--tinta-2); max-width: 31rem; }
+.acciones { margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; }
+.boton { display: inline-flex; padding: .9rem 1.5rem; background: var(--boton); color: var(--boton-tinta); text-decoration: none; font-weight: 500; border-radius: 999px; }
+.enlace { text-decoration: none; border-bottom: 1px solid var(--acento); padding-bottom: .2rem; }
+.pausa { align-self: flex-end; margin: 0 1.25rem 1.25rem 0; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+@media (max-width: 47.5rem) {
+  .portada::before { background: var(--velo-movil); }
+  .marca img { width: calc(1.6rem * var(--logo, 1)); }
+  .barra { padding-top: .9rem; }
+  .heroe { padding-top: 1rem; }
+  .sin-3d .heroe { padding-bottom: 26rem; }
+}
+
+/* ─── sección de ejemplo y pie ─── */
+.seccion { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(4.5rem, 10vw, 8rem) 0; }
+.cabeza { display: grid; gap: 1.25rem 4rem; grid-template-columns: 1fr; align-items: end; }
+@media (min-width: 52rem) { .cabeza { grid-template-columns: 6fr 5fr; } }
+h2 { font: 400 clamp(2rem, 4vw, 3.3rem)/1.05 "Source Serif", Georgia, serif; letter-spacing: -.02em; }
+h2 em { font-style: italic; color: var(--acento); }
+.cabeza p, .fichas p { color: var(--tinta-2); }
+.fichas { margin-top: 4rem; display: grid; gap: 3rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.fichas li { border-top: 1px solid var(--linea); padding-top: 1.5rem; }
+.fichas h3 { font: 500 1.6rem/1.15 "Source Serif", Georgia, serif; letter-spacing: -.01em; }
+.fichas p { margin-top: .75rem; }
+.pie { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 2.5rem 0 6rem; border-top: 1px solid var(--linea); font-size: .85rem; color: var(--tinta-2); display: grid; gap: .4rem; }
+
+.cambio { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 5; display: flex; gap: .25rem; padding: .3rem; background: rgba(0,16,79,.92); border-radius: 999px; font: 500 .78rem/1 "Plex Mono", monospace; box-shadow: 0 0 0 1px rgba(242,237,227,.2); }
+.cambio a { color: #e9e5dc; text-decoration: none; white-space: nowrap; padding: .5rem .85rem; border-radius: 999px; }
+.cambio a[aria-current] { background: #f3efe6; color: #00104f; }
+</style>
+</head>
+<body>
+
+<div class="recorrido">
+<div class="portada">
+  <canvas id="cielo" aria-hidden="true"></canvas>
+  <canvas id="flota3d" aria-hidden="true" data-alturas="../img/alturas-3d.png"
+          data-relieve-oscuro="../img/relieve-3d-noche.webp" data-relieve-claro="../img/relieve-3d-dia.webp"></canvas>
+  <div class="camara" aria-hidden="true"><canvas id="flota" data-relieve-oscuro="../img/relieve-noche.webp" data-relieve-claro="../img/relieve-dia.webp"></canvas></div>
+  <canvas id="flota-reg" aria-hidden="true"></canvas>
+  <header class="barra">
+    <a class="marca" href="#"><img src="../img/logo-andes.svg" alt="" width="38" height="34"><b>Andes Electrónica</b></a>
+    <nav class="nav" aria-label="Principal"><ul>
+      <li><a href="#" aria-current="page">Inicio</a></li><li><a href="#">Productos</a></li><li><a href="#">SACEL</a></li>
+      <li><a href="#">Servicios</a></li><li><a href="#">Empresa</a></li><li><a href="#">Contacto</a></li>
+    </ul></nav>
+    <button class="tema" type="button">Tema claro</button>
+  </header>
+  <main class="heroe">
+    <p class="sello">Andes Electrónica · desde 1991</p>
+    <h1>Cada viaje llega a <em>SACEL.</em></h1>
+    <p class="entrada">Tacógrafos a bordo que registran cada viaje y una plataforma que lo reúne todo. Electrónica diseñada y mantenida en Chile.</p>
+    <div class="acciones">
+      <a class="boton" href="#">Conocer SACEL</a>
+      <a class="enlace" href="#">Ver productos</a>
+    </div>
+  </main>
+  <button class="pausa" type="button" aria-pressed="false">Pausar animación</button>
+</div>
+</div>
+
+<section class="seccion" aria-labelledby="t-prod">
+  <div class="cabeza">
+    <h2 id="t-prod">Del vehículo <em>a la plataforma.</em></h2>
+    <p>Hardware certificado a bordo y una plataforma que deja los datos listos para cumplir la norma y operar la flota.</p>
+  </div>
+  <ul class="fichas">
+    <li><h3>Tacógrafo 4.0</h3><p>Registro certificado de conducción con GNSS, SmartCard, CAN bus y transmisión cifrada.</p></li>
+    <li><h3>Sistema SACEL</h3><p>Asistencia, horas de conducción y monitoreo de flota en tiempo real. Reportes DT-24.</p></li>
+    <li><h3>Visor VI7GPS</h3><p>Display dual de velocidad para cabina y pasajeros, con alertas visuales de excesos.</p></li>
+  </ul>
+</section>
+
+<footer class="pie">
+  <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago</p>
+  <p>Mapa de la portada: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL). Relieve: Terrain Tiles (Mapzen, AWS Open Data).</p>
+</footer>
+
+<nav class="cambio" aria-label="Muestras">
+  <a href="b1-3d.html" aria-current="page">B1 · Descenso 3D</a><a href="b1-mapa.html">B1 · Mapa 2D</a>
+</nav>
+
+<script>
+/* Botón de tema: alterna claro y oscuro, y lo recuerda. */
+(function () {
+  var d = document.documentElement, b = document.querySelector(".tema");
+  function rotular() { b.textContent = d.getAttribute("data-tema") === "claro" ? "Tema oscuro" : "Tema claro"; }
+  b.addEventListener("click", function () {
+    var t = d.getAttribute("data-tema") === "claro" ? "oscuro" : "claro";
+    d.setAttribute("data-tema", t);
+    try { localStorage.setItem("tema", t); } catch (e) {}
+    rotular();
+  });
+  rotular();
+})();
+</script>
+<script src="../datos/h25.js"></script>
+<script src="../flota-sim.js"></script>
+<script src="../flota-mapa.js"></script>
+<script src="../flota-3d.js"></script>
+</body>
+</html>

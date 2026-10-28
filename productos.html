@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<!-- cabeza -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
+<link rel="stylesheet" href="base.css">
+<script>
+/* Antes de pintar: tema elegido (o el del sistema). */
+(function () {
+  var d = document.documentElement, t = null;
+  try { t = localStorage.getItem("tema"); } catch (e) {}
+  if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+  d.setAttribute("data-tema", t);
+})();
+</script>
+<!-- /cabeza -->
+<title>Productos | Andes Electrónica</title>
+<meta name="description" content="El Tacógrafo Electrónico Andes 4.0 y sus periféricos: tarjeta SmartCard, display alfanumérico y visor VI7GPS. Los datos que necesita SACEL, con la normativa vigente.">
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+<div class="cabecera">
+<!-- barra -->
+<header class="barra">
+  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img src="img/logo-andes.svg" alt="" width="38" height="34"><b>Andes Electrónica</b></a>
+  <nav class="nav" aria-label="Principal"><ul>
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="productos.html" aria-current="page">Productos</a></li>
+    <li><a href="sacel.html">SACEL</a></li>
+    <li><a href="servicios.html">Servicios</a></li>
+    <li><a href="empresa.html">Empresa</a></li>
+    <li><a href="contacto.html">Contacto</a></li>
+  </ul></nav>
+  <button class="tema" type="button">Tema claro</button>
+</header>
+<!-- /barra -->
+  <div class="titulo" role="region" aria-label="Presentación">
+    <p class="sello">Productos</p>
+    <h1>El tacógrafo <em>y lo que se conecta a él.</em></h1>
+    <p class="entrada">El Tacógrafo 4.0 y sus periféricos reúnen a bordo la información que necesita el Sistema SACEL y permiten cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes. Diseñados y fabricados en Chile.</p>
+  </div>
+</div>
+
+<main id="contenido">
+  <!-- Exploración 3D (tacografo-3d.js). Sin JS, o mientras carga, se ve la foto con la lista de capacidades. -->
+  <section class="taco-story" id="tacografo" aria-labelledby="t-taco">
+    <div class="taco-stage">
+      <div class="taco-copy">
+        <p class="sello"><span data-step-number>01 / 04</span> · <span data-step-caption>Tacógrafo Electrónico · TAE-4.0</span></p>
+        <h2 id="t-taco" data-title>Tacógrafo 4.0</h2>
+        <p data-description>Registra la velocidad y los parámetros de conducción del vehículo y su conductor. Desarrollado específicamente para buses y camiones.</p>
+      </div>
+      <div class="taco-model-area">
+        <figure class="taco-foto"><img src="img/fotos/tacografo.webp" alt="Tacógrafo Electrónico Andes 4.0 con una tarjeta SmartCard" width="1400" height="875"></figure>
+        <canvas role="img" aria-label="Tacógrafo 4.0 en 3D. Al bajar por la página gira, abre la tapa de los puertos y la de la impresora, y levanta la cubierta para mostrar el interior. Al subir se invierte."></canvas>
+        <p class="taco-loading" data-status role="status">Preparando el modelo 3D…</p>
+      </div>
+      <p class="taco-nota">Reconstrucción visual basada en fotografías: medidas y distribución interna aproximadas.</p>
+      <div class="taco-bottom">
+        <p class="taco-hint" data-hint>Desplácese para explorar</p>
+        <nav class="taco-nav" aria-label="Etapas de la exploración del tacógrafo">
+          <a href="#tacografo" data-seek="0" data-phase="0" aria-label="Etapa 1: Equipo" aria-current="step"
+             data-etiqueta="Tacógrafo Electrónico · TAE-4.0" data-titulo="Tacógrafo 4.0"
+             data-texto="Registra la velocidad y los parámetros de conducción del vehículo y su conductor. Desarrollado específicamente para buses y camiones.">01<span> · Equipo</span></a>
+          <a href="#tacografo" data-seek="0.25" data-phase="1" aria-label="Etapa 2: Conexiones"
+             data-etiqueta="Conexiones" data-titulo="Lee el vehículo, habla con SACEL."
+             data-texto="Toma la velocidad del bus CAN y OBD2, de sensores o de GNSS (GPS y Glonass), identifica a la tripulación con la tarjeta SmartCard y transmite en línea al Sistema SACEL por la red 4G-LTE.">02<span> · Conexiones</span></a>
+          <a href="#tacografo" data-seek="0.67" data-phase="2" aria-label="Etapa 3: Impresora"
+             data-etiqueta="Impresora y alertas" data-titulo="Reportes al instante."
+             data-texto="La impresora integrada emite los reportes que exige la normativa vigente. Alertas audibles y en pantalla por exceso de velocidad y de tiempo de conducción, y alertas preventivas para evitar infracciones laborales.">03<span> · Impresora</span></a>
+          <a href="#tacografo" data-seek="0.96" data-phase="3" aria-label="Etapa 4: Interior"
+             data-etiqueta="Interior" data-titulo="Por dentro."
+             data-texto="Registro de caja negra, descarga de datos y firmware actualizable a distancia desde SACEL. Electrónica diseñada y fabricada por Andes en Chile.">04<span> · Interior</span></a>
+        </nav>
+        <progress class="taco-progress" data-progress value="0" max="1" aria-label="Avance de la exploración"></progress>
+      </div>
+    </div>
+    <noscript>
+      <ul class="lista ancho" style="padding-bottom:3rem">
+        <li>Registro de velocidad, rpm, geolocalización, distancia recorrida y caja negra.</li>
+        <li>Lectura de velocidad desde el bus CAN y OBD2 del vehículo, sensores o GNSS (GPS y Glonass).</li>
+        <li>Tarjeta SmartCard para identificar a la tripulación.</li>
+        <li>Alertas por exceso de velocidad y de tiempo de conducción, y alertas preventivas.</li>
+        <li>Pantalla LCD multifunción e impresora integrada para los reportes que exige la normativa.</li>
+        <li>Transmisión en línea al Sistema SACEL por 4G-LTE, actualización remota del firmware y descarga de datos.</li>
+      </ul>
+    </noscript>
+  </section>
+
+  <section class="seccion" aria-labelledby="t-perifericos">
+    <div class="cabeza">
+      <div><p class="sello">Periféricos</p><h2 id="t-perifericos">Lo que se conecta <em>al tacógrafo.</em></h2></div>
+      <p>Cada periférico suma información o la muestra a quien la necesita: el trabajador, los pasajeros y la empresa.</p>
+    </div>
+
+    <article class="producto inverso" id="smartcard" aria-labelledby="t-smart">
+      <figure><img src="img/fotos/smartcard.webp" alt="Tarjetas SmartCard de Andes Electrónica, anverso y reverso" width="900" height="675"></figure>
+      <div>
+        <p class="sello">Identificación del trabajador</p>
+        <h3 id="t-smart">Tarjeta SmartCard</h3>
+        <p class="texto">Tarjeta inteligente que guarda y registra los datos de la conducción: tiempos de trabajo y descanso del conductor y velocidad del vehículo. Ayuda a cumplir la normativa de transporte, facilita las inspecciones y previene la fatiga.</p>
+        <ul class="lista">
+          <li>Chip para identificar al trabajador y llevar la bitácora electrónica de sus marcaciones.</li>
+          <li>Impresión personalizada con el logo de la empresa y la foto del trabajador.</li>
+        </ul>
+        <p class="nota"><b>Para SACEL:</b> quién conduce y la bitácora de actividades de cada trabajador.</p>
+      </div>
+    </article>
+
+    <article class="producto" id="display" aria-labelledby="t-display">
+      <figure><img src="img/fotos/display.webp" alt="Display alfanumérico encendido en el salón de pasajeros de un bus" width="1400" height="875"></figure>
+      <div>
+        <p class="sello">Panel para pasajeros</p>
+        <h3 id="t-display">Display alfanumérico</h3>
+        <p class="texto">Panel digital independiente, instalado en cada salón de pasajeros del bus, para desplegar información a los pasajeros.</p>
+        <ul class="lista">
+          <li>Tecnología LED de color rojo y alto brillo.</li>
+          <li>Regulación automática del brillo con sensor de luz ambiente.</li>
+          <li>Conexión directa al tacógrafo, alámbrica o inalámbrica.</li>
+          <li>Alarma audible.</li>
+        </ul>
+        <p class="nota"><b>Para el pasajero:</b> la información del tacógrafo llega también a los pasajeros.</p>
+      </div>
+    </article>
+
+    <article class="producto inverso" id="visor" aria-labelledby="t-visor">
+      <figure><img src="img/fotos/visor.webp" alt="Visor de velocidad VI7GPS mostrando la velocidad en kilómetros por hora" width="1400" height="875"></figure>
+      <div>
+        <p class="sello">Visor de velocidad dual</p>
+        <h3 id="t-visor">Visor VI7GPS</h3>
+        <p class="texto">Diseñado para la seguridad de los pasajeros de buses y minibuses: muestra con claridad la velocidad del vehículo, en tres dígitos de 7 segmentos rojos de alto contraste.</p>
+        <ul class="lista">
+          <li>GNSS con antena activa externa y entrada de pulso de velocidad.</li>
+          <li>Ajuste automático del brillo según la luz ambiente.</li>
+          <li>Alerta sonora cuando se superan los límites configurados.</li>
+          <li>Aluminio extruido, con clasificación IP54. 168 × 80 × 45 mm.</li>
+        </ul>
+        <p class="nota"><b>Para SACEL:</b> la velocidad visible para todos y la alerta cuando se excede.</p>
+      </div>
+    </article>
+
+    <section class="producto" id="perifericos" aria-labelledby="t-peri">
+      <div>
+        <p class="sello">Accesorios</p>
+        <h3 id="t-peri">A la medida de cada flota</h3>
+        <p class="texto">Desarrollamos periféricos específicos y una caja especial para el montaje del tacógrafo. Si necesita un equipo que no está en esta página, conversemos.</p>
+        <div class="acciones"><a class="enlace" href="servicios.html#id">Investigación y desarrollo</a></div>
+      </div>
+    </section>
+  </section>
+
+  <div class="banda">
+    <section class="seccion" id="normativa" aria-labelledby="t-norma">
+      <div class="cabeza">
+        <div><p class="sello">Cumplimiento normativo</p><h2 id="t-norma">Del bus <em>al reporte.</em></h2></div>
+        <p>El tacógrafo y sus periféricos reúnen los datos; SACEL los consolida para cumplir la normativa vigente.</p>
+      </div>
+      <ol class="pasos">
+        <li><h3>Identifica</h3><p>La tarjeta SmartCard identifica a cada trabajador al subir.</p></li>
+        <li><h3>Registra</h3><p>El tacógrafo registra la conducción segundo a segundo y alerta antes de una infracción.</p></li>
+        <li><h3>Informa</h3><p>El display y el visor muestran la información y la velocidad a los pasajeros.</p></li>
+        <li><h3>Consolida</h3><p>SACEL reúne todo en línea: bitácoras, tiempos de conducción y descanso, infracciones y reportes.</p></li>
+      </ol>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="sello-anillos" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="96"/><circle class="anillo-2" cx="100" cy="100" r="89"/>
+      <path class="anillo-3" d="M182.7 100.0 183.0 104.3 182.6 108.7 181.6 112.9 180.2 117.0 178.5 121.0 176.6 124.9 174.6 128.6 172.7 132.4 170.7 136.0 168.8 139.7 166.6 143.3 164.3 146.7 161.7 150.0 158.9 153.0 155.8 155.8 152.5 158.3 149.1 160.6 145.7 162.9 142.3 165.2 139.0 167.5 135.7 170.0 132.3 172.6 128.9 175.2 125.2 177.6 121.4 179.8 117.3 181.4 113.1 182.5 108.7 182.9 104.3 182.7 100.0 181.9 95.8 180.8 91.7 179.4 87.7 178.0 83.7 176.6 79.8 175.3 75.9 174.2 72.0 173.0 68.1 171.7 64.2 170.3 60.4 168.5 56.8 166.5 53.4 164.1 50.2 161.5 47.1 158.8 44.1 155.9 41.1 153.0 38.1 150.1 35.1 147.2 32.1 144.1 29.1 140.9 26.4 137.5 24.1 133.8 22.3 129.8 21.1 125.6 20.5 121.3 20.4 116.9 20.8 112.5 21.4 108.3 22.1 104.1 22.7 100.0 23.2 96.0 23.4 92.0 23.6 87.9 23.7 83.8 23.9 79.6 24.4 75.4 25.3 71.3 26.5 67.3 28.2 63.4 30.2 59.7 32.5 56.1 34.9 52.7 37.4 49.3 40.0 46.0 42.6 42.6 45.4 39.4 48.4 36.3 51.6 33.4 55.2 31.0 59.0 28.9 63.0 27.4 67.2 26.4 71.5 25.8 75.8 25.4 80.0 25.2 84.0 24.9 88.0 24.5 92.0 23.8 96.0 22.9 100.0 21.9 104.1 21.0 108.4 20.3 112.7 19.9 117.0 20.1 121.2 20.8 125.3 22.0 129.3 23.6 133.1 25.6 136.8 27.7 140.4 30.0 144.0 32.3 147.5 34.7 150.9 37.2 154.2 39.9 157.2 42.8 160.0 45.9 162.5 49.4 164.5 53.1 166.2 57.0 167.7 60.9 169.0 64.9 170.3 68.7 171.7 72.5 173.2 76.2 175.0 79.9 176.9 83.7 178.8 87.5 180.5 91.5 181.9 95.7Z"/><path class="anillo-3" d="M172.9 100.0 172.3 103.8 171.9 107.6 171.6 111.3 171.3 115.2 170.6 118.9 169.4 122.6 167.6 125.9 165.2 129.0 162.5 131.8 159.7 134.5 157.1 137.1 154.9 139.9 153.0 142.9 151.3 146.2 149.6 149.6 147.7 152.9 145.3 156.0 142.5 158.6 139.4 160.6 136.0 162.4 132.5 163.9 129.1 165.4 125.8 167.2 122.5 169.2 119.1 171.4 115.6 173.3 111.9 174.9 108.0 175.7 104.0 175.7 100.0 175.0 96.1 173.7 92.4 172.2 88.8 170.7 85.2 169.5 81.7 168.5 78.0 167.7 74.4 166.8 70.8 165.5 67.5 163.8 64.5 161.6 61.8 158.9 59.3 156.0 56.9 153.2 54.5 150.6 51.7 148.3 48.7 146.2 45.4 144.2 42.1 142.1 39.0 139.6 36.3 136.8 34.2 133.5 32.7 130.0 31.6 126.3 30.7 122.5 29.7 118.8 28.6 115.2 27.3 111.5 26.0 107.8 24.9 103.9 24.4 100.0 24.6 96.0 25.6 92.2 27.3 88.5 29.4 85.0 31.5 81.7 33.5 78.4 35.1 75.1 36.5 71.7 37.6 68.2 38.9 64.7 40.5 61.4 42.6 58.3 45.1 55.6 48.0 53.2 51.0 51.0 53.9 48.8 56.6 46.4 59.1 43.7 61.5 40.8 64.0 37.6 66.7 34.6 69.7 31.9 73.1 29.9 76.8 28.6 80.7 27.9 84.6 27.6 88.5 27.5 92.4 27.4 96.2 27.0 100.0 26.5 103.9 26.1 107.8 26.0 111.7 26.4 115.4 27.6 118.9 29.4 122.2 31.8 125.2 34.3 128.1 36.8 131.1 39.0 134.2 40.8 137.5 42.3 140.9 43.7 144.3 45.3 147.5 47.2 150.4 49.6 152.8 52.4 155.0 55.5 156.9 58.7 158.8 61.8 161.0 64.8 163.5 67.7 166.2 70.5 168.9 73.6 171.3 76.8 173.2 80.4 174.3 84.2 174.6 88.2 174.3 92.2 173.6 96.1Z"/>
+      <path class="marca-cobre" d="M77 6.8A96 96 0 0 1 123 6.8"/>
+    </symbol></defs></svg>
+      <ul class="sellos" style="margin-top:3.5rem" aria-label="Normativa">
+        <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución N°</span><b>139 · 2009</b><span class="org">Dirección del Trabajo · certificación SACEL</span></p></li>
+        <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución Exenta N°</span><b>1081 · 2005</b><span class="org">Dirección del Trabajo</span></p></li>
+        <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución N°</span><b>100 · 2006</b><span class="org">Ministerio de Transportes</span></p></li>
+        <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Decreto</span><b>80 · 2004</b><span class="org">Ministerio de Transportes</span></p></li>
+      </ul>
+      <div class="acciones"><a class="enlace" href="sacel.html">Ver el Sistema SACEL</a></div>
+    </section>
+  </div>
+
+  <section class="seccion llamada" aria-labelledby="t-cta">
+    <div><p class="sello">Contacto</p><h2 id="t-cta">¿Lo evaluamos <em>en su flota?</em></h2></div>
+    <div class="acciones"><a class="boton" href="contacto.html">Contactar</a></div>
+  </section>
+</main>
+
+<!-- pie -->
+<footer class="pie">
+  <div class="pie-fila">
+    <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
+    <nav aria-label="Pie"><ul>
+      <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
+    </ul></nav>
+  </div>
+  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data).</p>
+</footer>
+<!-- /pie -->
+<script src="sitio.js"></script>
+<script src="datos/tacografo-modelo.js"></script>
+<script src="tacografo-3d.js"></script>
+</body>
+</html>

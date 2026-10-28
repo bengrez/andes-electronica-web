@@ -1,0 +1,14 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
+<link rel="stylesheet" href="base.css">
+<script>
+/* Antes de pintar: tema elegido (o el del sistema). */
+(function () {
+  var d = document.documentElement, t = null;
+  try { t = localStorage.getItem("tema"); } catch (e) {}
+  if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+  d.setAttribute("data-tema", t);
+})();
+</script>

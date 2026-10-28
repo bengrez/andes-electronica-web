@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muestra A: Disco | Andes Electrónica</title>
+<style>
+@font-face { font-family: "Space Grotesk"; src: url("../fuentes/space-grotesk.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("../fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
+:root {
+  --papel: #f3efe6;
+  --papel-2: #ebe5d8;
+  --tinta: #00104f;
+  --tinta-2: #3d4466;
+  --tinta-3: #5f6580;
+  --cobre: #b8702a;
+  --cobre-texto: #8f5213;
+  --grilla: rgba(0, 16, 79, .055);
+  --grilla-2: rgba(0, 16, 79, .095);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--papel); color: var(--tinta); font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+body { margin: 0; overflow-x: hidden; }
+h1, h2, h3, p, ul, dl, dd { margin: 0; padding: 0; }
+ul { list-style: none; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
+
+/* papel milimetrado sólo en la portada */
+.portada {
+  position: relative; min-height: min(100svh, 980px);
+  background-image:
+    linear-gradient(var(--grilla-2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grilla-2) 1px, transparent 1px),
+    linear-gradient(var(--grilla) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grilla) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px, 8px 8px, 8px 8px;
+  background-position: -1px -1px;
+  border-bottom: 1px solid var(--grilla-2);
+  display: flex; flex-direction: column;
+}
+.portada::after { /* el papel se desvanece hacia los bordes */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 90% at 70% 45%, transparent 40%, var(--papel) 100%);
+}
+.barra, .heroe { position: relative; z-index: 1; }
+
+.barra { width: min(100% - 2.5rem, 78rem); margin: 0 auto; padding: 1.4rem 0; display: flex; align-items: center; gap: 1rem 2.5rem; flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: .75rem; text-decoration: none; margin-right: auto; }
+.marca img { width: 2.4rem; height: auto; }
+.marca b { font: 600 1.05rem/1 "Space Grotesk", sans-serif; letter-spacing: -.01em; }
+.nav ul { display: flex; gap: .3rem 1.8rem; flex-wrap: wrap; }
+.nav a { text-decoration: none; font-size: .95rem; color: var(--tinta-2); }
+.nav a:hover, .nav a[aria-current] { color: var(--tinta); }
+
+.heroe { width: min(100% - 2.5rem, 78rem); margin: auto; padding: 2rem 0 4rem; display: grid; gap: 2rem 3rem; align-items: center; grid-template-columns: 1fr; }
+@media (min-width: 60rem) { .heroe { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); } }
+.sello { font: 500 .8rem/1 "Plex Mono", monospace; color: var(--cobre-texto); display: flex; align-items: center; gap: .75rem; }
+.sello::before { content: ""; width: 2.25rem; height: 1px; background: var(--cobre); }
+h1 { margin-top: 1.6rem; font: 600 clamp(2.5rem, 5.6vw, 4.6rem)/1.02 "Space Grotesk", sans-serif; letter-spacing: -.035em; max-width: 13ch; }
+h1 em { font-style: normal; color: var(--cobre-texto); }
+.entrada { margin-top: 1.75rem; font-size: clamp(1.08rem, 1.5vw, 1.25rem); color: var(--tinta-2); max-width: 32rem; }
+.acciones { margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+.boton { display: inline-flex; align-items: center; gap: .6rem; padding: .85rem 1.4rem; border-radius: 2px; background: var(--tinta); color: var(--papel); text-decoration: none; font-weight: 500; }
+.boton:hover { background: #0a1d6b; }
+.boton-2 { display: inline-flex; padding: .85rem 1.4rem; border: 1px solid rgba(0,16,79,.25); border-radius: 2px; text-decoration: none; font-weight: 500; }
+.boton-2:hover { border-color: var(--tinta); }
+
+.disco { position: relative; aspect-ratio: 1; width: min(100%, 36rem); justify-self: center; }
+.disco canvas { width: 100%; height: 100%; display: block; }
+.pausa { position: absolute; right: 0; bottom: -.5rem; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-3); background: var(--papel); border: 1px solid rgba(0,16,79,.2); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.pausa:hover { color: var(--tinta); border-color: var(--tinta); }
+
+/* bloque de ejemplo bajo la portada */
+.seccion { width: min(100% - 2.5rem, 78rem); margin: 0 auto; padding: clamp(4rem, 9vw, 7rem) 0; }
+.cabeza { display: grid; gap: 1rem 3rem; grid-template-columns: 1fr; align-items: end; }
+@media (min-width: 52rem) { .cabeza { grid-template-columns: 5fr 7fr; } }
+h2 { font: 600 clamp(1.8rem, 3.4vw, 2.7rem)/1.08 "Space Grotesk", sans-serif; letter-spacing: -.03em; }
+.cabeza p { color: var(--tinta-2); max-width: 34rem; }
+.fichas { margin-top: 3.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); border-top: 1px solid rgba(0,16,79,.18); }
+.fichas li { padding: 1.75rem 1.75rem 2rem 0; border-bottom: 1px solid rgba(0,16,79,.12); }
+.fichas li + li { padding-left: 1.75rem; border-left: 1px solid rgba(0,16,79,.12); }
+@media (max-width: 52rem) { .fichas li + li { padding-left: 0; border-left: 0; } }
+.fichas h3 { font: 600 1.3rem/1.2 "Space Grotesk", sans-serif; letter-spacing: -.015em; }
+.fichas p { margin-top: .7rem; color: var(--tinta-2); font-size: .98rem; }
+.fichas .spec { margin-top: 1.25rem; font: 400 .78rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); }
+
+.cambio { position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 5; display: flex; gap: .25rem; padding: .3rem; background: rgba(0,16,79,.92); border-radius: 999px; font: 500 .78rem/1 "Plex Mono", monospace; }
+.cambio a { color: #e9e5dc; text-decoration: none; white-space: nowrap; padding: .5rem .85rem; border-radius: 999px; }
+.cambio a[aria-current] { background: #f3efe6; color: var(--tinta); }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <header class="barra">
+    <a class="marca" href="#"><img src="../img/logo-andes.svg" alt="" width="38" height="34"><b>Andes Electrónica</b></a>
+    <nav class="nav" aria-label="Principal"><ul>
+      <li><a href="#" aria-current="page">Inicio</a></li><li><a href="#">Productos</a></li><li><a href="#">SACEL</a></li>
+      <li><a href="#">Servicios</a></li><li><a href="#">Empresa</a></li><li><a href="#">Contacto</a></li>
+    </ul></nav>
+  </header>
+
+  <main class="heroe">
+    <div>
+      <p class="sello">Ñuñoa, Santiago · desde 1991</p>
+      <h1>Cada kilómetro, <em>registrado.</em></h1>
+      <p class="entrada">Diseñamos, fabricamos y mantenemos electrónica para el transporte. Del disco de papel al Tacógrafo 4.0 y la plataforma SACEL, en Chile y desde hace más de 30 años.</p>
+      <div class="acciones">
+        <a class="boton" href="#">Ver productos</a>
+        <a class="boton-2" href="#">Conocer SACEL</a>
+      </div>
+    </div>
+    <div class="disco">
+      <canvas id="disco" aria-hidden="true"></canvas>
+      <button class="pausa" type="button" aria-pressed="false">Pausar animación</button>
+    </div>
+  </main>
+</div>
+
+<section class="seccion" aria-labelledby="t-prod">
+  <div class="cabeza">
+    <h2 id="t-prod">Del vehículo a la plataforma.</h2>
+    <p>Hardware certificado a bordo y una plataforma que deja los datos listos para cumplir la norma y operar la flota.</p>
+  </div>
+  <ul class="fichas">
+    <li><h3>Tacógrafo 4.0</h3><p>Registro certificado de conducción, caja negra integrada y transmisión cifrada.</p><p class="spec">GNSS · SmartCard · CAN bus</p></li>
+    <li><h3>Sistema SACEL</h3><p>Asistencia, horas de conducción y monitoreo de flota en tiempo real.</p><p class="spec">Reportes DT-24 · art. 25</p></li>
+    <li><h3>Visor VI7GPS</h3><p>Display dual de velocidad para cabina y pasajeros, con alertas visuales de excesos.</p><p class="spec">Cabina · pasajeros</p></li>
+  </ul>
+</section>
+
+<nav class="cambio" aria-label="Muestras">
+  <a href="a-disco.html" aria-current="page">A · Disco</a><a href="b-flota.html">B · Flota</a><a href="c-circuito.html">C · Circuito</a>
+</nav>
+
+<script>
+/* Disco diagrama de tacógrafo: gira como el de papel y una aguja de cobre dibuja 24 horas de velocidad
+   (detenciones, ciudad, carretera) y la franja de actividad. Datos simulados con semilla fija. */
+(function () {
+  var lienzo = document.getElementById("disco"), ctx = lienzo.getContext("2d");
+  var boton = document.querySelector(".pausa");
+  var quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pausa = false, visible = true, raf = 0, previo = 0;
+  var T = 0;                         // minutos registrados (0–1440)
+  var VEL = 1440 / 75;               // un día en 75 s
+  var lado = 0, dpr = 1;
+
+  // perfil de un día, minuto a minuto
+  var s = 7;
+  function azar() { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }
+  var v = new Float32Array(1441), act = new Uint8Array(1441);
+  (function () {
+    // noche detenido, salida por ciudad, carretera con paradas, regreso
+    var plan = [[300,0],[20,1],[110,2],[25,0],[95,2],[10,1],[45,0],[120,2],[30,0],[85,2],[25,1],[60,0],[130,2],[20,1],[365,0]];
+    var m = 0;
+    for (var i = 0; i < plan.length; i++) {
+      for (var k = 0; k < plan[i][0] && m <= 1440; k++, m++) {
+        var modo = plan[i][1], x;
+        if (modo === 0) x = 0;
+        else if (modo === 1) x = 22 + 20 * azar();
+        else x = 78 + 14 * Math.sin(m / 9) + 10 * (azar() - .5);
+        v[m] = x; act[m] = modo ? 2 : (m > 290 && m < 1075 ? 1 : 0);
+      }
+    }
+    while (m <= 1440) { v[m] = 0; act[m] = 0; m++; }
+    for (var p = 0; p < 3; p++) for (var j = 1; j < 1440; j++) if (v[j] > 0) v[j] = (v[j - 1] + 2 * v[j] + v[j + 1]) / 4;
+  })();
+
+  function medir() {
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    lado = lienzo.clientWidth;
+    lienzo.width = lienzo.height = Math.round(lado * dpr);
+    dibujar();
+  }
+
+  function dibujar() {
+    var c = ctx, R = lado * 0.46, cx = lado / 2, cy = lado / 2;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, lado, lado);
+    var giro = -T / 1440 * Math.PI * 2;          // el disco gira; la aguja queda arriba
+
+    // sombra y papel
+    c.save();
+    c.shadowColor = "rgba(0,16,79,.16)"; c.shadowBlur = lado * 0.05; c.shadowOffsetY = lado * 0.015;
+    c.beginPath(); c.arc(cx, cy, R, 0, 7); c.fillStyle = "#faf7f0"; c.fill();
+    c.restore();
+
+    c.save(); c.translate(cx, cy); c.rotate(giro);
+    var r1 = R * 0.50, r2 = R * 0.86;           // banda de velocidad
+    var ra = R * 0.36, rb = R * 0.44;           // banda de actividad
+    // anillos de velocidad
+    c.lineWidth = 1;
+    for (var k = 0; k <= 5; k++) {
+      var rr = r1 + (r2 - r1) * k / 5;
+      c.strokeStyle = k === 0 || k === 5 ? "rgba(0,16,79,.30)" : "rgba(0,16,79,.10)";
+      c.beginPath(); c.arc(0, 0, rr, 0, 7); c.stroke();
+    }
+    c.strokeStyle = "rgba(0,16,79,.18)";
+    c.beginPath(); c.arc(0, 0, ra, 0, 7); c.stroke();
+    c.beginPath(); c.arc(0, 0, rb, 0, 7); c.stroke();
+    // marcas de tiempo: cada 5 min, cada hora más larga, con número
+    for (var i = 0; i < 288; i++) {
+      var a = i / 288 * Math.PI * 2 - Math.PI / 2, hora = i % 12 === 0;
+      var e1 = hora ? r2 + R * 0.015 : r2 + R * 0.02, e2 = hora ? R * 0.955 : (i % 6 === 0 ? R * 0.935 : R * 0.915);
+      c.strokeStyle = hora ? "rgba(0,16,79,.55)" : "rgba(0,16,79,.22)";
+      c.beginPath(); c.moveTo(Math.cos(a) * e1, Math.sin(a) * e1); c.lineTo(Math.cos(a) * e2, Math.sin(a) * e2); c.stroke();
+      if (hora) {
+        // radios finos de hora sobre la banda
+        c.strokeStyle = "rgba(0,16,79,.06)";
+        c.beginPath(); c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1); c.lineTo(Math.cos(a) * r2, Math.sin(a) * r2); c.stroke();
+        var h = i / 12, rt = R * 0.885;
+        c.save(); c.translate(Math.cos(a) * rt, Math.sin(a) * rt); c.rotate(a + Math.PI / 2);
+        c.fillStyle = "rgba(0,16,79,.62)"; c.font = "500 " + Math.max(8, lado * 0.019) + "px 'Plex Mono', monospace";
+        c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(h === 0 ? "24" : String(h), 0, 0);
+        c.restore();
+      }
+    }
+    // traza de velocidad hasta T
+    var n = Math.floor(T);
+    c.lineJoin = "round"; c.lineCap = "round";
+    c.strokeStyle = "#b8702a"; c.lineWidth = Math.max(1, lado * 0.0026);
+    c.beginPath();
+    for (var m = 0; m <= n; m++) {
+      var ang = m / 1440 * Math.PI * 2 - Math.PI / 2, r = r1 + (r2 - r1) * Math.min(v[m], 125) / 125;
+      var x = Math.cos(ang) * r, y = Math.sin(ang) * r;
+      if (m === 0) c.moveTo(x, y); else c.lineTo(x, y);
+    }
+    c.stroke();
+    // franja de actividad: conducción gruesa, trabajo media
+    for (var q = 0; q <= n; q++) {
+      if (!act[q]) continue;
+      var a0 = q / 1440 * Math.PI * 2 - Math.PI / 2, a1 = (q + 1) / 1440 * Math.PI * 2 - Math.PI / 2;
+      c.strokeStyle = act[q] === 2 ? "rgba(0,16,79,.78)" : "rgba(0,16,79,.28)";
+      c.lineWidth = act[q] === 2 ? (rb - ra) * 0.7 : (rb - ra) * 0.25;
+      c.lineCap = "butt";
+      c.beginPath(); c.arc(0, 0, (ra + rb) / 2, a0, a1 + 0.002); c.stroke();
+    }
+    c.restore();
+
+    // centro del disco (fijo)
+    c.beginPath(); c.arc(cx, cy, R * 0.2, 0, 7); c.fillStyle = "#f3efe6"; c.fill();
+    c.strokeStyle = "rgba(0,16,79,.25)"; c.lineWidth = 1; c.stroke();
+    c.beginPath(); c.arc(cx, cy, R * 0.035, 0, 7); c.fillStyle = "#00104f"; c.fill();
+    c.fillStyle = "rgba(0,16,79,.7)"; c.font = "500 " + Math.max(8, lado * 0.02) + "px 'Plex Mono', monospace";
+    c.textAlign = "center"; c.fillText("ANDES", cx, cy - R * 0.08); c.fillText("ELECTRÓNICA", cx, cy + R * 0.11);
+
+    // aguja: llega desde arriba hasta el punto que escribe
+    var rv = r1 + (r2 - r1) * Math.min(v[n] || 0, 125) / 125;
+    c.strokeStyle = "rgba(0,16,79,.85)"; c.lineWidth = Math.max(1, lado * 0.003);
+    c.beginPath(); c.moveTo(cx, cy - R * 1.06); c.lineTo(cx, cy - rv); c.stroke();
+    c.beginPath(); c.arc(cx, cy - rv, Math.max(2.5, lado * 0.007), 0, 7); c.fillStyle = "#b8702a"; c.fill();
+    c.beginPath(); c.arc(cx, cy - R * 1.06, Math.max(3, lado * 0.009), 0, 7); c.fillStyle = "#00104f"; c.fill();
+  }
+
+  function paso(t) {
+    raf = 0;
+    if (pausa || !visible) { previo = 0; return; }
+    var dt = previo ? Math.min((t - previo) / 1000, .1) : 0; previo = t;
+    T += VEL * dt;
+    if (T > 1440) T = 0;
+    dibujar();
+    raf = requestAnimationFrame(paso);
+  }
+  function arrancar() { if (!raf && !pausa && visible && !quieto) { previo = 0; raf = requestAnimationFrame(paso); } }
+
+  boton.addEventListener("click", function () {
+    pausa = !pausa; boton.setAttribute("aria-pressed", String(pausa));
+    boton.textContent = "Pausar animación";
+    arrancar();
+  });
+  new IntersectionObserver(function (e) { visible = e[0].isIntersecting; arrancar(); }).observe(lienzo);
+  addEventListener("resize", medir);
+  if (quieto) { T = 1100; boton.hidden = true; }
+  else T = 280;
+  document.fonts.ready.then(medir);
+  medir(); arrancar();
+})();
+</script>
+</body>
+</html>
