@@ -24,7 +24,7 @@
 <meta property="og:locale" content="es_CL">
 <script>
 /* Sólo en inicio: el logo parte grande y se achica mientras baja la cámara (flota-3d.js). */
-document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduced-motion: reduce)").matches ? "1.7" : "4");
+document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduced-motion: reduce)").matches ? "1.7" : matchMedia("(min-width: 47.5rem)").matches ? "8" : "4");
 </script>
 </head>
 <body>
@@ -39,7 +39,7 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   <canvas id="flota-reg" aria-hidden="true"></canvas>
 <!-- barra -->
 <header class="barra">
-  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img src="img/logo-andes.svg" alt="" width="38" height="34"><b>Andes Electrónica</b></a>
+  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img src="img/logo-andes.svg" alt="" width="38" height="34"></a>
   <nav class="nav" aria-label="Principal"><ul>
     <li><a href="index.html" aria-current="page">Inicio</a></li>
     <li><a href="productos.html">Productos</a></li>
@@ -108,10 +108,10 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   </g>
 </svg>
 <!-- /ilustracion-tacografo -->
-        <span class="sello">A bordo</span>
+        <div class="familia-texto"><span class="sello">A bordo</span>
         <h3>Tacógrafo 4.0</h3>
         <p>Registra la velocidad y los parámetros de conducción del vehículo y su conductor, y transmite en línea al Sistema SACEL por 4G.</p>
-        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p>
+        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p></div>
       </a>
       <ul class="familia-ramas">
         <li><a href="productos.html#smartcard">
@@ -208,13 +208,23 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   <div class="banda">
     <section class="seccion" aria-labelledby="t-clientes">
       <div class="cabeza"><div><p class="sello">Clientes</p><h2 id="t-clientes">Algunos de <em>nuestros clientes.</em></h2></div></div>
-      <ul class="logos">
-        <li><img src="img/clientes/turbus.svg" alt="Turbus"></li>
-        <li><img src="img/clientes/cruz-del-sur.svg" alt="Cruz del Sur"></li>
-        <li><img src="img/clientes/efe.svg" alt="EFE"></li>
-        <li><img src="img/clientes/etm.png" alt="ETM"></li>
-        <li><img src="img/clientes/transantin.png" alt="Transantin"></li>
-        <li><img src="img/clientes/cormar.webp" alt="Cormar"></li>
+      <!-- clientes.js arma con esta lista una grilla de fichas de paletas (logo, nombre y rubro) que cambian de a una; sin JS queda la
+           lista, y con movimiento reducido las fichas quietas. data-rubro: pasajeros, tren, metro, armada, mineria, turismo, transportes. -->
+      <ul class="logos" data-matriz>
+        <li data-rubro="pasajeros"><img src="img/clientes/turbus.svg" alt="Turbus"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/cruz-del-sur.svg" alt="Cruz del Sur"></li>
+        <li data-rubro="tren" data-corto="E. de Ferrocarriles"><img src="img/clientes/efe.svg" alt="Empresa de Ferrocarriles del Estado"></li>
+        <li data-rubro="metro"><img src="img/clientes/metro.svg" alt="Metro de Santiago"></li>
+        <li data-rubro="armada"><img class="en-color" src="img/clientes/armada.webp" alt="Armada de Chile"></li>
+        <li data-rubro="mineria"><img src="img/clientes/link-plus.svg" alt="Link+"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/etm.png" alt="ETM"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/transantin.png" alt="Transantin"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/cormar.webp" alt="Cormar"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/buses-nunez.svg" alt="Buses Núñez"></li>
+        <li data-rubro="tren"><img src="img/clientes/efe-sur.webp" alt="EFE Sur"></li>
+        <li data-rubro="turismo"><img src="img/clientes/patagonia-camp.svg" alt="Patagonia Camp"></li>
+        <li data-rubro="transportes"><img src="img/clientes/fierro.webp" alt="Transportes Fierro"></li>
+        <li data-rubro="pasajeros"><img src="img/clientes/seal-corp.webp" alt="Seal Corp"></li>
       </ul>
     </section>
   </div>
@@ -241,7 +251,8 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
       <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
     </ul></nav>
   </div>
-  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data).</p>
+  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Ubicación de quiscos y quillayes: observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
+  <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
 </footer>
 <!-- /pie -->
 
@@ -250,5 +261,6 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
 <script src="flota-sim.js"></script>
 <script src="flota-mapa.js"></script>
 <script src="flota-3d.js"></script>
+<script src="clientes.js"></script>
 </body>
 </html>

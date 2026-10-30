@@ -25,31 +25,45 @@
   function empezar() {
 
   var ACELERACION_TIEMPO = 10;                  // el reloj corre 10 veces más rápido que el real
+  var VELOCIDAD_BUSES = 0.5;                   // los buses avanzan a la mitad (Benjamin, 2026-10-30); esperas y tramas no cambian
   var EXAG = 1.35;                              // exageración vertical del relieve
   var FOV = 38;                                 // grados, campo vertical
   var FRACCION_DESCENSO = 0.5;                  // la cámara baja en la primera mitad del recorrido; la segunda queda quieta
                                                 // (reservada para la animación de los datos: window.FlotaPortada.datos)
-  var LOGO_INICIO = 4, LOGO_FIN = 1.7;          // tamaño del logo arriba de todo y al final del descenso (veces 2,4 rem)
+  var LOGO_INICIO = 8, LOGO_FIN = 1.7;          // tamaño del logo arriba de todo y al final del descenso (veces 2,4 rem);
+                                                // en el celular parte en LOGO_INICIO_MOVIL
+  var LOGO_INICIO_MOVIL = 4;
+  var opacMapa = 1, opacVida = 1, nieblaAct = [1, 2];
+  var MAPA_FINAL = 0.4;                         // cuánto se transparenta el relieve al final del scroll
+  var RUTA_TENUE = 0.45;                        // opacidad de la ruta y los buses arriba de todo
+  var tenue = 1;
+  var ESCALA = 0.5;                             // camino y buses en pantalla respecto del 29-oct (Benjamin, 2026-10-30: el doble de chicos)
+  // la nube de SACEL que recibe las tramas (antes un switch): un punto del valle al norte de la ruta, dibujada unos px más arriba con su mástil
+  var SWITCH = [13000, 5200];                   // x, z en metros del cuadro
   var SOL = { azimut: 75, altura: 0.6 };          // grados: hacia el este-noreste, apenas bajo los filos vistos desde el valle
 
   // colores por tema (0–1)
   var TEMAS = {
     // lavado: cuánto se aclara el relieve hacia el papel, para que el camino y los buses manden
-    oscuro: { niebla: [0.008, 0.016, 0.075], brillo: 1.1, lavado: 0.45, papel: [0.008, 0.016, 0.065], borde: [0.004, 0.012, 0.06],
+    oscuro: { niebla: [0.008, 0.016, 0.075], brillo: 1.1, lavado: 0.45, verde: 0.3, bruma: [0.05, 0.07, 0.14], papel: [0.008, 0.016, 0.065], velo: true, borde: [0.004, 0.012, 0.06],
               calzada: [0.15, 0.18, 0.34], linea: [0.96, 0.77, 0.54], panel: "rgba(1,4,20,.7)", focos: true,
-              cielo: ["#000004", "#01030f", "#040b2e"] },
-    claro:  { niebla: [0.86, 0.9, 0.94], brillo: 1.04, lavado: 0.55, papel: [0.95, 0.945, 0.92], borde: [0.08, 0.09, 0.14],
+              cielo: ["#000004", "#01030f", "#01030f"] },  // sin banda azul abajo: el velo deja ver el cielo (2026-10-30)
+    claro:  { niebla: [0.953, 0.937, 0.902], brillo: 1.04, lavado: 0.36, verde: 0.6, bruma: [0.70, 0.76, 0.82], papel: [0.953, 0.937, 0.902], velo: true, borde: [0.08, 0.09, 0.14],
               calzada: [0.2, 0.22, 0.29], linea: [0.97, 0.8, 0.5], panel: "rgba(250,247,240,.86)", focos: false,
-              cielo: ["#8db8e0", "#cfe0ee", "#f4e6cc"] }
+              cielo: ["#f3efe6", "#f3efe6", "#f1e9da"] }
   };
   function temaActual() { return document.documentElement.getAttribute("data-tema") === "claro" ? "claro" : "oscuro"; }
   var tema = temaActual(), TM = TEMAS[tema];
 
   // ─── poses de la cámara: [p, ojo, objetivo] en metros (x este, y altura, z sur) ───
+  // Siempre se mira al centro de la H-25 (Benjamin, 2026-10-29: la animación centrada en la ruta y más alejada); el
+  // corrimiento de lente de camara() deja ese centro en el medio del espacio del mapa, a la derecha del texto.
+  var CENTRO = [16700, 1800, 9500];                    // centro del cuadro de la ruta, a media altura (exagerada)
+  var ALEJAR = 1.25;                                   // zoom out respecto de las poses del 28-oct
+  function desde(v) { return [CENTRO[0] + v[0] * ALEJAR, CENTRO[1] + v[1] * ALEJAR, CENTRO[2] + v[2] * ALEJAR]; }
   var POSES = [
-    [0.00, [10000, 36000, 9600], [10000, 0, 9500]],      // desde el cielo: el mapa, con el camino a la derecha del texto
-    [0.45, [7000, 15000, 30000], [15500, 0, 9500]],      // bajando por el sur, ya en diagonal
-    [1.00, [-2500, 3300, 21500], [19000, 1200, 4000]]    // sobre el valle, mirando la cordillera hacia el noreste
+    [0.00, desde([-8500, 15000, 20500]), CENTRO],       // inclinada desde el sur (Benjamin, 2026-10-29: el tilt inicial)
+    [1.00, desde([-19500, 17000, 19500]), CENTRO]       // en alto sobre el valle, más terreno a la vista, hacia el noreste
   ];
 
   var fallado = false;
@@ -65,7 +79,7 @@
   if (!gl) { fallar(); return; }
   var cr = capa.getContext("2d");
   var sim = window.FlotaSim(D, {
-    escala: ACELERACION_TIEMPO, periodo: 2.6, vuelo: 3.2, ventana: 80,
+    escala: ACELERACION_TIEMPO * VELOCIDAD_BUSES, periodo: 9, vuelo: 3.2,   // una trama cada 9 s por bus (2026-10-30; antes 2,6) ventana: 80,
     descanso: [10 * 60 / ACELERACION_TIEMPO, 25 * 60 / ACELERACION_TIEMPO],
     parada: [2 * 60 / ACELERACION_TIEMPO, 5 * 60 / ACELERACION_TIEMPO]
   });
@@ -105,29 +119,63 @@
     return p;
   }
   var NIEBLA = "uniform vec3 uOjo; uniform vec2 uNiebla; uniform vec3 cNiebla;";
+  // Velo del tema claro (Benjamin, 2026-10-29: sin líneas rectas entre el papel y el mapa). El relieve se funde con el
+  // papel hacia la columna de texto y hacia arriba, pero las crestas aguantan más que los valles: el borde sigue el
+  // contorno de la cordillera y cambia con la inclinación de la cámara. uVelo = (x del papel sólido, ancho del
+  // fundido, alto del fundido superior, alto del lienzo) en px del lienzo; uVeloAlt = altura mínima y máxima.
+  var VELO = "uniform vec4 uVelo; uniform vec2 uVeloAlt; uniform float uVeloOn, uVeloAsp;" +
+    "float azar(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }" +
+    "float ruido(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);" +
+    " return mix(mix(azar(i), azar(i + vec2(1.0, 0.0)), f.x), mix(azar(i + vec2(0.0, 1.0)), azar(i + vec2(1.0, 1.0)), f.x), f.y); }" +
+    "float velo(float y, vec2 xz, float extra){ if (uVeloOn < 0.5) return 1.0;" +
+    " float h = clamp((y - uVeloAlt.x) / (uVeloAlt.y - uVeloAlt.x), 0.0, 1.0);" +
+    " float k = pow(h, 0.7) * 0.7 + (ruido(xz / 2600.0) * 0.6 + ruido(xz / 800.0) * 0.4) * 0.5 - 0.6;" +
+    " float bajo = 1.0 - gl_FragCoord.y / uVelo.w;" +
+    // abajo, bajo los textos, el mapa avanza hacia la izquierda para que se vea el inicio de la H-25
+    " float tx = (gl_FragCoord.x - uVelo.x) / uVelo.y + 0.75 * smoothstep(0.68, 1.0, bajo) + extra, ty = (uVelo.w - gl_FragCoord.y) / uVelo.z + 0.2 + extra;" +
+    " float td = (uVelo.w * uVeloAsp - gl_FragCoord.x) / uVelo.z + 0.45, tb = gl_FragCoord.y / uVelo.z + 0.4;" +
+    " return smoothstep(0.0, 0.85, tx + k * 1.1) * smoothstep(0.0, 0.85, ty + k * 1.1)" +
+    " * smoothstep(0.0, 0.85, td + k * 1.1) * smoothstep(0.0, 0.85, tb + k * 1.1); }";
   var pTerreno, pCamino, pBus;
   try {
     pTerreno = programa(
       "attribute vec3 aPos; attribute vec2 aUV; uniform mat4 uMVP; varying vec2 vUV; varying vec3 vPos;" +
       "void main(){ vUV = aUV; vPos = aPos; gl_Position = uMVP * vec4(aPos, 1.0); }",
-      "precision mediump float; uniform sampler2D uTex; varying vec2 vUV; varying vec3 vPos; " + NIEBLA +
-      "uniform float uBrillo, uLavado; uniform vec3 uPapel; void main(){ vec3 c = mix(texture2D(uTex, vUV).rgb * uBrillo, uPapel, uLavado);" +
+      "precision mediump float; uniform sampler2D uTex; varying vec2 vUV; varying vec3 vPos; " + NIEBLA + VELO +
+      "uniform float uBrillo, uLavado, uVerde, uOpac; uniform vec3 uPapel, uBruma;" +
+      // color más verde y realista (Benjamin, 2026-10-30): la textura aporta el sombreado y la nieve; encima, pisos de
+      // vegetación de Chile central según la altura (valle agrícola, bosque esclerófilo, matorral andino, roca),
+      // con manchas de ruido para que no se vea como franjas, y bruma azulada con la distancia
+      "vec3 pisos(vec3 t){ float h = vPos.y / " + EXAG.toFixed(2) + ", lum = dot(t, vec3(0.299, 0.587, 0.114));" +
+      " float n = ruido(vPos.xz / 900.0) * 0.6 + ruido(vPos.xz / 260.0) * 0.4, sombra = clamp(lum / 0.38, 0.25, 1.9);" +
+      // laderas en sombra (de umbría, al sur) más verdes; las de solana, más secas y pardas
+      " float umbria = smoothstep(1.25, 0.55, sombra);" +
+      " vec3 seco = mix(vec3(0.46, 0.44, 0.30), vec3(0.50, 0.45, 0.36), smoothstep(1300.0, 2400.0, h + n * 400.0));" +
+      " vec3 verde = mix(vec3(0.34, 0.40, 0.22), vec3(0.27, 0.33, 0.20), smoothstep(650.0, 1100.0, h + n * 150.0));" +
+      " vec3 bio = mix(seco, verde, clamp(umbria * 0.8 + (1.0 - smoothstep(900.0, 2200.0, h + n * 500.0)) * 0.5, 0.0, 1.0));" +
+      " bio = mix(bio, vec3(0.50, 0.46, 0.42), smoothstep(2300.0, 3000.0, h + n * 400.0));" +
+      " bio *= mix(vec3(1.0), vec3(0.9, 1.04, 0.86), smoothstep(0.4, 0.8, n));" +
+      " vec3 c = bio * sombra * 1.25; float nieve = smoothstep(0.52, 0.72, lum) * smoothstep(2400.0, 3100.0, h);" +
+      " return mix(c, t * 1.04, nieve); }" +
+      "void main(){ vec3 t = texture2D(uTex, vUV).rgb; vec3 c = mix(t, pisos(t), uVerde) * uBrillo; c = mix(c, uPapel, uLavado);" +
       " float f = smoothstep(uNiebla.x, uNiebla.y, distance(vPos, uOjo));" +
+      " c = mix(c, uBruma, smoothstep(0.0, 1.0, distance(vPos, uOjo) / uNiebla.y) * 0.35 * uVerde);" +
       " float b = smoothstep(0.0, 0.07, vUV.x) * smoothstep(0.0, 0.07, vUV.y) * smoothstep(0.0, 0.07, 1.0 - vUV.x) * smoothstep(0.0, 0.07, 1.0 - vUV.y);" +
-      " float a = b * (1.0 - 0.75 * f); c = mix(c, cNiebla, f * 0.7);" +
+      " float a = b * (1.0 - 0.75 * f) * velo(vPos.y, vPos.xz, 0.0) * uOpac; c = mix(c, cNiebla, f * 0.7);" +
       " gl_FragColor = vec4(c * a, a); }");
     pCamino = programa(
       "attribute vec3 aPos; attribute vec2 aLS; uniform mat4 uMVP; varying vec2 vLS; varying vec3 vPos;" +
       "void main(){ vLS = aLS; vPos = aPos; gl_Position = uMVP * vec4(aPos, 1.0); }",
-      "precision mediump float; varying vec2 vLS; varying vec3 vPos; uniform float uRaya; uniform vec3 uBorde, uCalzada, uLinea; " + NIEBLA +
+      "precision mediump float; varying vec2 vLS; varying vec3 vPos; uniform float uRaya, uTenue; uniform vec3 uBorde, uCalzada, uLinea; " + NIEBLA + VELO +
       "void main(){ float l = abs(vLS.x); vec3 c = l > 0.62 ? uBorde : uCalzada;" +
       " if (l < 0.13 && fract(vLS.y / uRaya) < 0.45) c = uLinea;" +
       " float f = smoothstep(uNiebla.x, uNiebla.y, distance(vPos, uOjo)); c = mix(c, cNiebla, f * 0.7);" +
-      " float a = 1.0 - 0.75 * f; gl_FragColor = vec4(c * a, a); }");
+      " float a = (1.0 - 0.75 * f) * velo(vPos.y, vPos.xz, 0.15) * uTenue; gl_FragColor = vec4(c * a, a); }");
     pBus = programa(
-      "attribute vec3 aPos; attribute vec3 aCol; uniform mat4 uMVP; varying vec3 vCol;" +
-      "void main(){ vCol = aCol; gl_Position = uMVP * vec4(aPos, 1.0); }",
-      "precision mediump float; varying vec3 vCol; void main(){ gl_FragColor = vec4(vCol, 1.0); }");
+      "attribute vec3 aPos; attribute vec3 aCol; uniform mat4 uMVP; varying vec3 vCol; varying vec3 vPos;" +
+      "void main(){ vCol = aCol; vPos = aPos; gl_Position = uMVP * vec4(aPos, 1.0); }",
+      "precision mediump float; varying vec3 vCol; varying vec3 vPos; uniform float uTenue; " + VELO +
+      "void main(){ float a = velo(vPos.y, vPos.xz, 0.15) * uTenue; gl_FragColor = vec4(vCol * a, a); }");
   } catch (e) { fallar(); return; }
 
   function atributo(p, nombre, buf, n, paso, desde) {
@@ -139,7 +187,7 @@
   }
 
   // ─── carga del relieve ───
-  var T = D.tres_d, nVert = T.nx * T.nz, alturas = null;
+  var T = D.tres_d, nVert = T.nx * T.nz, alturas = null, altMin = Infinity, altMax = -Infinity;
   var bufTerreno = gl.createBuffer(), bufIdx = gl.createBuffer(), bufCamino = gl.createBuffer(), bufBus = gl.createBuffer();
   var nIdx = 0, texturas = {}, listo = 0;
   function cargar(src, alListo) {
@@ -160,7 +208,7 @@
     var v = new Float32Array(nVert * 5);
     for (var j = 0; j < T.nz; j++) for (var i = 0; i < T.nx; i++) {
       var k = j * T.nx + i, e = px[k * 4] * 256 + px[k * 4 + 1];
-      alturas[k] = e;
+      alturas[k] = e; if (e < altMin) altMin = e; if (e > altMax) altMax = e;
       v.set([T.x0 + i * T.paso, e * EXAG, T.z0 + j * T.paso, i / (T.nx - 1), j / (T.nz - 1)], k * 5);
     }
     var idx = new Uint16Array((T.nx - 1) * (T.nz - 1) * 6), n = 0;
@@ -199,9 +247,8 @@
     k = Math.min(k, POSES.length - 1);
     var A = POSES[k - 1], B = POSES[k], t = suave(Math.max(0, Math.min(1, (p - A[0]) / (B[0] - A[0]))));
     var o = lerp(A[1], B[1], t), m = lerp(A[2], B[2], t);
-    // al principio se mira hacia abajo con el norte arriba; después, con el cielo arriba
-    var w = suave(Math.min(1, p / 0.5)), arriba = norma([0, w, -(1 - w)]);
-    return { ojo: o, obj: m, arriba: arriba };
+    // siempre con el cielo arriba: desde el 29-oct ya no hay vista cenital al principio
+    return { ojo: o, obj: m, arriba: [0, 1, 0] };
   }
   function progreso() {
     if (quieto || !recorrido) return 1;
@@ -212,7 +259,9 @@
     var q = pose(p);
     ojo = q.ojo;
     var dist = Math.hypot(q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]);
-    VP = mult(perspectiva(FOV * Math.PI / 180, W / H, Math.max(30, dist * 0.004), dist * 6), mirar(q.ojo, q.obj, q.arriba));
+    var P = perspectiva(FOV * Math.PI / 180, W / H, Math.max(30, dist * 0.004), dist * 6);
+    P[8] = -centroMapa();                          // corrimiento de lente: el objetivo queda en el medio del espacio del mapa
+    VP = mult(P, mirar(q.ojo, q.obj, q.arriba));
     return dist;
   }
   // punto del mundo → px de la portada (null si queda detrás de la cámara)
@@ -237,7 +286,7 @@
       var a = R[Math.max(0, k - 1)], b = R[Math.min(R.length - 1, k + 1)];
       var dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
       var nx = -dz / l, nz = dx / l, x = R[k][0], z = R[k][1];
-      var y0 = elevBase(x, z, ER[k]), w = tamPantalla(x, y0, z, tema === "claro" ? 5.6 : 5), y = y0 + w * 1.4 + 8;
+      var y0 = elevBase(x, z, ER[k]), w = tamPantalla(x, y0, z, (tema === "claro" ? 5.6 : 5) * ESCALA), y = y0 + w * 1.4 + 8;
       v.set([x + nx * w, y, z + nz * w, 1, acumR[k], x - nx * w, y, z - nz * w, -1, acumR[k]], k * 10);
     }
     return v;
@@ -247,26 +296,49 @@
     oscuro: { techo: [0.94, 0.9, 0.84], lado: [0.72, 0.68, 0.6], frente: [0.08, 0.13, 0.31], atras: [0.5, 0.45, 0.38], franja: [0.82, 0.54, 0.24] },
     claro:  { techo: [0.99, 0.985, 0.97], lado: [0.0, 0.063, 0.31], frente: [0.0, 0.04, 0.2], atras: [0.0, 0.05, 0.25], franja: [0.72, 0.44, 0.16] }
   };
-  function caja(out, c, d, L, A, Al, col) {     // c: centro de la base; d: dirección (x, z)
-    var r = [-d[1], d[0]], hl = L / 2, ha = A / 2;
-    function p(u, s, h) { return [c[0] + d[0] * u + r[0] * s, c[1] + h, c[2] + d[1] * u + r[1] * s]; }
+  function caja(out, c, B, L, A, Al, col) {     // c: centro de la base; B: ejes del bus {f: adelante, r: costado, n: arriba}
+    var f = B.f, r = B.r, n = B.n, hl = L / 2, ha = A / 2;
+    function p(u, s, h) { return [c[0] + f[0] * u + r[0] * s + n[0] * h, c[1] + f[1] * u + r[1] * s + n[1] * h, c[2] + f[2] * u + r[2] * s + n[2] * h]; }
     var v = [p(-hl, -ha, 0), p(hl, -ha, 0), p(hl, ha, 0), p(-hl, ha, 0), p(-hl, -ha, Al), p(hl, -ha, Al), p(hl, ha, Al), p(-hl, ha, Al)];
     [[4, 5, 6, 7, col.techo], [1, 2, 6, 5, col.frente], [0, 4, 7, 3, col.atras], [0, 1, 5, 4, col.lado], [3, 7, 6, 2, col.lado]].forEach(function (f) {
       [f[0], f[1], f[2], f[0], f[2], f[3]].forEach(function (q) { out.push(v[q][0], v[q][1], v[q][2], f[4][0], f[4][1], f[4][2]); });
     });
   }
   var focos = [];
+  // los buses siguen el terreno como juguetes (Benjamin, 2026-10-30): cabecean con la pendiente, se inclinan hacia
+  // afuera en las curvas y rebotan un poco con la velocidad; todo un poco exagerado (JUGUETE)
+  var JUGUETE = { cabeceo: 2.6, balanceo: 1.4, rebote: 0.16 };
+  function enCamino(s) {                         // punto del camino dibujado a s metros del extremo oeste
+    s = Math.max(0, Math.min(sim.LARGO, s));
+    var q = sim.enRuta(s); return [q[0], elevBase(q[0], q[1], sim.altitud(s)), q[1]];
+  }
   function geometriaBuses() {
     var out = []; focos = [];
-    sim.buses.forEach(function (b) {
+    sim.buses.forEach(function (b, i) {
       var s = sim.posicion(b), q = sim.enRuta(s), x = q[0], z = q[1];
       var y0 = elevBase(x, z, sim.altitud(s));
       var COL = COLORES_BUS[tema];
-      var L = Math.max(14, tamPantalla(x, y0, z, tema === "claro" ? 18 : 15)), a = sim.rumboBus(b), d = [Math.cos(a), Math.sin(a)];
-      var base = [x, y0 + tamPantalla(x, y0, z, 4.2) * 1.2 + 6, z];
-      caja(out, base, d, L, L * 0.4, L * 0.34, COL);
-      caja(out, [base[0], base[1] + L * 0.34, base[2]], d, L * 0.6, L * 0.14, L * 0.02, { techo: COL.franja, frente: COL.franja, atras: COL.franja, lado: COL.franja });
-      focos.push({ b: b, frente: [x + d[0] * L * 0.55, base[1] + L * 0.12, z + d[1] * L * 0.55], centro: [x, base[1] + L * 0.2, z] });
+      var L = Math.max(14 * ESCALA, tamPantalla(x, y0, z, (tema === "claro" ? 18 : 15) * ESCALA)), a = sim.rumboBus(b), d = [Math.cos(a), Math.sin(a)];
+      // pendiente: alturas del camino delante y detrás, a un largo de bus (al menos 120 m para no temblar)
+      var paso = Math.max(120, L) * (b.dir > 0 ? 1 : -1), A = enCamino(s - paso), F = enCamino(s + paso);
+      var cab = Math.max(-0.7, Math.min(0.7, Math.atan2(F[1] - A[1], Math.hypot(F[0] - A[0], F[2] - A[2])) * JUGUETE.cabeceo));
+      // curva: cuánto gira el rumbo entre detrás y delante; el bus se inclina hacia afuera, más si va rápido
+      var giro = Math.atan2(F[2] - z, F[0] - x) - Math.atan2(z - A[2], x - A[0]);
+      giro = Math.atan2(Math.sin(giro), Math.cos(giro));
+      var rapido = Math.min(1, b.v / 20), bal = Math.max(-0.35, Math.min(0.35, giro * JUGUETE.balanceo * (0.4 + rapido)));
+      var t = sim.reloj * 7 + i * 1.7;
+      cab += Math.sin(t * 1.3) * 0.05 * rapido;                                 // traqueteo
+      var f = norma([d[0] * Math.cos(cab), Math.sin(cab), d[1] * Math.cos(cab)]);
+      var r0 = norma(cruz(f, [0, 1, 0])), n0 = cruz(r0, f);
+      var cb = Math.cos(bal), sb = Math.sin(bal);
+      var B = { f: f, r: [r0[0] * cb + n0[0] * sb, r0[1] * cb + n0[1] * sb, r0[2] * cb + n0[2] * sb],
+                     n: [n0[0] * cb - r0[0] * sb, n0[1] * cb - r0[1] * sb, n0[2] * cb - r0[2] * sb] };
+      var salto = Math.abs(Math.sin(t)) * JUGUETE.rebote * L * rapido;
+      var base = [x, y0 + tamPantalla(x, y0, z, 4.2 * ESCALA) * 1.2 + 6 + salto, z];
+      caja(out, base, B, L, L * 0.4, L * 0.34, COL);
+      var techo = [base[0] + B.n[0] * L * 0.34, base[1] + B.n[1] * L * 0.34, base[2] + B.n[2] * L * 0.34];
+      caja(out, techo, B, L * 0.6, L * 0.14, L * 0.02, { techo: COL.franja, frente: COL.franja, atras: COL.franja, lado: COL.franja });
+      focos.push({ b: b, frente: [x + f[0] * L * 0.55, base[1] + f[1] * L * 0.55 + L * 0.12, z + f[2] * L * 0.55], centro: [x, base[1] + L * 0.2, z] });
     });
     return new Float32Array(out);
   }
@@ -300,18 +372,51 @@
   })();
   function texListo() { return texturas[tema] && texturas[tema].lista ? tema : (tema === "claro" ? "oscuro" : "claro"); }
 
+  // velo del tema claro: dónde termina el papel sólido (el mismo --velo-solido de base.css) y cuánto mide el fundido
+  function medidasVelo() {
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var solido = W < 760 ? -1e5 : Math.max(1.25 * rem, (W - 80 * rem) / 2) + 31 * rem;
+    return [solido, 18 * rem, Math.max(8 * rem, H * 0.28), H];
+  }
+  function centroMapa() {                        // x del medio del espacio del mapa, en coordenadas de -1 a 1
+    if (W < 760) return 0;
+    var m = medidasVelo();
+    return ((m[0] + W) / 2) / W * 2 - 1;
+  }
+  function ponerVelo(p) {
+    var m = medidasVelo();
+    gl.uniform4fv(gl.getUniformLocation(p, "uVelo"), [m[0] * dpr, m[1] * dpr, m[2] * dpr, m[3] * dpr]);
+    gl.uniform2fv(gl.getUniformLocation(p, "uVeloAlt"), [altMin * EXAG, altMax * EXAG]);
+    gl.uniform1f(gl.getUniformLocation(p, "uVeloOn"), TM.velo && W >= 760 ? 1 : 0);
+    gl.uniform1f(gl.getUniformLocation(p, "uVeloAsp"), W / H);
+  }
+  function veloEn(x, y, e) {                     // el mismo velo, para la capa plana (sin el ruido)
+    if (!TM.velo || W < 760) return 1;
+    var m = medidasVelo(), h = Math.min(1, Math.max(0, (e - altMin) / (altMax - altMin)));
+    var k = Math.pow(h, 0.7) * 0.7 + 0.25 - 0.6;
+    function ss(t) { t = Math.min(1, Math.max(0, t / 0.85)); return t * t * (3 - 2 * t); }
+    var b = Math.min(1, Math.max(0, (y / H - 0.68) / 0.32)); b = b * b * (3 - 2 * b);
+    return ss((x - m[0]) / m[1] + 0.75 * b + 0.15 + k * 1.1) * ss(y / m[2] + 0.35 + k * 1.1)
+      * ss((W - x) / m[2] + 0.45 + k * 1.1) * ss((H - y) / m[2] + 0.4 + k * 1.1);
+  }
+
   function dibujar() {
     pCam = Math.min(1, pAct / FRACCION_DESCENSO);
     pDatos = Math.max(0, (pAct - FRACCION_DESCENSO) / (1 - FRACCION_DESCENSO));
     window.FlotaPortada.descenso = pCam; window.FlotaPortada.datos = pDatos;
     var dist = camara(pCam);
     pintarCielo();
-    document.documentElement.style.setProperty("--logo", (LOGO_INICIO - (LOGO_INICIO - LOGO_FIN) * suave(pCam)).toFixed(3));
+    var li = W < 760 ? LOGO_INICIO_MOVIL : LOGO_INICIO;
+    // el logo termina de achicarse antes de que entren los textos de SACEL, para no toparse con ellos
+    document.documentElement.style.setProperty("--logo", (li - (li - LOGO_FIN) * suave(Math.min(1, pCam / 0.55))).toFixed(3));
     textos();
     gl.viewport(0, 0, lienzo.width, lienzo.height);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    var niebla = [dist * 1.15, dist * 3.4];
+    var niebla = [dist * 1.15, dist * 3.4]; nieblaAct = niebla;
+    // arriba de todo la ruta y los buses van tenues, para que manden las montañas (Benjamin, 2026-10-30); toman fuerza
+    // en el primer tramo del descenso
+    tenue = RUTA_TENUE + (1 - RUTA_TENUE) * suave(Math.min(1, pCam / 0.4));
     // terreno
     gl.useProgram(pTerreno);
     atributo(pTerreno, "aPos", bufTerreno, 3, 5, 0); atributo(pTerreno, "aUV", bufTerreno, 2, 5, 3);
@@ -322,6 +427,14 @@
     gl.uniform1f(gl.getUniformLocation(pTerreno, "uBrillo"), TM.brillo);
     gl.uniform1f(gl.getUniformLocation(pTerreno, "uLavado"), TM.lavado * suave(pCam));   // el lavado llega con el descenso
     gl.uniform3fv(gl.getUniformLocation(pTerreno, "uPapel"), TM.papel);
+    gl.uniform1f(gl.getUniformLocation(pTerreno, "uVerde"), TM.verde);
+    // en el tramo quieto el relieve se vuelve translúcido, para que los datos y la ruta manden al final (2026-10-30)
+    opacMapa = 1 - MAPA_FINAL * suave(pDatos);
+    // la flora y fauna se transparentan con un desfase marcado: empiezan cuando el relieve ya va en el 75 % de su cambio
+    opacVida = 1 - MAPA_FINAL * suave(Math.max(0, Math.min(1, (pDatos - 0.75) / 0.25)));
+    gl.uniform1f(gl.getUniformLocation(pTerreno, "uOpac"), opacMapa);
+    gl.uniform3fv(gl.getUniformLocation(pTerreno, "uBruma"), TM.bruma);
+    ponerVelo(pTerreno);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texturas[texListo()].gl);
     gl.uniform1i(gl.getUniformLocation(pTerreno, "uTex"), 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufIdx);
@@ -338,6 +451,8 @@
     gl.uniform3fv(gl.getUniformLocation(pCamino, "uBorde"), TM.borde);
     gl.uniform3fv(gl.getUniformLocation(pCamino, "uCalzada"), TM.calzada);
     gl.uniform3fv(gl.getUniformLocation(pCamino, "uLinea"), TM.linea);
+    gl.uniform1f(gl.getUniformLocation(pCamino, "uTenue"), tenue);
+    ponerVelo(pCamino);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, R.length * 2);
     // buses
     var vb = geometriaBuses();
@@ -345,43 +460,324 @@
     gl.bindBuffer(gl.ARRAY_BUFFER, bufBus); gl.bufferData(gl.ARRAY_BUFFER, vb, gl.DYNAMIC_DRAW);
     atributo(pBus, "aPos", bufBus, 3, 6, 0); atributo(pBus, "aCol", bufBus, 3, 6, 3);
     gl.uniformMatrix4fv(gl.getUniformLocation(pBus, "uMVP"), false, VP);
+    gl.uniform1f(gl.getUniformLocation(pBus, "uTenue"), tenue);
+    ponerVelo(pBus);
     gl.drawArrays(gl.TRIANGLES, 0, vb.length / 6);
 
     // capa plana: focos, registro y tramas
     cr.setTransform(1, 0, 0, 1, 0, 0); cr.clearRect(0, 0, capa.width, capa.height); cr.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cr.globalCompositeOperation = "lighter";
+    cr.globalCompositeOperation = "lighter"; cr.globalAlpha = tenue;
     focos.forEach(function (f) {
       var q = proyectar(f.frente[0], f.frente[1], f.frente[2]); if (!q) return;
-      var r = TM.focos && f.b.v > 0.3 ? 26 : 0, alerta = sim.exceso(f.b);
+      var r = TM.focos && f.b.v > 0.3 ? 26 * ESCALA : 0, alerta = sim.exceso(f.b);
       if (r) { var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], r); g.addColorStop(0, "rgba(255,230,190,.55)"); g.addColorStop(1, "rgba(255,230,190,0)"); cr.fillStyle = g; cr.fillRect(q[0] - r, q[1] - r, 2 * r, 2 * r); }
-      if (alerta) { var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (c) { cr.fillStyle = TM.focos ? "rgba(255,221,180,.22)" : "rgba(196,110,30,.22)"; cr.beginPath(); cr.arc(c[0], c[1], 14, 0, 7); cr.fill(); } }
+      if (alerta) { var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (c) { cr.globalAlpha = tenue * veloEn(c[0], c[1], f.centro[1] / EXAG); cr.fillStyle = TM.focos ? "rgba(255,221,180,.22)" : "rgba(196,110,30,.22)"; cr.beginPath(); cr.arc(c[0], c[1], 14 * ESCALA, 0, 7); cr.fill(); cr.globalAlpha = tenue; } }
     });
+    cr.globalAlpha = 1;
     cr.globalCompositeOperation = "source-over";
+    vida();
     pulsos();
+    condores();
   }
 
-  // ─── tramas: un círculo que late y sube desde el bus hasta un tercio de la altura de la portada (internet, la nube) ───
+  // ─── tramas: cada una es un paquete que viaja en arco desde el bus hasta la nube de SACEL (Benjamin, 2026-10-30),
+  // que la registra en su gráfico. Las de alerta, en el color fuerte. ───
   var PULSO = {
-    oscuro: { normal: "246,196,138", alerta: "255,238,214" },
-    claro:  { normal: "184,112,42", alerta: "120,56,8" }
+    oscuro: { sombra: "rgba(0,0,4,.5)", normal: "246,196,138", alerta: "255,238,214", caja: "rgba(1,4,20,.82)", nube: ["196,204,226", "130,140,170", "40,48,80"], nubeA: 0.85, borde: "246,196,138", texto: "rgba(242,237,227,.7)" },
+    claro:  { sombra: "rgba(70,52,22,.22)", normal: "184,112,42", alerta: "120,56,8", caja: "rgba(250,247,240,.92)", nube: ["255,255,255", "232,235,241", "170,176,192"], nubeA: 1, borde: "0,16,79", texto: "rgba(0,16,79,.7)" }
   };
+  var puertos = [0, 0, 0, 0, 0, 0], estPuerto = [0, 0, 0, 0, 0, 0];
+  var ACEL_TRAMA = 14;                          // e^(14u): a 3/4 del vuelo lleva ~3 % del recorrido; el último
+                                                // 5 % cruza la mitad, como un salto a la velocidad de la luz
+  // la nube es parte del mundo (Benjamin, 2026-10-30): flota a NUBE.altura sobre el valle, se achica con la distancia
+  // y deja su sombra sobre el relieve, corrida en contra del sol
+  var NUBE = { ancho: 1600, altura: 2600, sombra: 0.12, cielo: 0 };   // cielo: desde cuánto más arriba baja   // m (exagerados como el relieve); sombra: corrimiento / altura
+  function posSwitch() {
+    var e = alturaEn(SWITCH[0], SWITCH[1]), y0 = e * EXAG;
+    // aparece con el descenso, en su lugar y de la nada: se condensa (Benjamin, 2026-10-30; NUBE.cielo > 0 la haría bajar)
+    var vis = suave(Math.max(0, Math.min(1, (pCam - 0.15) / 0.55)));
+    var yc = y0 + NUBE.altura + (1 - vis) * NUBE.cielo, c = proyectar(SWITCH[0], yc, SWITCH[1]), suelo = proyectar(SWITCH[0], y0, SWITCH[1]);
+    if (!c || !suelo) return null;
+    var esc = Math.max(0.6, Math.min(2.6, NUBE.ancho / tamPantalla(SWITCH[0], yc, SWITCH[1], 1) / 38));
+    return { suelo: suelo, x: c[0], y: c[1], e: e, vis: vis, esc: esc, alto: yc - y0 };
+  }
+  function sombraNube(sw, P) {
+    // sol cerca del mediodía (Benjamin, 2026-10-30): la sombra cae casi bajo la nube, un poco al sur (en Chile el sol
+    // del mediodía está al norte). Son anillos concéntricos tendidos sobre el terreno, punto a punto y con poco
+    // desenfoque, así el borde sube y baja con cada loma y la sombra se aclara hacia afuera
+    var d = sw.alto * NUBE.sombra, cx = SWITCH[0] + d * 0.25, cz = SWITCH[1] + d, R = NUBE.ancho * 0.7;
+    cr.save();
+    if ("filter" in cr) cr.filter = "blur(" + (0.8 * sw.esc + (1 - sw.vis) * 8).toFixed(1) + "px)";
+    cr.fillStyle = P.sombra;
+    for (var anillo = 0; anillo < 4; anillo++) {
+      var r = R * (1 - anillo * 0.2);
+      cr.globalAlpha = sw.vis * sw.vis * veloEn(sw.suelo[0], sw.suelo[1], sw.e) * 0.4;
+      cr.beginPath();
+      for (var k = 0; k <= 64; k++) {
+        var a = k / 64 * Math.PI * 2;
+        var bulto = 1 + 0.08 * Math.sin(a * 3 + 1) + 0.05 * Math.sin(a * 5);          // borde de nube, no de círculo
+        var x = cx + Math.cos(a) * r * bulto, z = cz + Math.sin(a) * r * 0.75 * bulto;
+        var q = proyectar(x, alturaEn(x, z) * EXAG + 15, z); if (!q) { cr.restore(); return; }
+        if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]);
+      }
+      cr.fill();
+    }
+    cr.restore();
+  }
+
   function pulsos() {
-    var P = PULSO[tema], techo = H / 3;
+    var P = PULSO[tema], sw = posSwitch(); if (!sw || sw.vis <= 0) return;
+    var aSw = veloEn(sw.suelo[0], sw.suelo[1], sw.e) * sw.vis;
+    sombraNube(sw, P);                                                      // la sombra, debajo de las tramas
     sim.tramas.forEach(function (tr) {
       var u = (sim.reloj - tr.t) / sim.VUELO; if (u < 0 || u > 1) return;
-      var q = sim.enRuta(tr.s), y0 = elevBase(q[0], q[1], sim.altitud(tr.s)) + tamPantalla(q[0], 0, q[1], 6);
-      var base = proyectar(q[0], y0, q[1]); if (!base) return;
-      var meta = Math.min(techo, base[1] - 60);
-      var e = u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u);               // sube con suavidad
-      var x = base[0], y = base[1] + (meta - base[1]) * e;
-      var a = Math.min(1, u / 0.1) * Math.min(1, (1 - u) / 0.25) * (tr.estado === 2 ? 1 : 0.85);
-      var late = Math.sin(u * Math.PI * 6), r = 3.2 + 1.4 * late * late;   // late tres veces en el camino
+      // sale del bus que la envía, donde va ahora (Benjamin, 2026-10-30), no del punto de la ruta donde se generó
+      var fb = focos[tr.bus]; if (!fb) return;
+      var o = proyectar(fb.centro[0], fb.centro[1], fb.centro[2]); if (!o) return;
+      if (u > 0.97 && !tr.llego) { tr.llego = true; var k = tr.bus % 6; puertos[k] = sim.reloj; estPuerto[k] = tr.estado; }
+      // arco: el control sobre el punto medio, más alto cuanto más lejos va
+      var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
       var col = tr.estado === 2 ? P.alerta : P.normal;
-      var g = cr.createRadialGradient(x, y, 0, x, y, r * 4);
-      g.addColorStop(0, "rgba(" + col + "," + (a * 0.4).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + col + ",0)");
-      cr.fillStyle = g; cr.fillRect(x - r * 4, y - r * 4, r * 8, r * 8);
-      cr.fillStyle = "rgba(" + col + "," + a.toFixed(3) + ")";
-      cr.beginPath(); cr.arc(x, y, r, 0, 7); cr.fill();
+      var aBase = Math.min(1, u / 0.08) * Math.min(1, (1 - u) / 0.02) * (tr.estado === 2 ? 1 : 0.85) * Math.max(veloEn(o[0], o[1], fb.centro[1] / EXAG), aSw) * sw.vis;
+      // mismo arco, pero el paquete acelera de forma exponencial (Benjamin, 2026-10-30): sale lento del bus y llega
+      // rápido a SACEL; la estela, que muestrea el tiempo, se alarga sola con la velocidad
+      function arco(t) { t = (Math.exp(ACEL_TRAMA * t) - 1) / (Math.exp(ACEL_TRAMA) - 1); var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * sw.x, m * m * o[1] + 2 * m * t * my + t * t * sw.y]; }
+      cr.lineWidth = 1.2 + 1.3 * Math.pow(u, 6);                              // la estela: se apaga hacia atrás y engorda al final
+      for (var j = 0; j < 14; j++) {
+        var t1 = Math.max(0, u - j * 0.012), t0 = Math.max(0, u - (j + 1) * 0.012); if (t1 <= 0) break;
+        var p1 = arco(t1), p0 = arco(t0);
+        cr.strokeStyle = "rgba(" + col + "," + (aBase * (0.75 + 0.25 * u * u) * (1 - j / 14)).toFixed(3) + ")";
+        cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
+      }
+      if (u < 0.2) {                                                         // al salir, un anillo que se abre en el bus
+        var ra = 2 + u * 40;
+        cr.strokeStyle = "rgba(" + col + "," + (aBase * (1 - u / 0.2) * 0.7).toFixed(3) + ")"; cr.lineWidth = 1;
+        cr.beginPath(); cr.arc(o[0], o[1], ra, 0, 7); cr.stroke();
+      }
+    });
+    // la nube de SACEL (Benjamin, 2026-10-30: algo que el cliente asocie a computador, análisis y nube): un cúmulo de
+    // copos suaves, iluminado desde arriba y con la base en sombra, que se condensa de la nada (cada copo aparece y crece
+    // a su turno, desenfocado al principio); adentro, un gráfico de barras que crece con cada trama que llega; a su
+    // izquierda, el rótulo. Dibujada a la escala que le da la distancia
+    cr.save();
+    var aN = veloEn(sw.x, sw.y + 20, altMax) * sw.vis;
+    if ("filter" in cr && sw.vis < 1) cr.filter = "blur(" + ((1 - sw.vis) * 4).toFixed(1) + "px)";
+    cr.translate(sw.x, sw.y); cr.scale(sw.esc, sw.esc);
+    var COPOS = [[-18, 5, 7], [-11, 0, 10], [-3, -5, 12], [6, -6, 10], [12, 0, 10], [19, 5, 7.5], [-8, 6, 9], [3, 5, 10], [12, 7, 8], [-1, 0, 11]];
+    COPOS.forEach(function (q, i) {
+      var v = Math.max(0, Math.min(1, sw.vis * 1.7 - i * 0.1)); if (v <= 0) return;
+      var r = q[2] * (0.55 + 0.45 * v), g = cr.createRadialGradient(q[0] - r * 0.2, q[1] - r * 0.3, 0, q[0], q[1], r);
+      // copos planos, de borde casi definido: entre el ícono y una nube real (Benjamin, 2026-10-30: «un poco menos realista»)
+      g.addColorStop(0, "rgba(" + P.nube[0] + ",.97)"); g.addColorStop(0.62, "rgba(" + P.nube[0] + ",.92)");
+      g.addColorStop(0.86, "rgba(" + P.nube[1] + ",.55)"); g.addColorStop(1, "rgba(" + P.nube[1] + ",0)");
+      cr.globalAlpha = aN * v * P.nubeA; cr.fillStyle = g;
+      cr.beginPath(); cr.arc(q[0], q[1], r, 0, 7); cr.fill();
+    });
+    var base = cr.createLinearGradient(0, 2, 0, 14);                         // la base, más gris
+    base.addColorStop(0, "rgba(" + P.nube[2] + ",0)"); base.addColorStop(1, "rgba(" + P.nube[2] + ",.45)");
+    cr.globalAlpha = aN; cr.globalCompositeOperation = "source-atop";
+    cr.fillStyle = base; cr.fillRect(-26, -16, 52, 32);
+    cr.globalCompositeOperation = "source-over";
+    for (var k = 0; k < 4; k++) {                                            // barras: una por cada par de puertos
+      var brillo = Math.max(0, 1 - (sim.reloj - Math.max(puertos[k], puertos[k + 2] || 0)) / 0.6);
+      var hb = 3 + [3, 6, 4, 7][k] * (0.55 + 0.45 * brillo);
+      cr.globalAlpha = aN * aN;
+      cr.fillStyle = "rgba(" + (estPuerto[k] === 2 ? P.alerta : P.normal) + "," + (0.5 + 0.5 * brillo).toFixed(3) + ")";
+      cr.fillRect(-8 + k * 4.6, 7 - hb, 3, hb);
+    }
+    cr.globalAlpha = aN;
+    cr.fillStyle = P.texto; cr.font = "600 15.75px 'Plex Mono', monospace"; cr.textAlign = "right"; cr.textBaseline = "middle";
+    cr.fillText("SACEL", -26, 2);                                            // 75 % más grande que el rótulo original (9 px)                                            // a la izquierda de la nube
+    cr.restore();
+    cr.globalAlpha = 1;
+  }
+
+  // ─── flora y fauna del sector (Benjamin, 2026-10-30; especies de iNaturalist en el recuadro Rancagua–Sewell) ───
+  // quiscos en las laderas de solana bajas, quillayes en las de umbría y unos pocos zorros culpeos que caminan.
+  // Van con el relieve (mismo velo, niebla y color) y se esconden detrás de las lomas; al final se transparentan con
+  // un desfase respecto de él (opacVida).
+  var VIDA = { quiscos: 70, quillayes: 34, zorros: 3 };
+  // los simulados, en una zona acotada en torno al tramo medio de la ruta, que siempre queda a la vista (2026-10-30)
+  var ZONA_VIDA = { cx: 13600, cz: 11200, rx: 4200, rz: 3400 };
+  // registros reales de iNaturalist con GPS dentro de la zona visible (verificables, sin coordenadas ocultas; consulta
+  // del 2026-10-30; x, z en metros del cuadro; los repetidos a menos de 80 m se juntan). Van en colores más vivos.
+  // Quisco (Trichocereus chiloensis), obs. 381755775, 357400086, 322230210, 314159521, 314018125, 314017375, 280061564,
+  // 252715341, 238014707, 238006260, 238006257, 186950714, 186950713, 186950711, 186950708, 186950700, 186950699,
+  // 167012766, 109999256, 106928893, 106890947. Quillay (Quillaja saponaria), obs. 399264022, 396667332, 381755762,
+  // 315916228, 239291696. https://www.inaturalist.org/observations/<n>
+  var INAT = { quiscos: [[4091,  14933],  [12934,  12325],  [5167,  9403],  [6178,  13070],  [17277,  16954],  [6510,  13094],  [5321,  13908],  [5379,  13830],  [5375,  14052],  [6274,  16300],  [7104,  9869],  [5225,  14140],  [5201,  13711]],
+               quillayes: [[3809,  16748],  [4301,  12131],  [4025,  14950],  [3892,  11366],  [5838,  13765]] };
+  var seres = null;
+  function cercaDeRuta(x, z, d) {
+    for (var i = 0; i < R.length; i++) if (Math.abs(R[i][0] - x) < d && Math.abs(R[i][1] - z) < d && Math.hypot(R[i][0] - x, R[i][1] - z) < d) return true;
+    return false;
+  }
+  function prepararVida() {
+    var semilla = 29;
+    function az() { semilla = (semilla * 1664525 + 1013904223) >>> 0; return semilla / 4294967296; }
+    function lugar(min, max, solana, intentos) {   // un punto del cuadro entre esas alturas, con la exposición pedida
+      for (var n = 0; n < intentos; n++) {
+        var ang = az() * 6.2832, rr = Math.sqrt(az());
+        var x = ZONA_VIDA.cx + Math.cos(ang) * rr * ZONA_VIDA.rx, z = ZONA_VIDA.cz + Math.sin(ang) * rr * ZONA_VIDA.rz, h = alturaEn(x, z);
+        if (h < min || h > max) continue;
+        if (cercaDeRuta(x, z, 320)) continue;                              // que no tapen el camino
+        var pend = (alturaEn(x, z + 150) - alturaEn(x, z - 150)) / 300;    // > 0: la ladera mira al norte (al sol)
+        if (solana === 1 && pend < 0.03) continue;
+        if (solana === -1 && pend > -0.02) continue;
+        return [x, z];
+      }
+      return null;
+    }
+    seres = [];
+    var k, p;
+    for (k = 0; k < VIDA.quiscos; k++) if ((p = lugar(700, 1700, 1, 150))) seres.push({ tipo: "quisco", x: p[0], z: p[1], t: 0.8 + az() * 0.5, brazos: az() < 0.7 ? (az() < 0.5 ? 1 : 2) : 0 });
+    for (k = 0; k < VIDA.quillayes; k++) {          // de a dos o tres, como en las quebradas
+      if (!(p = lugar(700, 1800, -1, 150))) continue;
+      var n = 1 + Math.floor(az() * 3);
+      for (var j = 0; j < n; j++) {
+        var qx = p[0] + (az() - 0.5) * 500, qz = p[1] + (az() - 0.5) * 500;
+        if (!cercaDeRuta(qx, qz, 320)) seres.push({ tipo: "quillay", x: qx, z: qz, t: 0.8 + az() * 0.45 });
+      }
+    }
+    INAT.quiscos.forEach(function (q) { seres.push({ tipo: "quisco", x: q[0], z: q[1], t: 1.05, brazos: az() < 0.5 ? 1 : 2, real: true }); });
+    INAT.quillayes.forEach(function (q) { seres.push({ tipo: "quillay", x: q[0], z: q[1], t: 1.1, real: true }); });
+    for (k = 0; k < VIDA.zorros; k++) if ((p = lugar(800, 2200, 0, 80))) seres.push({ tipo: "zorro", x0: p[0], z0: p[1], rumbo: az() * 6.28, fase: az() * 100 });
+  }
+  function aLaVista(x, y, z) {                     // ¿alguna loma tapa el punto? se recorre el rayo hacia la cámara
+    for (var k = 1; k < 14; k++) {
+      var t = k / 14 * 0.6, px = x + (ojo[0] - x) * t, py = y + (ojo[1] - y) * t, pz = z + (ojo[2] - z) * t;
+      if (alturaEn(px, pz) * EXAG > py + 10) return false;
+    }
+    return true;
+  }
+  var COLORES_VIDA = {
+    // tonos cercanos al relieve que los rodea, apenas más oscuros (Benjamin, 2026-10-30: que se integren); los «vivo»
+    // son para los registros reales de iNaturalist, para que se distingan
+    claro:  { cactus: [86, 102, 70], tronco: [104, 92, 76], copa: [84, 98, 64], copa2: [112, 124, 88], zorro: [142, 100, 68], zorro2: [98, 80, 66],
+              cactusVivo: [46, 150, 58], copaVivo: [58, 138, 40], copa2Vivo: [118, 186, 74] },
+    oscuro: { cactus: [30, 36, 44], tronco: [26, 28, 34], copa: [26, 32, 40], copa2: [40, 48, 58], zorro: [82, 68, 62], zorro2: [28, 28, 34],
+              cactusVivo: [90, 190, 110], copaVivo: [96, 176, 96], copa2Vivo: [150, 214, 140] }
+  };
+  // el mismo tratamiento de color que el relieve en su shader: lavado hacia el papel y niebla por distancia
+  function comoMapa(c, f) {
+    var l = TM.lavado * suave(pCam), r = [];
+    for (var i = 0; i < 3; i++) {
+      var v = c[i] / 255; v = v + (TM.papel[i] - v) * l; v = v + (TM.niebla[i] - v) * f * 0.7;
+      r.push(Math.round(Math.max(0, Math.min(1, v)) * 255));
+    }
+    return "rgb(" + r.join(",") + ")";
+  }
+
+  function vida() {
+    if (!alturas || opacVida <= 0.02) return;
+    if (!seres) prepararVida();
+    var C = COLORES_VIDA[tema], t = sim.reloj;
+    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    seres.forEach(function (o) {
+      var x = o.x, z = o.z, rumbo = 0;
+      if (o.tipo === "zorro") {                     // camina despacio en un óvalo amplio, con pausas
+        var a = o.rumbo + Math.sin((t + o.fase) * 0.03) * 2.2;
+        x = o.x0 + Math.cos(a) * 500; z = o.z0 + Math.sin(a) * 350;
+        rumbo = a + Math.PI / 2;
+      }
+      var y = alturaEn(x, z) * EXAG;
+      var q = proyectar(x, y, z); if (!q || q[0] < -20 || q[0] > W + 20 || q[1] < -20 || q[1] > H + 20) return;
+      if (!aLaVista(x, y, z)) return;
+      // alfa igual al del relieve en ese punto: velo × (1 − 0,75 niebla) × opacidad del mapa, para que se vean como parte de él
+      var dc = Math.hypot(x - ojo[0], y - ojo[1], z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
+      fn = fn * fn * (3 - 2 * fn);
+      // abajo a la izquierda (inicio de la H-25, junto al texto) van más tenues, para que no resalten (2026-10-30)
+      var mv = medidasVelo(), izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
+      var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja); if (a2 <= 0.02) return;
+      var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
+      cr.globalAlpha = a2;
+      if (o.tipo === "quisco") {                    // columna con uno o dos brazos
+        var h = 8 * f * o.t;
+        cr.strokeStyle = comoMapa(o.real ? C.cactusVivo : C.cactus, fn); cr.lineWidth = 1.6 * f;
+        cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] - h);
+        if (o.brazos > 0) { cr.moveTo(q[0], q[1] - h * 0.45); cr.lineTo(q[0] - h * 0.28, q[1] - h * 0.45); cr.lineTo(q[0] - h * 0.28, q[1] - h * 0.78); }
+        if (o.brazos > 1) { cr.moveTo(q[0], q[1] - h * 0.3); cr.lineTo(q[0] + h * 0.25, q[1] - h * 0.3); cr.lineTo(q[0] + h * 0.25, q[1] - h * 0.62); }
+        cr.stroke();
+      } else if (o.tipo === "quillay") {            // tronco corto y copa redonda, más clara arriba
+        var r = 4.2 * f * o.t;
+        cr.strokeStyle = comoMapa(C.tronco, fn); cr.lineWidth = 1.3 * f;
+        cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] - r * 1.1); cr.stroke();
+        var g = cr.createRadialGradient(q[0] - r * 0.3, q[1] - r * 1.9, r * 0.1, q[0], q[1] - r * 1.5, r * 1.1);
+        g.addColorStop(0, comoMapa(o.real ? C.copa2Vivo : C.copa2, fn)); g.addColorStop(1, comoMapa(o.real ? C.copaVivo : C.copa, fn));
+        cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1] - r * 1.5, r, 0, 7); cr.fill();
+      } else {                                      // zorro culpeo de perfil: cuerpo, cabeza con orejas, cola tupida de punta oscura
+        var d = proyectar(x + Math.cos(rumbo) * 50, y, z + Math.sin(rumbo) * 50), lado = d && d[0] < q[0] ? -1 : 1;
+        var u = 4.5 * f, paso = Math.sin(t * 6 + o.fase) * 0.6;
+        cr.save(); cr.translate(q[0], q[1] - u * 0.9); cr.scale(lado, 1);
+        cr.fillStyle = comoMapa(C.zorro, fn);
+        cr.beginPath(); cr.ellipse(0, 0, u * 1.1, u * 0.42, 0, 0, 7); cr.fill();          // cuerpo
+        cr.beginPath(); cr.moveTo(u * 0.9, -u * 0.2); cr.lineTo(u * 1.7, -u * 0.35); cr.lineTo(u * 1.25, u * 0.15); cr.fill();   // cabeza y hocico
+        cr.beginPath(); cr.moveTo(u * 1.05, -u * 0.35); cr.lineTo(u * 1.15, -u * 0.85); cr.lineTo(u * 1.35, -u * 0.38); cr.fill(); // oreja
+        cr.beginPath(); cr.ellipse(-u * 1.45, u * 0.05, u * 0.7, u * 0.3, -0.25, 0, 7); cr.fill();                                // cola
+        cr.fillStyle = comoMapa(C.zorro2, fn);
+        cr.beginPath(); cr.ellipse(-u * 2.0, u * 0.18, u * 0.25, u * 0.2, -0.25, 0, 7); cr.fill();                                // punta de la cola
+        cr.strokeStyle = comoMapa(C.zorro2, fn); cr.lineWidth = 0.9 * f;
+        cr.beginPath();                                                                                                            // patas
+        cr.moveTo(u * 0.6, u * 0.3); cr.lineTo(u * (0.6 + paso * 0.3), u * 0.9);
+        cr.moveTo(-u * 0.6, u * 0.3); cr.lineTo(-u * (0.6 + paso * 0.3), u * 0.9);
+        cr.stroke();
+        cr.restore();
+      }
+    });
+    cr.restore();
+    cr.globalAlpha = 1;
+  }
+
+  // ─── cóndores (Benjamin, 2026-10-30): unos pocos, diminutos, planeando en círculos sobre las cumbres nevadas ───
+  var CONDORES = { n: 3, picos: 3, ala: 9 };      // cuántos; sobre cuántas cumbres; envergadura en px a la distancia de referencia
+  var condor = null;
+  function prepararCondores() {
+    // las cumbres: máximos de la rejilla, separados al menos 4 km, en torno a la ruta (lo que la cámara siempre muestra)
+    var orden = [];
+    for (var j = 2; j < T.nz - 2; j++) for (var i = 2; i < T.nx - 2; i++) {
+      var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso;
+      if (x > 9000 && x < 31000 && z > 0 && z < 14000) orden.push([alturas[j * T.nx + i], x, z]);
+    }
+    orden.sort(function (a, b) { return b[0] - a[0]; });
+    var picos = [];
+    for (var k = 0; k < orden.length && picos.length < CONDORES.picos; k++) {
+      var o = orden[k];
+      if (picos.every(function (p) { return Math.hypot(p[1] - o[1], p[2] - o[2]) > 4000; })) picos.push(o);
+    }
+    var semilla = 11;
+    function az() { semilla = (semilla * 1664525 + 1013904223) >>> 0; return semilla / 4294967296; }
+    condor = [];
+    for (var c = 0; c < CONDORES.n; c++) {
+      var p = picos[c % picos.length];
+      condor.push({ cx: p[1] + (az() - 0.5) * 1500, cz: p[2] + (az() - 0.5) * 1500, alto: (p[0] + 350 + az() * 600) * EXAG,
+                    radio: 700 + az() * 900, fase: az() * 6.28, giro: (az() < 0.5 ? -1 : 1) * (0.09 + az() * 0.05),   // rad/s: la mitad que el primer intento
+                    bate: az() * 30 });
+    }
+  }
+  function condores() {
+    if (!alturas) return;
+    if (!condor) prepararCondores();
+    var t = sim.reloj, colA = tema === "claro" ? "28,26,34" : "214,218,232";
+    cr.lineCap = "round"; cr.lineJoin = "round";
+    condor.forEach(function (c) {
+      var ang = c.fase + t * c.giro, x = c.cx + Math.cos(ang) * c.radio, z = c.cz + Math.sin(ang) * c.radio;
+      var y = c.alto + Math.sin(t * 0.2 + c.fase) * 120;                    // sube y baja con la térmica
+      var cen = proyectar(x, y, z); if (!cen) return;
+      // silueta en pantalla, como se ve un cóndor de lejos: alas abiertas en una "m" muy plana, con la envergadura que
+      // le da la distancia; se ladea con el giro y de vez en cuando da un par de aletazos
+      var sp = Math.max(5, Math.min(16, CONDORES.ala * (2600 / tamPantalla(x, y, z, 100)))), ladeo = Math.cos(ang) * 0.3 * Math.sign(c.giro);
+      var ciclo = (t + c.bate) % 14, alza = ciclo < 1.2 ? Math.sin(ciclo * 15) * 0.18 : 0;
+      var a = veloEn(cen[0], cen[1], y / EXAG) * (tema === "claro" ? 0.8 : 0.65);
+      if (a <= 0.02) return;
+      cr.save();
+      cr.translate(cen[0], cen[1]); cr.rotate(ladeo);
+      cr.strokeStyle = "rgba(" + colA + "," + a.toFixed(3) + ")"; cr.lineWidth = 1.3;
+      cr.beginPath();
+      cr.moveTo(-sp / 2, sp * (0.06 - alza));
+      cr.quadraticCurveTo(-sp / 4, -sp * (0.24 + alza), 0, 0);
+      cr.quadraticCurveTo(sp / 4, -sp * (0.24 + alza), sp / 2, sp * (0.06 - alza));
+      cr.stroke();
+      cr.restore();
     });
   }
 
