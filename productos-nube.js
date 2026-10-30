@@ -44,11 +44,11 @@
                 ["conductor identificado", 0], ["emergencia: botón de pánico", 1], ["frenada brusca", 1], ["temperatura del motor", 0],
                 ["geocerca: salida de ruta autorizada", 1]];
   var ACEL = 14, VUELO = 2.6, CADA = 3.6;          // como las tramas del mapa; s de vuelo; s entre señales
-  var EXTRA = 1.2;                                 // scroll adicional, en altos de pantalla, con la sección fija
+  var EXTRA = 2.4;   // 2026-10-30: más recorrido, para que cada etapa se lea por separado (antes 1,2)                                 // scroll adicional, en altos de pantalla, con la sección fija
   // etapas, como fracción del tramo fijo
   // entradas: lo que el tacógrafo recibe (GPS y bus CAN del vehículo), en la pausa antes de que aparezca SACEL
   // version: umbral que dispara la animación de la paleta del tacógrafo, de v.1 a v.4 (y se queda ahí: la 5 está por venir)
-  var ETAPA = { version: 0.04, ramas: [0.04, 0.32], entradas: [0.36, 0.5], antena: [0.55, 0.68], nube: [0.58, 0.78], senal: 0.8 };
+  var ETAPA = { version: 0.03, ramas: [0.08, 0.3], entradas: [0.38, 0.5], antena: [0.58, 0.65], nube: [0.66, 0.8], senal: 0.86 };
   var COLORES = {
     claro:  { nube: ["255,255,255", "232,235,241", "170,176,192"], nubeA: 1, texto: "rgba(0,16,79,.7)", traza: "184,112,42", antena: "0,16,79" },
     oscuro: { nube: ["196,204,226", "130,140,170", "40,48,80"], nubeA: 0.85, texto: "rgba(242,237,227,.7)", traza: "246,196,138", antena: "242,237,227" }

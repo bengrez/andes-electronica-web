@@ -881,7 +881,7 @@
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
     // logo inicial que cabe con todo el texto de la empresa debajo (Benjamin, 2026-10-30: párrafo nuevo): se mide el
     // alto del texto y la separación logo–título, y se despeja el tamaño; nunca más que LOGO_INICIO
-    var img = document.querySelector(".marca img"), h1 = heroe && heroe.querySelector(".capa-empresa h1"), lug = heroe && heroe.querySelector(".capa-empresa > :last-child");   // el último párrafo (2026-10-30: sin «Santiago, desde 1991»)
+    var img = [].filter.call(document.querySelectorAll(".marca img"), function (i) { return i.offsetParent !== null; })[0], h1 = heroe && heroe.querySelector(".capa-empresa h1"), lug = heroe && heroe.querySelector(".capa-empresa > :last-child");   // el último párrafo (2026-10-30: sin «Santiago, desde 1991»)
     if (img && h1 && lug && W >= 760) {
       var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       var lAct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--logo")) || LOGO_FIN;

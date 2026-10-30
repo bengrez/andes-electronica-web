@@ -71,7 +71,11 @@ a { color: inherit; }
 /* ─── barra ─── */
 .barra { position: relative; z-index: 3; width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 1.25rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; }
 .marca { display: flex; align-items: center; gap: .8rem; text-decoration: none; margin-right: auto; }
-.marca img { width: calc(2.4rem * var(--logo, 1.7)); height: auto; filter: var(--logo-filtro); }
+.marca img { width: calc(2.4rem * var(--logo, 1.7)); height: auto; }
+/* dos versiones del logo (2026-10-30): la oscura lleva «ANDES» calado; antes se invertía con un filtro y las letras se perdían */
+.logo-oscuro, :root[data-tema="claro"] .logo-oscuro { display: none; }
+:root:not([data-tema="claro"]) .logo-oscuro { display: block; }
+:root:not([data-tema="claro"]) .logo-claro { display: none; }
 .marca b { font: 600 1.05rem/1 "DM Sans", sans-serif; letter-spacing: -.01em; }
 .nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.6rem; }
 .nav a { text-decoration: none; font-size: .95rem; font-weight: 600; color: var(--tinta-2); padding: .25rem 0; border-bottom: 2px solid transparent; }
