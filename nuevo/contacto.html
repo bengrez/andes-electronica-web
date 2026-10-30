@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<!-- cabeza -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
+<link rel="stylesheet" href="base.css">
+<script>
+/* Antes de pintar: tema elegido (o el del sistema). */
+(function () {
+  var d = document.documentElement, t = null;
+  try { t = localStorage.getItem("tema"); } catch (e) {}
+  if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+  d.setAttribute("data-tema", t);
+})();
+</script>
+<!-- /cabeza -->
+<title>Contacto | Andes Electrónica</title>
+<meta name="description" content="Contacto de Andes Electrónica: contacto@andeselec.com, +56 2 2347 8700, Carmen Covarrubias N° 398, Ñuñoa, Santiago. Lunes a viernes de 8:00 a 17:00.">
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+<div class="cabecera">
+<!-- barra -->
+<header class="barra">
+  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img src="img/logo-andes.svg" alt="" width="38" height="34"></a>
+  <nav class="nav" aria-label="Principal"><ul>
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="productos.html">Productos</a></li>
+    <li><a href="sacel.html">SACEL</a></li>
+    <li><a href="servicios.html">Servicios</a></li>
+    <li><a href="empresa.html">Empresa</a></li>
+    <li><a href="contacto.html" aria-current="page">Contacto</a></li>
+  </ul></nav>
+  <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
+</header>
+<!-- /barra -->
+  <div class="titulo" role="region" aria-label="Presentación">
+    <p class="sello">Contacto</p>
+    <h1>Conversemos.</h1>
+    <p class="entrada">Cotizaciones, soporte técnico y proyectos de ingeniería: escríbanos o llámenos.</p>
+  </div>
+</div>
+
+<main id="contenido" class="seccion">
+  <dl class="datos">
+    <div><dt>Correo</dt><dd><a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></dd></div>
+    <div><dt>Teléfono</dt><dd><a href="tel:+56223478700">+56 2 2347 8700</a></dd></div>
+    <div><dt>Dirección</dt><dd>Carmen Covarrubias N° 398<br>Ñuñoa, Santiago, Chile</dd></div>
+    <div><dt>Horario</dt><dd>Lunes a viernes, de 8:00 a 17:00</dd></div>
+  </dl>
+  <div class="acciones">
+    <a class="boton" href="mailto:contacto@andeselec.com">Escribir un correo</a>
+    <a class="enlace" href="https://www.openstreetmap.org/search?query=Carmen%20Covarrubias%20398%2C%20%C3%91u%C3%B1oa">Ver en el mapa</a>
+  </div>
+</main>
+
+<!-- pie -->
+<footer class="pie">
+  <div class="pie-fila">
+    <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
+    <nav aria-label="Pie"><ul>
+      <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
+    </ul></nav>
+  </div>
+  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
+  <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
+</footer>
+<!-- /pie -->
+<script src="sitio.js"></script>
+</body>
+</html>

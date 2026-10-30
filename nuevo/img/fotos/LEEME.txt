@@ -1,0 +1,8 @@
+Fotos reales de Andes Electrónica, tomadas del sitio antiguo (prueba2, inventario en
+~/LLM-devs/Andes/webpage/webpage/site/assets/images/_legacy-prueba2/), recortadas y pasadas a WebP (calidad 74):
+tacografo.webp ← taco-enfoque.jpg · tacografo-instalado.webp ← Picsart_24-08-28_09-14-10-341.jpg
+smartcard.webp ← smarcard2.jpg · display.webp ← dislplay.jpg · visor.webp ← taco.jpg · sede.webp ← sedeAndes.jpg
+
+Modelo 3D del tacógrafo (productos.html): datos/tacografo-modelo.js, extraído sin cambios por scripts/extraer_tacografo.py
+de ~/Downloads/tacografo_scroll.html (animación que Benjamin hizo con ChatGPT, 2026-10-27). Reconstrucción visual basada
+en fotografías: medidas y distribución interna aproximadas. El motor adaptado está en tacografo-3d.js.

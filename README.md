@@ -5,7 +5,9 @@ Sitio institucional de Andes Electrónica, en revisión interna. Tres variantes 
 ## Estructura
 
 ```
-index.html         ← Redirect a v1-original/ (entrada por defecto)
+index.html         ← Redirect a anterior/ (entrada por defecto, desde el 2026-10-30)
+anterior/          ← Variante 1 actualizada (texto de portada y sigla de SACEL) y precompilada: sin Babel ni CDN
+nuevo/             ← Versión nueva, plana (HTML, CSS y JS escritos a mano); fuente en la rama iter/001-sitio-plano
 v1-original/       ← Variante 1 — paleta light, accent copper (publicada inicialmente)
 v2-deep-teal/      ← Variante 2 — paleta deep-teal
 v3-near-black/     ← Variante 3 — paleta near-black
@@ -15,7 +17,9 @@ Las 3 variantes son builds estáticos autocontenidos (HTML + JSX + Babel runtime
 
 ## URLs
 
-- Root (redirige a v1): `https://bengrez.github.io/andes-electronica-web/`
+- Root (redirige a anterior): `https://bengrez.github.io/andes-electronica-web/`
+- Versión anterior precompilada: `https://bengrez.github.io/andes-electronica-web/anterior/`
+- Versión nueva: `https://bengrez.github.io/andes-electronica-web/nuevo/`
 - Variante 1: `https://bengrez.github.io/andes-electronica-web/v1-original/`
 - Variante 2: `https://bengrez.github.io/andes-electronica-web/v2-deep-teal/`
 - Variante 3: `https://bengrez.github.io/andes-electronica-web/v3-near-black/`
@@ -38,3 +42,12 @@ Editar `<variante>/data/runtime.config.json` y reemplazar `ga4MeasurementId` con
 ## Archivos NO necesarios para deploy
 
 Ver `.gitignore`. Se excluyen `debug/` y `uploads/` (sandbox de exploración).
+
+## Versión anterior precompilada (`anterior/`, 2026-10-30)
+
+Copia de `v1-original/` con el texto de portada y la sigla de SACEL nuevos. Los `.jsx` se compilan a `anterior/js/`
+con esbuild (sin minificar, legibles) y React va en su build de producción desde `anterior/vendor/`, así que la página
+ya no compila JSX en el navegador ni usa CDN para scripts. Para regenerar `js/` después de editar un `.jsx`:
+
+    npm install esbuild@0.24.0                     # en una carpeta aparte
+    cd anterior && node compilar.mjs <carpeta>/node_modules/esbuild

@@ -1,0 +1,446 @@
+/* Andes Electrónica: hoja común de las 7 páginas. Escrita a mano, sin build.
+   Dos temas en <html data-tema="oscuro|claro"> (lo pone el script del <head> de cada página).
+   Orden: fuentes · temas · base · barra · portada de inicio · cabecera de páginas · secciones · componentes · pie. */
+
+/* ─── fuentes locales (OFL, ver fuentes/LICENCIAS.txt) ─── */
+@font-face { font-family: "Archivo"; src: url("fuentes/archivo.woff2") format("woff2"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Source Serif"; src: url("fuentes/source-serif-4.woff2") format("woff2"); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: "Source Serif"; src: url("fuentes/source-serif-4-italica.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "DM Sans"; src: url("fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("fuentes/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex Mono"; src: url("fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Barlow Condensed"; src: url("fuentes/barlow-condensed-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+
+/* ─── temas ─── */
+:root {
+  --titulos: "Archivo", "DM Sans", system-ui, sans-serif;   /* títulos y subtítulos (antes, Source Serif 4) */
+  --velo-solido: calc(max(1.25rem, (100% - 80rem) / 2) + 31rem);   /* la portada es papel sólido hasta aquí (columna de texto) */
+}
+:root, :root[data-tema="oscuro"] {
+  --pagina: #01030f;
+  --pagina-2: #050a22;        /* bandas alternas */
+  --tinta: #f2ede3;
+  --tinta-2: rgba(242, 237, 227, .74);
+  --tinta-3: rgba(242, 237, 227, .58);
+  --linea: rgba(242, 237, 227, .16);
+  --acento: #d99a55;          /* cobre sobre la noche: 7,9:1 */
+  --boton: #f2ede3; --boton-tinta: #00104f;
+  --cielo: linear-gradient(180deg, #000004 0%, #01030f 55%, #040b2e 100%);
+  --velo: none;   /* como en el claro: el fundido lo hace flota-3d.js siguiendo el relieve (2026-10-30) */
+  --velo-sin3d: linear-gradient(180deg, rgba(1,3,15,.92) 0%, rgba(1,3,15,.6) 13%, transparent 27%), linear-gradient(90deg, #01030f 0%, #01030f var(--velo-solido), rgba(1,3,15,.55) calc(var(--velo-solido) + 5rem), transparent calc(var(--velo-solido) + 11rem));
+  --velo-movil: linear-gradient(180deg, rgba(0,2,12,.9) 0%, rgba(0,2,12,.75) 62%, transparent 86%);
+  --relieve: url("img/relieve-noche.webp");
+  --relieve-velo: linear-gradient(90deg, rgba(1,3,15,.94) 0%, rgba(1,3,15,.75) 45%, rgba(1,3,15,.45) 100%);
+  --logo-filtro: brightness(0) invert(1);
+  --logos-filtro: brightness(0) invert(1);
+  color-scheme: dark;
+}
+:root[data-tema="claro"] {
+  --pagina: #f3efe6;
+  --pagina-2: #ebe5d8;
+  --tinta: #00104f;
+  --tinta-2: #3d4466;
+  --tinta-3: #5f6580;
+  --linea: rgba(0, 16, 79, .16);
+  --acento: #8f5213;          /* cobre sobre el marfil: 5,9:1 */
+  --boton: #00104f; --boton-tinta: #f3efe6;
+  --cielo: linear-gradient(180deg, #8db8e0 0%, #cfe0ee 55%, #f4e6cc 100%);
+  --velo: none;   /* el fundido con el papel lo hace flota-3d.js siguiendo el relieve (2026-10-29) */
+  --velo-sin3d: linear-gradient(180deg, rgba(243,239,230,.95) 0%, rgba(243,239,230,.65) 13%, transparent 27%), linear-gradient(90deg, #f3efe6 0%, #f3efe6 var(--velo-solido), rgba(243,239,230,.6) calc(var(--velo-solido) + 5rem), transparent calc(var(--velo-solido) + 11rem));
+  --velo-movil: linear-gradient(180deg, rgba(246,243,236,.95) 0%, rgba(246,243,236,.85) 62%, transparent 86%);
+  --relieve: url("img/relieve-dia.webp");
+  --relieve-velo: linear-gradient(90deg, rgba(243,239,230,.96) 0%, rgba(243,239,230,.82) 45%, rgba(243,239,230,.6) 100%);
+  --logo-filtro: none;
+  --logos-filtro: brightness(0);
+  color-scheme: light;
+}
+
+/* ─── base ─── */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--pagina); color: var(--tinta); font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; -webkit-text-size-adjust: 100%; scroll-padding-top: 1rem; }
+body { margin: 0; overflow-x: hidden; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+.saltar { position: absolute; left: 1rem; top: .5rem; z-index: 20; background: var(--boton); color: var(--boton-tinta); padding: .6rem 1rem; border-radius: 6px; transform: translateY(-200%); }
+.saltar:focus { transform: none; }
+.ancho { width: min(100% - 2.5rem, 80rem); margin-inline: auto; }
+
+/* ─── barra ─── */
+.barra { position: relative; z-index: 3; width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 1.25rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; }
+.marca { display: flex; align-items: center; gap: .8rem; text-decoration: none; margin-right: auto; }
+.marca img { width: calc(2.4rem * var(--logo, 1.7)); height: auto; filter: var(--logo-filtro); }
+.marca b { font: 600 1.05rem/1 "DM Sans", sans-serif; letter-spacing: -.01em; }
+.nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.6rem; }
+.nav a { text-decoration: none; font-size: .95rem; font-weight: 600; color: var(--tinta-2); padding: .25rem 0; border-bottom: 2px solid transparent; }
+.nav a:hover { color: var(--tinta); }
+.nav a[aria-current="page"] { color: var(--tinta); border-bottom-color: var(--acento); }
+/* tema: botón redondo con un símbolo, junto a Contacto (2026-10-30) */
+.tema { width: 2.1rem; height: 2.1rem; padding: 0; display: grid; place-items: center; color: var(--tinta-2); background: none; border: 1px solid var(--linea); border-radius: 50%; cursor: pointer; }
+.tema svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tema:hover { color: var(--tinta); border-color: var(--tinta-2); }
+@media (min-width: 47.5rem) { .tema { margin-left: -1rem; } }   /* pegado a Contacto */
+@media (max-width: 47.5rem) {
+  .barra { padding-top: .9rem; gap: .6rem 1rem; }
+  .marca img { width: calc(1.6rem * var(--logo, 1.7)); }
+  .nav ul { gap: .1rem 1.1rem; }
+}
+
+/* ─── portada de inicio: queda fija mientras se recorre .recorrido; la cámara baja según el avance ─── */
+.recorrido { height: 900vh; }   /* descenso en la primera mitad; la segunda, con la cámara quieta. 900vh (antes 420 y 640): más pausa para leer (2026-10-30) */
+.portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
+.portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }
+.camara { position: absolute; inset: -9% -7%; display: none; }
+.sin-3d .recorrido, .sin-3d .portada { height: auto; }
+.sin-3d .portada { position: relative; min-height: min(100svh, 1000px); }
+.sin-3d #flota3d, .sin-3d #cielo { display: none; }
+.sin-3d .camara { display: block; }
+.sin-3d .portada::before { background: var(--velo-sin3d, var(--velo)); }
+@media (prefers-reduced-motion: reduce) { .recorrido { height: auto; } .portada { position: relative; height: auto; min-height: 100svh; } }
+.heroe { --heroe-pad: clamp(2rem, 7vh, 6rem); position: relative; z-index: 2; width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: var(--heroe-pad) 0 0; flex: 1; }
+/* dos textos en la misma columna: la empresa arriba y SACEL desde la mitad del descenso (--sacel, flota-3d.js);
+   los 4 pasos de SACEL, en el tramo quieto (--datos). Todo está en el HTML desde el principio. Sin el mapa
+   animado (sin JS, sin WebGL o con movimiento reducido) los textos van uno debajo del otro. */
+.heroe .capa { max-width: 30rem; }
+.capa-sacel { margin-top: 4rem; }
+.capa-empresa h1 { max-width: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
+.capa-empresa .lugar { margin-top: 2rem; font: 500 .85rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); letter-spacing: .02em; }
+.capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.2rem, 4.2vw, 3.6rem); }
+.capa-sacel .acciones { margin-top: 1.75rem; }
+.sacel-datos { margin-top: 2.25rem; }
+.sacel-datos .pasos { grid-template-columns: 1fr 1fr; gap: 1.1rem 2rem; }
+.sacel-datos .pasos li { padding-top: .8rem; }
+.sacel-datos .pasos li::before { margin-bottom: .45rem; }
+.sacel-datos .pasos p { font-size: .92rem; margin-top: .3rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
+  .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
+  .con-mapa:not(.sin-3d) .capa-sacel { margin-top: 0; }
+  /* uno sale en la primera mitad del cambio y el otro entra en la segunda: nunca se superponen */
+  .con-mapa:not(.sin-3d) .capa-empresa { opacity: clamp(0, 1 - 2 * var(--sacel, 0), 1); transform: translateY(calc(var(--sacel, 0) * -1rem)); }
+  .con-mapa:not(.sin-3d) .capa-sacel { opacity: clamp(0, 2 * var(--sacel, 0) - 1, 1); transform: translateY(calc((1 - var(--sacel, 0)) * 1rem)); }
+  .con-mapa:not(.sin-3d) .sacel-datos { opacity: var(--datos, 0); transform: translateY(calc((1 - var(--datos, 0)) * 1rem)); }
+  .con-mapa:not(.sin-3d) .capa-empresa { padding-top: clamp(3rem, 14vh, 9rem); }
+}
+/* logo grande al inicio (Benjamin, 2026-10-29: el doble que antes, 8 → 1,7): cuelga hacia la columna vacía sin agrandar
+   la barra, así el menú no baja sobre el mapa. El título va amarrado al borde inferior del logo con separación fija
+   (Benjamin, 2026-10-30): los dos dependen sólo de --logo, así que suben juntos y el título llega al lugar donde después
+   entra SACEL. 2,147 rem = alto del logo por unidad de --logo (2,4 rem × 34/38). */
+@media (prefers-reduced-motion: no-preference) and (min-width: 47.5rem) {
+  .con-mapa:not(.sin-3d) .marca img { margin-bottom: calc(-2.147rem * (var(--logo, 1.7) - 1.7)); }
+  .con-mapa:not(.sin-3d) .capa-empresa { padding-top: 0; margin-top: calc(2.147rem * (var(--logo, 1.7) - 1.7) + 1.25rem - var(--heroe-pad)); }
+}
+@media (max-height: 50rem) and (min-width: 47.5rem) {   /* pantallas bajas (1366 × 768): los pasos sólo con su título */
+  .sacel-datos { margin-top: 1.5rem; }
+  .sacel-datos .pasos p { display: none; }
+}
+.pausa { position: relative; z-index: 2; align-self: flex-end; margin: 0 1.25rem 1.25rem 0; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+@media (max-width: 47.5rem) {
+  .portada::before { background: var(--velo-movil); }
+  .heroe { padding-top: 1rem; }
+  .con-mapa:not(.sin-3d) .capa-empresa { padding-top: 1.5rem; }
+  .capa-empresa h1 { font-size: clamp(2.2rem, 10vw, 3rem); }
+  .capa-sacel h2 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+  .capa-sacel .entrada { font-size: 1rem; margin-top: 1rem; }
+  .sacel-datos { margin-top: 1.25rem; }
+  .sacel-datos .pasos p { display: none; }
+  .sin-3d .heroe { padding-bottom: 26rem; }
+}
+
+/* ─── cabecera de las demás páginas: una franja del mismo relieve, quieta ─── */
+.cabecera { position: relative; background: var(--relieve-velo), var(--relieve) center 40% / cover no-repeat, var(--pagina); border-bottom: 1px solid var(--linea); }
+.cabecera .titulo { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(2.5rem, 8vw, 6rem) 0 clamp(2.5rem, 7vw, 5rem); }
+
+/* ─── tipografía ─── */
+.sello { font: 500 .8rem/1.4 "Plex Mono", monospace; color: var(--acento); letter-spacing: .02em; }
+h1 { margin-top: 1.25rem; font: 600 clamp(2.5rem, 6vw, 5.2rem)/1 var(--titulos); letter-spacing: -.03em; max-width: 15ch; text-wrap: balance; }
+h1 em, h2 em { font-style: normal; color: var(--acento); }
+.entrada { margin-top: 1.5rem; font-size: clamp(1.08rem, 1.5vw, 1.25rem); color: var(--tinta-2); max-width: 36rem; }
+.entrada-2 { margin-top: 1rem; }
+.marca-sacel { font-weight: 700; color: var(--acento); }   /* SACEL en el primer párrafo, en el cobre de «a SACEL.» (2026-10-30) */   /* segundo párrafo de la portada: industria chilena y cordillera (2026-10-30) */
+h2 { font: 600 clamp(1.9rem, 3.6vw, 3rem)/1.06 var(--titulos); letter-spacing: -.025em; max-width: 20ch; text-wrap: balance; }
+h3 { font: 600 1.35rem/1.2 var(--titulos); letter-spacing: -.012em; }
+h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spacing: 0; }
+.texto { color: var(--tinta-2); max-width: 40rem; }
+.texto + .texto { margin-top: 1rem; }
+
+/* ─── secciones ─── */
+.seccion { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(4rem, 9vw, 7rem) 0; }
+.banda { background: var(--pagina-2); }
+.cabeza { display: grid; gap: 1.25rem 4rem; grid-template-columns: 1fr; align-items: end; margin-bottom: clamp(2.5rem, 5vw, 3.5rem); }
+@media (min-width: 52rem) { .cabeza { grid-template-columns: 6fr 5fr; } }
+.cabeza p { color: var(--tinta-2); }
+.cabeza .sello { margin-bottom: .9rem; }
+
+/* ─── componentes ─── */
+.acciones { margin-top: 2.25rem; display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; }
+.boton { display: inline-flex; padding: .9rem 1.5rem; background: var(--boton); color: var(--boton-tinta); text-decoration: none; font-weight: 500; border-radius: 999px; }
+.enlace { text-decoration: none; border-bottom: 1px solid var(--acento); padding-bottom: .2rem; }
+.enlace:hover { color: var(--acento); }
+
+.fichas { display: grid; gap: 2.5rem 3rem; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.fichas li { border-top: 1px solid var(--linea); padding-top: 1.4rem; }
+.fichas p { margin-top: .65rem; color: var(--tinta-2); }
+.fichas a { text-decoration: none; }
+.fichas a:hover h3 { color: var(--acento); }
+.fichas .sello { margin-top: 1rem; display: block; }
+
+/* producto: foto + texto, alternando lados en escritorio */
+.producto { display: grid; gap: 2rem 4rem; grid-template-columns: 1fr; align-items: center; padding: clamp(3rem, 7vw, 5.5rem) 0; border-top: 1px solid var(--linea); scroll-margin-top: 1rem; }
+.producto:first-of-type { border-top: 0; padding-top: 0; }
+@media (min-width: 56rem) { .producto { grid-template-columns: 6fr 5fr; } .producto.inverso > figure { order: 2; } }
+.producto figure { border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16 / 10; }
+.producto figure img { width: 100%; height: 100%; object-fit: cover; }
+.producto h2, .producto h3 { font: 600 clamp(1.8rem, 3.2vw, 2.5rem)/1.08 var(--titulos); letter-spacing: -.025em; }
+.producto .texto { margin-top: 1rem; }
+.lista { margin-top: 1.4rem; display: grid; gap: .55rem; color: var(--tinta-2); }
+.lista li { padding-left: 1.2rem; position: relative; }
+.lista li::before { content: ""; position: absolute; left: 0; top: .72em; width: .45rem; height: 1px; background: var(--acento); }
+
+/* pasos (procesos y etapas) */
+.pasos { display: grid; gap: 1.75rem 2.5rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); counter-reset: paso; }
+.pasos li { counter-increment: paso; border-top: 1px solid var(--linea); padding-top: 1.2rem; }
+.pasos li::before { content: counter(paso); display: block; font: 500 .8rem/1 "Plex Mono", monospace; color: var(--acento); margin-bottom: .75rem; }
+.pasos p { margin-top: .5rem; color: var(--tinta-2); }
+
+/* datos (definiciones cortas) */
+.datos { display: grid; gap: 1.5rem 3rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.datos dt { font: 500 .78rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); }
+.datos dd { margin-top: .35rem; }
+.datos a { text-decoration: none; border-bottom: 1px solid var(--acento); }
+
+/* línea de tiempo */
+.tiempo { display: grid; gap: 0; }
+.tiempo li { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1.5rem; padding: 1.4rem 0; border-top: 1px solid var(--linea); }
+.tiempo b { font: 600 1.5rem/1 var(--titulos); color: var(--acento); letter-spacing: -.02em; }
+.tiempo p { color: var(--tinta-2); margin-top: .35rem; }
+@media (max-width: 30rem) { .tiempo li { grid-template-columns: 1fr; gap: .4rem; } }
+
+/* rubros (lista corta en línea) */
+.rubros { display: flex; flex-wrap: wrap; gap: .6rem; }
+.rubros li { border: 1px solid var(--linea); border-radius: 999px; padding: .45rem 1rem; font-size: .95rem; }
+
+/* clientes (bloque único y retirable: ver risk-002 del vault) */
+.logos { display: flex; flex-wrap: wrap; align-items: center; gap: 2rem 3.25rem; }
+.logos img { height: 2rem; width: auto; max-width: 9rem; object-fit: contain; filter: var(--logos-filtro); opacity: .7; }
+/* fichas de clientes (clientes.js, 2026-10-30): la grilla de la matriz del 29-oct; cada ficha, sin fondo, con
+   paletas negras como las de los tableros de las terminales antiguas */
+.logos-oculta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.logos img.en-color { filter: none; }   /* escudos que en una sola tinta quedan como mancha (lista sin JS) */
+.clientes-fichas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem 1.5rem;
+  /* paletas apenas más oscuras que la banda (Benjamin, 2026-10-30), no negras: el tablero se funde con la página */
+  --pl-1: color-mix(in srgb, var(--pagina-2), #000 30%); --pl-2: color-mix(in srgb, var(--pagina-2), #000 42%);
+  --pl-bisagra: color-mix(in srgb, var(--pagina-2), #000 62%); --pl-tinta: var(--tinta); --pl-rubro: var(--acento);
+  --pl-logo: brightness(0) invert(1); --pl-figura: var(--tinta-3); }
+:root[data-tema="claro"] .clientes-fichas {
+  --pl-1: color-mix(in srgb, var(--pagina-2), #3a2c10 7%); --pl-2: color-mix(in srgb, var(--pagina-2), #3a2c10 11%);
+  --pl-bisagra: color-mix(in srgb, var(--pagina-2), #3a2c10 30%); --pl-logo: brightness(0); }
+.ficha { container-type: inline-size; display: grid; gap: .25rem; }
+/* --celda: ancho de una paleta de letra; 11 por línea llenan el ancho de la ficha */
+.ficha > * { --celda: calc(100cqw / 13.95); }   /* 13 paletas por línea llenan el ancho */
+.linea { display: flex; gap: calc(var(--celda) * .08); }
+.nombres { display: grid; gap: .25rem; }
+/* el rubro, etiqueta sobre la ficha (2026-10-30); se apaga un instante cuando la ficha cambia de cliente */
+.rubro-etiqueta { font: 500 .7rem/1 "Plex Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--acento); margin-bottom: .2rem; transition: opacity .35s ease; min-height: .7rem; }
+.rubro-etiqueta.cambia { opacity: 0; }
+.linea.rubro .paleta { color: var(--pl-rubro); }
+.ficha .paleta-logo { width: 100%; height: auto; aspect-ratio: 2.6 / 1; margin: 0 0 .3rem; }
+.paleta { position: relative; width: var(--celda); height: calc(var(--celda) * 1.45); display: grid; place-items: center; border-radius: 2px;
+  background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-bisagra) 50%, var(--pl-1) 52%, var(--pl-2)); perspective: 12rem;
+  font: 600 calc(var(--celda) * 1.2)/1 "Barlow Condensed", "Archivo", sans-serif;   /* letra de tablero, angosta (2026-10-30) */ color: var(--pl-tinta); overflow: hidden; }
+.paleta::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--pl-bisagra); }
+.paleta b { font-weight: inherit; display: block; }
+.paleta.gira b { animation: paleta .18s ease-out; transform-origin: 50% 50%; }
+/* paleta grande del logo: dos módulos apilados, así que dos bisagras (a 1/4 y 3/4) y la juntura al medio */
+.paleta-logo { position: relative; flex: none; width: calc(var(--celda) * 5.2); height: calc(var(--celda) * 2.3); margin-right: calc(var(--celda) * .6);
+  border-radius: 3px; perspective: 16rem; overflow: hidden;
+  background: linear-gradient(var(--pl-1), var(--pl-2) 24%, var(--pl-bisagra) 25%, var(--pl-1) 26.5%, var(--pl-2) 49.4%, var(--pl-bisagra) 50%, var(--pl-1) 50.8%, var(--pl-2) 74%, var(--pl-bisagra) 75%, var(--pl-1) 76.5%, var(--pl-2)); }
+.paleta-logo::before, .paleta-logo::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: var(--pl-bisagra); z-index: 1; }
+.paleta-logo::before { top: 25%; }
+.paleta-logo::after { top: 75%; }
+.paleta-logo i { position: absolute; inset: 0; display: grid; place-items: center; }
+.paleta-logo img { position: absolute; left: 11%; top: 18%; width: 78%; height: 64%; object-fit: contain; filter: var(--pl-logo); opacity: .85; }
+.paleta-logo img.en-color { filter: none; opacity: 1; }
+.paleta-logo svg { width: 34%; height: auto; fill: none; stroke: var(--pl-figura); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.paleta-logo.gira i { animation: paleta-grande .4s ease-out; transform-origin: 50% 50%; }
+@keyframes paleta { from { transform: rotateX(75deg); opacity: .5; } to { transform: none; opacity: 1; } }
+@keyframes paleta-grande { from { transform: rotateX(80deg); opacity: .35; } 60% { transform: rotateX(-8deg); } to { transform: none; opacity: 1; } }
+.pausa-clientes { display: block; margin-top: 1rem; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+@media (max-width: 47.5rem) {   /* en el celular, 2 × 3 */
+  .clientes-fichas { grid-template-columns: repeat(2, 1fr); gap: 1.2rem .8rem; }
+  .ficha:nth-child(n + 7) { display: none; }
+}
+
+/* cita literal (alcance del certificado) — restaurada el 30-oct (se había borrado por error en una edición del 30-oct) */
+.cita { border-left: 2px solid var(--acento); padding: .4rem 0 .4rem 1.4rem; font: 400 1.35rem/1.4 "Source Serif", Georgia, serif; font-style: italic; max-width: 46rem; }
+.nota { font-size: .9rem; color: var(--tinta-3); margin-top: .9rem; }
+
+/* llamada final */
+.llamada { display: grid; gap: 1.5rem 4rem; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 52rem) { .llamada { grid-template-columns: 7fr 5fr; } }
+
+/* familia de productos (inicio, 2026-10-30): a la izquierda el tacógrafo con profundidad y, colgando de él, los
+   periféricos planos con su descripción debajo; a la derecha SACEL y el tacógrafo. Al pasar sobre el texto del
+   tacógrafo su dibujo sube y se marca en cobre; los periféricos se marcan solos. */
+.familia { display: grid; gap: 2.5rem 4rem; align-items: center; }
+@media (min-width: 60rem) { .familia { grid-template-columns: 7fr 5fr; } }
+.familia a { text-decoration: none; color: inherit; }
+.familia a:hover h3, .familia a:focus-visible h3 { color: var(--acento); }
+.familia p { color: var(--tinta-2); }
+.familia .sello { display: block; margin-bottom: .35rem; color: var(--acento); }
+.familia-diagrama { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.dg-taco { position: relative; width: min(100%, 27rem); margin-top: 0; filter: drop-shadow(10px 16px 16px rgba(0, 16, 79, .10)); transition: transform .3s ease; }
+:root:not([data-tema="claro"]) .dg-taco { filter: drop-shadow(10px 16px 16px rgba(0, 0, 0, .45)); }
+.dg-taco .ilus { display: block; width: 100%; height: auto; }
+.dg-taco .ilus-pulso { display: none; }   /* su señal la dibuja productos-nube.js, hacia la nube de SACEL */
+.pausa-productos { position: absolute; right: 0; bottom: 1.2rem; z-index: 2; margin: 0; }
+.productos-lienzo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.dg-taco::after { content: ""; position: absolute; left: 50%; top: 96%; height: 1.6rem; width: 1px; background: var(--linea); opacity: var(--ramas, 1); }
+.ilus-cara-sup { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
+.ilus-cara-lado { fill: color-mix(in srgb, var(--tinta) 16%, var(--pagina)); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
+.familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco { transform: translateY(-4px); }
+.familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco .ilus-borde { stroke: var(--acento); }
+/* periféricos: una columna cada uno, el dibujo plano y debajo su texto, unidos al tacógrafo por líneas cortas */
+.familia-ramas { position: relative; margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem 1.6rem; text-align: center; }
+.familia-ramas::before { content: ""; position: absolute; top: -1.3rem; left: 16.5%; right: 16.5%; height: 1px; background: var(--linea); opacity: var(--ramas, 1); }
+.familia-ramas li { position: relative; }
+.familia-ramas li::before { content: ""; position: absolute; left: 50%; top: -1.3rem; height: 1.3rem; width: 1px; background: var(--linea); }
+.familia-ramas .ilus { display: block; width: 100%; height: 5rem; margin-bottom: .7rem; transition: transform .3s ease; }
+.familia-ramas .ilus-pulso { display: none; }   /* planos y quietos: el pulso queda en el tacógrafo */
+.familia-ramas .familia-item:is(:hover, :focus-visible) .ilus { transform: translateY(-3px); }
+.familia-ramas .familia-item:is(:hover, :focus-visible) .ilus-borde { stroke: var(--acento); }
+.familia-ramas h3 { font-size: 1.02rem; }
+.familia-ramas p:not(.sello) { margin-top: .3rem; font-size: .9rem; line-height: 1.5; }
+.familia-textos { display: grid; gap: 1.6rem; }
+.familia-raiz { display: block; padding: 1.1rem 1.3rem; border: 1px solid var(--linea); border-top: 2px solid var(--acento); border-radius: 14px; background: var(--pagina-2); }
+.familia-raiz h3 { font-size: clamp(1.35rem, 2vw, 1.75rem); }
+.familia-principal h3 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.15; }   /* más grande: la paleta de la versión calza en la línea */
+.familia-raiz p, .familia-principal p:not(.sello) { margin-top: .45rem; }
+.familia-principal { display: block; padding-left: 1.3rem; border-left: 2px solid var(--acento); }
+/* «Tacógrafo v.N»: el número en una paleta de tablero que gira de v.1 a v.4 con el scroll (productos-nube.js, 2026-10-30) */
+.ver { white-space: nowrap; }
+/* la perilla que mueve la versión (2026-10-30): gira de 0 a 4, se pasa hacia el 5 —que se asoma en la paleta sin
+   llegar a caer— y vuelve a 4 */
+.ver-dial { display: inline-block; width: 1em; height: 1em; margin-left: .2em; vertical-align: -.16em; overflow: visible; }
+.perilla-marca { stroke: var(--tinta-3); stroke-width: 2; stroke-linecap: round; }
+.perilla-cuatro { stroke: var(--acento); stroke-width: 2.8; }
+.perilla { transform-origin: 24px 24px; transform: rotate(var(--giro, -135deg)); }
+.perilla-cuerpo { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.6; }
+.perilla-estrias path { stroke: var(--tinta-3); stroke-width: 1.2; stroke-linecap: round; }
+.perilla-tapa { fill: var(--pagina); stroke: var(--linea); stroke-width: 1; }
+.perilla-indice { stroke: var(--acento); stroke-width: 2.6; stroke-linecap: round; }
+/* el 5 que se asoma, como en un tablero real: la mitad de arriba del 4 empieza a caer sobre la bisagra y deja ver
+   detrás la mitad de arriba del 5; a medio caer, vuelve (--caida en grados, productos-nube.js) */
+.ver-paleta i, .ver-paleta s { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; text-decoration: none;
+  color: var(--tinta); background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-b) 50%, transparent 50%); clip-path: inset(0 0 50% 0);
+  opacity: var(--asoma, 0); }
+.ver-paleta { perspective: 6rem; }
+.ver-paleta s { transform-origin: 50% 50%; transform: rotateX(calc(var(--caida, 0) * -1deg)); backface-visibility: hidden; }
+.ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #000 30%); --pl-2: color-mix(in srgb, var(--pagina-2), #000 42%); --pl-b: color-mix(in srgb, var(--pagina-2), #000 62%);
+  position: relative; display: inline-grid; place-items: center; width: .58em; height: .8em; margin-left: .06em; vertical-align: -.04em; border-radius: .07em;   /* el número del alto de las letras de la frase */
+  background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-b) 50%, var(--pl-1) 52%, var(--pl-2)); perspective: 10rem; overflow: hidden;
+  font: 600 .8em/1 "Barlow Condensed", "Archivo", sans-serif; color: var(--tinta); }
+:root[data-tema="claro"] .ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #3a2c10 7%); --pl-2: color-mix(in srgb, var(--pagina-2), #3a2c10 11%); --pl-b: color-mix(in srgb, var(--pagina-2), #3a2c10 30%); }
+.ver-paleta::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--pl-b); }
+.ver-paleta b { font-weight: inherit; display: block; }
+/* cada número cae como una paleta (acelerando, con un rebote corto) cuando la perilla lo cruza */
+.ver-paleta.gira b { animation: paleta-cae var(--dur, .42s) cubic-bezier(.55, 0, .85, .35); transform-origin: 50% 50%; }
+@keyframes paleta-cae { 0% { transform: rotateX(95deg); opacity: .45; } 80% { transform: rotateX(-12deg); opacity: 1; } 100% { transform: none; } }
+
+.familia .ilus-dato { margin-top: .5rem; font-size: .68rem; }
+@media (max-width: 40rem) {   /* celular: los periféricos uno debajo del otro */
+  .familia-ramas { grid-template-columns: 1fr; margin-top: 2rem; }
+  .familia-ramas::before, .familia-ramas li::before, .dg-taco::after { display: none; }
+}
+
+/* ilustraciones de línea con curvas de nivel (partes/ilustracion-*.svg, generadas por scripts/) */
+.ilus-curvas { fill: none; stroke: var(--tinta); stroke-width: .8; opacity: .3; }
+.ilus-borde { fill: none; stroke: var(--tinta); stroke-width: 1.6; }
+.ilus-pieza, .ilus-pantalla { fill: var(--pagina); stroke: var(--tinta); stroke-width: 1.2; }
+.ilus-pantalla { stroke-width: 1.6; }
+.ilus-linea { fill: none; stroke: var(--tinta); stroke-width: 1.2; opacity: .55; }
+.ilus-traza { fill: none; stroke: var(--acento); stroke-width: 1.2; stroke-dasharray: 2 5; }
+.ilus-punto { fill: var(--acento); }
+.ilus-onda { fill: none; stroke: var(--acento); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; animation: ilus-onda 2.4s ease-out infinite; }
+.ilus-sube { fill: var(--acento); animation: ilus-sube 2.4s ease-in-out infinite; }
+.ilus-baja { fill: var(--acento); animation: ilus-baja 2.4s ease-in-out infinite; }
+.ilus-led { fill: var(--tinta); opacity: .35; }
+@keyframes ilus-onda { from { transform: scale(1); opacity: .9; } to { transform: scale(4); opacity: 0; } }
+@keyframes ilus-sube { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 80% { opacity: .9; } 100% { transform: translateY(-60px); opacity: 0; } }
+@keyframes ilus-baja { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: .9; } 100% { transform: translateY(46px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ilus-onda, .ilus-sube, .ilus-baja { animation: none; } .ilus-sube { transform: translateY(-38px); } .ilus-baja { transform: translateY(14px); } .ilus-onda { opacity: .5; transform: scale(2); } }
+
+/* sellos de normativa (empresa): dibujo de línea con el dato, número y organismo; no imita un timbre oficial */
+.sellos { display: grid; gap: 2rem 2.5rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.sellos li { display: grid; place-items: center; text-align: center; }
+.sellos li > * { grid-area: 1 / 1; }
+.sellos svg { width: min(100%, 15rem); height: auto; }
+#sello-anillos circle, #sello-anillos path { fill: none; stroke: var(--tinta); stroke-width: 1; }   /* el dibujo vive en un <symbol> */
+#sello-anillos .anillo-2 { opacity: .45; }
+#sello-anillos .anillo-3 { opacity: .3; }
+#sello-anillos .marca-cobre { stroke: var(--acento); stroke-width: 2; }
+.sellos p { display: grid; gap: .25rem; max-width: 10rem; }
+.sellos .tipo { font: 500 .7rem/1.3 "Plex Mono", monospace; color: var(--tinta-3); }
+.sellos b { font: 600 1.6rem/1.05 var(--titulos); letter-spacing: -.02em; }
+.sellos .org { font-size: .78rem; line-height: 1.3; color: var(--tinta-2); }
+
+/* servicios: I+D como paraguas; sus dos áreas cuelgan de una línea */
+.metodo { display: flex; flex-wrap: wrap; gap: .6rem; counter-reset: paso; margin-top: 1rem; }
+.metodo li { counter-increment: paso; border: 1px solid var(--linea); border-radius: 999px; padding: .45rem 1rem; font-size: .95rem; }
+.metodo li::before { content: counter(paso) " · "; font: 500 .78rem/1 "Plex Mono", monospace; color: var(--acento); }
+.subtitulo { font: 500 .8rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); margin-top: 3rem; }
+.ramas { border-left: 1px solid var(--acento); padding-left: clamp(1.25rem, 4vw, 3rem); }
+.ramas > .seccion { width: auto; padding-top: clamp(3rem, 6vw, 4.5rem); padding-bottom: clamp(3rem, 6vw, 4.5rem); }
+.ramas > .seccion + .seccion { border-top: 1px solid var(--linea); }
+.par { display: grid; gap: 2.5rem 4rem; grid-template-columns: 1fr; scroll-margin-top: 1rem; }
+@media (min-width: 52rem) { .par { grid-template-columns: 1fr 1fr; } }
+.par h3 { margin-bottom: 1.1rem; }
+.par .pasos { grid-template-columns: 1fr 1fr; }
+
+/* ─── pie ─── */
+.pie { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 2.5rem 0 3rem; border-top: 1px solid var(--linea); font-size: .88rem; color: var(--tinta-2); display: grid; gap: 1.5rem; }
+.pie-fila { display: flex; flex-wrap: wrap; gap: .6rem 2rem; justify-content: space-between; }
+.pie nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.4rem; }
+.pie a { text-decoration: none; }
+.pie a:hover { color: var(--tinta); }
+.pie .atribucion { color: var(--tinta-3); font-size: .8rem; }
+
+/* ─── exploración del tacógrafo (productos.html, tacografo-3d.js): adaptada de la animación de Benjamin ─── */
+.taco-story { position: relative; height: 400vh; height: 400svh; isolation: isolate; border-bottom: 1px solid var(--linea); }
+.taco-stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
+  background: radial-gradient(ellipse at 70% 48%, var(--taco-halo) 0, transparent 62%), var(--pagina); }
+:root, :root[data-tema="oscuro"] { --taco-halo: rgba(40, 62, 150, .32); }
+:root[data-tema="claro"] { --taco-halo: #faf9f5; }
+.taco-copy { position: absolute; z-index: 2; left: max(1.25rem, calc((100% - 80rem) / 2)); top: 22%; width: 30%; max-width: 26rem; }
+.taco-copy h2 { margin-top: .9rem; font-size: clamp(2.1rem, 4.2vw, 3.6rem); }
+.taco-copy p[data-description] { margin-top: 1.25rem; color: var(--tinta-2); }
+.taco-model-area { position: absolute; top: 0; bottom: 0; right: 0; width: 66%; }
+.taco-model-area canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
+.taco-model-area .taco-foto { position: absolute; inset: 18% 6% auto 6%; border-radius: 14px; overflow: hidden; }
+[data-ready="true"] .taco-foto { display: none; }
+.taco-loading { position: absolute; inset: auto 12% 14%; text-align: center; font-size: .85rem; color: var(--tinta-3); }
+.taco-bottom { position: absolute; z-index: 3; left: max(1.25rem, calc((100% - 80rem) / 2)); right: max(1.25rem, calc((100% - 80rem) / 2)); bottom: 1.4rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem 1.5rem; align-items: end; }
+.taco-hint { font: 500 .72rem/1.5 "Plex Mono", monospace; color: var(--tinta-3); }
+.taco-nav { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+.taco-nav a { text-decoration: none; font-size: .82rem; color: var(--tinta-3); padding: .35rem 0; white-space: nowrap; }
+.taco-nav a[aria-current="step"] { color: var(--tinta); box-shadow: inset 0 -1px var(--acento); }
+.taco-progress { grid-column: 1 / -1; width: 100%; height: 2px; border: 0; background: var(--linea); appearance: none; }
+.taco-progress::-webkit-progress-bar { background: var(--linea); }
+.taco-progress::-webkit-progress-value { background: var(--acento); }
+.taco-progress::-moz-progress-bar { background: var(--acento); }
+.taco-nota { position: absolute; z-index: 2; right: max(1.25rem, calc((100% - 80rem) / 2)); top: 1.2rem; font-size: .75rem; color: var(--tinta-3); max-width: 22rem; text-align: right; }
+@media (max-width: 47.5rem) {
+  .taco-copy { top: 7%; left: 1.25rem; right: 1.25rem; width: auto; }
+  .taco-copy h2 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
+  .taco-copy p[data-description] { margin-top: .7rem; font-size: .92rem; }
+  .taco-model-area { top: 34%; bottom: 13%; width: 100%; }
+  .taco-bottom { grid-template-columns: 1fr; gap: .5rem; bottom: 1rem; }
+  .taco-hint { display: none; }
+  .taco-nav { gap: .4rem; justify-content: space-between; flex-wrap: nowrap; }
+  .taco-nav a { font-size: .68rem; }
+  .taco-nota { top: auto; bottom: 4.4rem; left: 1.25rem; text-align: left; font-size: .66rem; }
+}
+@media (max-width: 23rem) { .taco-nav a span { display: none; } .taco-nav a { font-size: .8rem; padding-inline: .4rem; } }
