@@ -77,7 +77,10 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
       </div>
     </section>
   </div>
+  <div class="controles">
+    <button class="seguir" type="button" data-recorrido=".recorrido" data-etapas="0.3,0.68,0.97" aria-label="Ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
   <button class="pausa" type="button" aria-pressed="false">Pausar animación</button>
+  </div>
 </div>
 </div>
 
@@ -192,7 +195,10 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
       </a>
       </div>
     </div>
-    <button class="pausa pausa-productos" type="button" aria-pressed="false">Pausar animación</button>
+    <div class="controles controles-productos">
+      <button class="seguir" type="button" data-recorrido=".productos-recorrido" data-etapas="0.3,0.5,0.8,0.96" aria-label="Ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
+      <button class="pausa pausa-productos" type="button" aria-pressed="false">Pausar animación</button>
+    </div>
   </section>
   </div>
 
@@ -284,5 +290,6 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
 <script src="flota-3d.js"></script>
 <script src="clientes.js"></script>
 <script src="productos-nube.js"></script>
+<script src="seguir.js"></script>
 </body>
 </html>

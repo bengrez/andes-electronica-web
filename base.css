@@ -141,7 +141,7 @@ a { color: inherit; }
   .sacel-datos { margin-top: 1.5rem; }
   .sacel-datos .pasos p { display: none; }
 }
-.pausa { position: relative; z-index: 2; align-self: flex-end; margin: 0 1.25rem 1.25rem 0; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.pausa { position: relative; z-index: 2; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
 @media (max-width: 47.5rem) {
   .portada::before { background: var(--velo-movil); }
   .heroe { padding-top: 1rem; }
@@ -300,7 +300,6 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 :root:not([data-tema="claro"]) .dg-taco { filter: drop-shadow(10px 16px 16px rgba(0, 0, 0, .45)); }
 .dg-taco .ilus { display: block; width: 100%; height: auto; }
 .dg-taco .ilus-pulso { display: none; }   /* su señal la dibuja productos-nube.js, hacia la nube de SACEL */
-.pausa-productos { position: absolute; right: 0; bottom: 1.2rem; z-index: 2; margin: 0; }
 .productos-lienzo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 .dg-taco::after { content: ""; position: absolute; left: 50%; top: 96%; height: 3.6rem; width: 1px; background: var(--linea); opacity: var(--ramas, 1); }
 .ilus-cara-sup { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
@@ -457,7 +456,7 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
   .taco-hint { display: none; }
   .taco-nav { gap: .4rem; justify-content: space-between; flex-wrap: nowrap; }
   .taco-nav a { font-size: .68rem; }
-  .taco-nota { top: auto; bottom: 4.4rem; left: 1.25rem; text-align: left; font-size: .66rem; }
+  .taco-nota { top: auto; bottom: 7rem; left: 1.25rem; text-align: left; font-size: .66rem; }
 }
 @media (max-width: 23rem) { .taco-nav a span { display: none; } .taco-nav a { font-size: .8rem; padding-inline: .4rem; } }
 
@@ -469,3 +468,14 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .cert-imagen figcaption { margin-top: .6rem; font-size: .8rem; color: var(--tinta-3); }
 .cert-alcance-t { margin: 2rem 0 .8rem; font-size: 1.1rem; }
 .cert-descarga { margin-top: 1.8rem; }
+
+/* «Seguir»: pasa a la etapa siguiente de las secciones que avanzan con el scroll (seguir.js, 2026-10-30) */
+.controles { position: absolute; z-index: 2; right: 1.25rem; bottom: 1.25rem; display: flex; gap: .5rem; align-items: center; }
+.controles-productos { right: 0; bottom: 1.2rem; }
+.seguir { display: inline-flex; align-items: center; gap: .35rem; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--boton-tinta); background: var(--boton);
+  border: 1px solid var(--boton); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.seguir svg { width: .85rem; height: .85rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: seguir 1.8s ease-in-out infinite; }
+.seguir:hover { filter: brightness(1.15); }
+@keyframes seguir { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) { .seguir { display: none; } }
+.taco-hint-fila { display: flex; align-items: center; gap: 1rem; }

@@ -65,7 +65,10 @@
       </div>
       <p class="taco-nota">Reconstrucción visual basada en fotografías: medidas y distribución interna aproximadas.</p>
       <div class="taco-bottom">
-        <p class="taco-hint" data-hint>Desplácese para explorar</p>
+        <div class="taco-hint-fila">
+          <p class="taco-hint" data-hint>Desplácese para explorar</p>
+          <button class="seguir seguir-taco" type="button" data-recorrido=".taco-story" data-etapas="0.25,0.62,0.96" aria-label="Ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
+        </div>
         <nav class="taco-nav" aria-label="Etapas de la exploración del tacógrafo">
           <a href="#tacografo" data-seek="0" data-phase="0" aria-label="Etapa 1: Equipo" aria-current="step"
              data-etiqueta="Tacógrafo Electrónico · TAE-4.0" data-titulo="Tacógrafo 4.0"
@@ -206,5 +209,6 @@
 <script src="sitio.js"></script>
 <script src="datos/tacografo-modelo.js"></script>
 <script src="tacografo-3d.js"></script>
+<script src="seguir.js"></script>
 </body>
 </html>
