@@ -101,13 +101,10 @@ function createSoftwareGL(canvas,data){
 (async function(){
   'use strict';
   const root=document.getElementById('tacografo');
-  if(!root||!window.TACOGRAFO_MODELO||!window.DecompressionStream)return;   // sin modelo o navegador antiguo: queda la foto
+  if(!root||!window.TACOGRAFO_MODELO||typeof window.TACOGRAFO_MODELO!=='object')return;   // sin modelo: queda la foto
   const canvas=root.querySelector('canvas'),status=root.querySelector('[data-status]');
   try{
-    const compressed=window.TACOGRAFO_MODELO;
-    const bytes=Uint8Array.from(atob(compressed),c=>c.charCodeAt(0));
-    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const data=JSON.parse(await new Response(stream).text());
+    const data=window.TACOGRAFO_MODELO;   // datos legibles (datos/tacografo-modelo.js), sin descomprimir (2026-10-30)
     let gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
     if(!gl)gl=createSoftwareGL(canvas,data);
     const TAMANO=0.5;   // tamaño en pantalla respecto del original (Benjamin, 2026-10-27: «hazlo 50 % más chico»)
