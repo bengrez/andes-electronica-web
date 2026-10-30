@@ -33,6 +33,7 @@
   var LOGO_INICIO = 8, LOGO_FIN = 1.7;          // tamaño del logo arriba de todo y al final del descenso (veces 2,4 rem);
                                                 // en el celular parte en LOGO_INICIO_MOVIL
   var LOGO_INICIO_MOVIL = 4;
+  var logoInicio = LOGO_INICIO;                 // el que cabe: en pantallas bajas, menor, para que el texto no se salga (medir)
   var opacMapa = 1, opacVida = 1, nieblaAct = [1, 2];
   var MAPA_FINAL = 0.4;                         // cuánto se transparenta el relieve al final del scroll
   var RUTA_TENUE = 0.45;                        // opacidad de la ruta y los buses arriba de todo
@@ -406,7 +407,7 @@
     window.FlotaPortada.descenso = pCam; window.FlotaPortada.datos = pDatos;
     var dist = camara(pCam);
     pintarCielo();
-    var li = W < 760 ? LOGO_INICIO_MOVIL : LOGO_INICIO;
+    var li = W < 760 ? LOGO_INICIO_MOVIL : logoInicio;
     // el logo termina de achicarse antes de que entren los textos de SACEL, para no toparse con ellos
     document.documentElement.style.setProperty("--logo", (li - (li - LOGO_FIN) * suave(Math.min(1, pCam / 0.55))).toFixed(3));
     textos();
@@ -478,6 +479,7 @@
     vida();
     pulsos();
     condores();
+    loros();
   }
 
   // ─── tramas: cada una es un paquete que viaja en arco desde el bus hasta la nube de SACEL (Benjamin, 2026-10-30),
@@ -593,10 +595,10 @@
   }
 
   // ─── flora y fauna del sector (Benjamin, 2026-10-30; especies de iNaturalist en el recuadro Rancagua–Sewell) ───
-  // quiscos en las laderas de solana bajas, quillayes en las de umbría y unos pocos zorros culpeos que caminan.
+  // quiscos en las laderas de solana bajas y quillayes en las de umbría (los zorros se quitaron el 30-oct).
   // Van con el relieve (mismo velo, niebla y color) y se esconden detrás de las lomas; al final se transparentan con
   // un desfase respecto de él (opacVida).
-  var VIDA = { quiscos: 70, quillayes: 34, zorros: 3 };
+  var VIDA = { quiscos: 70, quillayes: 34 };   // sin fauna terrestre (Benjamin, 2026-10-30: fuera los zorros)
   // los simulados, en una zona acotada en torno al tramo medio de la ruta, que siempre queda a la vista (2026-10-30)
   var ZONA_VIDA = { cx: 13600, cz: 11200, rx: 4200, rz: 3400 };
   // registros reales de iNaturalist con GPS dentro de la zona visible (verificables, sin coordenadas ocultas; consulta
@@ -641,7 +643,6 @@
     }
     INAT.quiscos.forEach(function (q) { seres.push({ tipo: "quisco", x: q[0], z: q[1], t: 1.05, brazos: az() < 0.5 ? 1 : 2, real: true }); });
     INAT.quillayes.forEach(function (q) { seres.push({ tipo: "quillay", x: q[0], z: q[1], t: 1.1, real: true }); });
-    for (k = 0; k < VIDA.zorros; k++) if ((p = lugar(800, 2200, 0, 80))) seres.push({ tipo: "zorro", x0: p[0], z0: p[1], rumbo: az() * 6.28, fase: az() * 100 });
   }
   function aLaVista(x, y, z) {                     // ¿alguna loma tapa el punto? se recorre el rayo hacia la cámara
     for (var k = 1; k < 14; k++) {
@@ -653,9 +654,9 @@
   var COLORES_VIDA = {
     // tonos cercanos al relieve que los rodea, apenas más oscuros (Benjamin, 2026-10-30: que se integren); los «vivo»
     // son para los registros reales de iNaturalist, para que se distingan
-    claro:  { cactus: [86, 102, 70], tronco: [104, 92, 76], copa: [84, 98, 64], copa2: [112, 124, 88], zorro: [142, 100, 68], zorro2: [98, 80, 66],
+    claro:  { cactus: [86, 102, 70], tronco: [104, 92, 76], copa: [84, 98, 64], copa2: [112, 124, 88],
               cactusVivo: [46, 150, 58], copaVivo: [58, 138, 40], copa2Vivo: [118, 186, 74] },
-    oscuro: { cactus: [30, 36, 44], tronco: [26, 28, 34], copa: [26, 32, 40], copa2: [40, 48, 58], zorro: [82, 68, 62], zorro2: [28, 28, 34],
+    oscuro: { cactus: [30, 36, 44], tronco: [26, 28, 34], copa: [26, 32, 40], copa2: [40, 48, 58],
               cactusVivo: [90, 190, 110], copaVivo: [96, 176, 96], copa2Vivo: [150, 214, 140] }
   };
   // el mismo tratamiento de color que el relieve en su shader: lavado hacia el papel y niebla por distancia
@@ -675,11 +676,6 @@
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     seres.forEach(function (o) {
       var x = o.x, z = o.z, rumbo = 0;
-      if (o.tipo === "zorro") {                     // camina despacio en un óvalo amplio, con pausas
-        var a = o.rumbo + Math.sin((t + o.fase) * 0.03) * 2.2;
-        x = o.x0 + Math.cos(a) * 500; z = o.z0 + Math.sin(a) * 350;
-        rumbo = a + Math.PI / 2;
-      }
       var y = alturaEn(x, z) * EXAG;
       var q = proyectar(x, y, z); if (!q || q[0] < -20 || q[0] > W + 20 || q[1] < -20 || q[1] > H + 20) return;
       if (!aLaVista(x, y, z)) return;
@@ -705,69 +701,163 @@
         var g = cr.createRadialGradient(q[0] - r * 0.3, q[1] - r * 1.9, r * 0.1, q[0], q[1] - r * 1.5, r * 1.1);
         g.addColorStop(0, comoMapa(o.real ? C.copa2Vivo : C.copa2, fn)); g.addColorStop(1, comoMapa(o.real ? C.copaVivo : C.copa, fn));
         cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1] - r * 1.5, r, 0, 7); cr.fill();
-      } else {                                      // zorro culpeo de perfil: cuerpo, cabeza con orejas, cola tupida de punta oscura
-        var d = proyectar(x + Math.cos(rumbo) * 50, y, z + Math.sin(rumbo) * 50), lado = d && d[0] < q[0] ? -1 : 1;
-        var u = 4.5 * f, paso = Math.sin(t * 6 + o.fase) * 0.6;
-        cr.save(); cr.translate(q[0], q[1] - u * 0.9); cr.scale(lado, 1);
-        cr.fillStyle = comoMapa(C.zorro, fn);
-        cr.beginPath(); cr.ellipse(0, 0, u * 1.1, u * 0.42, 0, 0, 7); cr.fill();          // cuerpo
-        cr.beginPath(); cr.moveTo(u * 0.9, -u * 0.2); cr.lineTo(u * 1.7, -u * 0.35); cr.lineTo(u * 1.25, u * 0.15); cr.fill();   // cabeza y hocico
-        cr.beginPath(); cr.moveTo(u * 1.05, -u * 0.35); cr.lineTo(u * 1.15, -u * 0.85); cr.lineTo(u * 1.35, -u * 0.38); cr.fill(); // oreja
-        cr.beginPath(); cr.ellipse(-u * 1.45, u * 0.05, u * 0.7, u * 0.3, -0.25, 0, 7); cr.fill();                                // cola
-        cr.fillStyle = comoMapa(C.zorro2, fn);
-        cr.beginPath(); cr.ellipse(-u * 2.0, u * 0.18, u * 0.25, u * 0.2, -0.25, 0, 7); cr.fill();                                // punta de la cola
-        cr.strokeStyle = comoMapa(C.zorro2, fn); cr.lineWidth = 0.9 * f;
-        cr.beginPath();                                                                                                            // patas
-        cr.moveTo(u * 0.6, u * 0.3); cr.lineTo(u * (0.6 + paso * 0.3), u * 0.9);
-        cr.moveTo(-u * 0.6, u * 0.3); cr.lineTo(-u * (0.6 + paso * 0.3), u * 0.9);
-        cr.stroke();
-        cr.restore();
       }
     });
     cr.restore();
     cr.globalAlpha = 1;
   }
 
+  // ─── una bandada de loros tricahue (Cyanoliseus patagonus; Benjamin, 2026-10-30), bastante más abajo que los cóndores.
+  // Es la especie de loro con registros en iNaturalist en el sector (125 al 30-oct; el choroy, ninguno). Cada pasada
+  // va por otro lado: parte en una ladera alta al azar y baja por descenso de gradiente sobre la rejilla del relieve
+  // (siempre a la celda vecina más baja, con algo de inercia; en los planos cruza sin volver atrás), así el trayecto
+  // cae al fondo del valle y lo sigue aguas abajo (Benjamin: que los caminos sigan los valles). Vuelan a LOROS.altura
+  // sobre el terreno, a LOROS.vel m/s, y pasan cada LOROS.ciclo s. No se transparentan con el mapa.
+  var LOROS = { n: 9, altura: 380, ciclo: 80, vel: 484, minLargo: 7000 };
+  var bandada = null, pasada = -1, tramo = null;
+  // descenso de gradiente sobre la rejilla del relieve, desde la celda (i, j): siempre a la vecina más baja, con algo de
+  // inercia, sin volver atrás; termina sin salida, si habría que subir mucho, al bajar de op.piso m o al salir de
+  // op.caja. Devuelve el trayecto en metros, suavizado (media móvil de ±op.suave celdas), con su largo acumulado.
+  var VEC8 = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  function descenso(i, j, op) {
+    function alt(i, j) { return alturas[j * T.nx + i]; }
+    var visto = {}, celdas = [[i, j]], dir = -1;
+    visto[i + "," + j] = 1;
+    for (var paso = 0; paso < (op.pasos || 260); paso++) {
+      var mejor = -1, hMejor = Infinity;
+      for (var d = 0; d < 8; d++) {
+        var ii = i + VEC8[d][0], jj = j + VEC8[d][1];
+        if (ii < 1 || jj < 1 || ii > T.nx - 2 || jj > T.nz - 2 || visto[ii + "," + jj]) continue;
+        var h = alt(ii, jj) - (d === dir ? 6 : 0);                            // inercia: preferir seguir derecho
+        if (h < hMejor) { hMejor = h; mejor = d; }
+      }
+      if (mejor < 0 || hMejor > alt(i, j) + 25) break;                      // sin salida o habría que subir mucho
+      i += VEC8[mejor][0]; j += VEC8[mejor][1]; dir = mejor; visto[i + "," + j] = 1; celdas.push([i, j]);
+      var wx = T.x0 + i * T.paso, wz = T.z0 + j * T.paso, c = op.caja;
+      if (wx < c[0] || wx > c[1] || wz < c[2] || wz > c[3]) break;          // salió de la zona que se ve bien
+      if (op.piso && alt(i, j) < op.piso) break;
+    }
+    var pts = celdas.map(function (c) { return [T.x0 + c[0] * T.paso, T.z0 + c[1] * T.paso]; }), lisa = [], acum = [0], v = op.suave || 3;
+    for (var n = 0; n < pts.length; n++) {
+      var sx = 0, sz = 0, m = 0;
+      for (var w = -v; w <= v; w++) { var q = pts[Math.max(0, Math.min(pts.length - 1, n + w))]; sx += q[0]; sz += q[1]; m++; }
+      lisa.push([sx / m, sz / m]);
+      if (n) acum.push(acum[n - 1] + Math.hypot(lisa[n][0] - lisa[n - 1][0], lisa[n][1] - lisa[n - 1][1]));
+    }
+    return { pts: lisa, acum: acum, largo: acum[acum.length - 1] };
+  }
+  function nuevoTramo(k) {
+    var sem = 101 + k * 7919; function az() { sem = (sem * 1664525 + 1013904223) >>> 0; return sem / 4294967296; }
+    for (var intento = 0; intento < 30; intento++) {
+      var i = Math.round((5000 + az() * 25000 - T.x0) / T.paso), j = Math.round((500 + az() * 17500 - T.z0) / T.paso);
+      if (alturas[j * T.nx + i] < 1500) continue;                         // partir en altura, para tener valle que bajar
+      var tr = descenso(i, j, { caja: [6000, 32000, 0, 19000], suave: 3 });
+      if (tr.largo < LOROS.minLargo) continue;
+      if (az() < 0.5) {                                                   // la mitad de las veces, valle arriba
+        tr.pts.reverse(); var tot = tr.largo; tr.acum = tr.acum.map(function (v) { return tot - v; }).reverse();
+      }
+      tr.dur = tr.largo / LOROS.vel;
+      return tr;
+    }
+    return null;
+  }
+  function puntoTramo(tr, u) {                   // punto a la fracción u del largo
+    var L = u * tr.acum[tr.acum.length - 1], a = 0, b = tr.acum.length - 1;
+    while (b - a > 1) { var m = (a + b) >> 1; if (tr.acum[m] < L) a = m; else b = m; }
+    var f = (L - tr.acum[a]) / ((tr.acum[b] - tr.acum[a]) || 1);
+    return [tr.pts[a][0] + (tr.pts[b][0] - tr.pts[a][0]) * f, tr.pts[a][1] + (tr.pts[b][1] - tr.pts[a][1]) * f];
+  }
+  function loros() {
+    if (!alturas || tema === "oscuro") return;                          // de noche no vuelan
+    if (!bandada) {
+      var sem = 7; function az() { sem = (sem * 1664525 + 1013904223) >>> 0; return sem / 4294967296; }
+      bandada = []; for (var k = 0; k < LOROS.n; k++) bandada.push({ atras: k * 0.012 + az() * 0.01, lado: (az() - 0.5) * 260, alto: (az() - 0.5) * 120, fase: az() * 6.28 });
+    }
+    var k = Math.floor(sim.reloj / LOROS.ciclo), t = sim.reloj - k * LOROS.ciclo;
+    if (k !== pasada) { pasada = k; tramo = nuevoTramo(k); }
+    if (!tramo || t > tramo.dur) return;
+    var colA = tema === "claro" ? "52,128,58" : "130,186,128";
+    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    bandada.forEach(function (b) {
+      var u = t / tramo.dur - b.atras; if (u < 0 || u > 1) return;
+      var p = puntoTramo(tramo, u), p2 = puntoTramo(tramo, Math.min(1, u + 0.01));
+      var dx = p2[0] - p[0], dz = p2[1] - p[1], l = Math.hypot(dx, dz) || 1;
+      var x = p[0] - dz / l * b.lado, z = p[1] + dx / l * b.lado;          // la formación, a los lados del trayecto
+      var y = (alturaEn(x, z) + LOROS.altura + b.alto + Math.sin(t * 1.3 + b.fase) * 30) * EXAG;
+      var q = proyectar(x, y, z); if (!q) return;
+      var a = veloEn(q[0], q[1], y / EXAG) * Math.min(1, u / 0.06) * Math.min(1, (1 - u) / 0.06); if (a <= 0.02) return;
+      var sp = Math.max(3.5, Math.min(7, 5 * (2600 / tamPantalla(x, y, z, 100)))), al = Math.sin(t * 24 + b.fase) * 0.35;
+      cr.strokeStyle = "rgba(" + colA + "," + (a * 0.95).toFixed(3) + ")"; cr.lineWidth = 1.4;
+      cr.beginPath();
+      cr.moveTo(q[0] - sp / 2, q[1] - sp * al); cr.lineTo(q[0], q[1] + sp * 0.12); cr.lineTo(q[0] + sp / 2, q[1] - sp * al);
+      cr.stroke();
+    });
+    cr.restore();
+  }
+
   // ─── cóndores (Benjamin, 2026-10-30): unos pocos, diminutos, planeando en círculos sobre las cumbres nevadas ───
-  var CONDORES = { n: 3, picos: 3, ala: 9 };      // cuántos; sobre cuántas cumbres; envergadura en px a la distancia de referencia
+  var CONDORES = { n: 3, ala: 9, cumbre: 2650, piso: 2150, altura: 520, cumbreAlta: 3200 };   // cuántos; envergadura en px; m: cumbre de partida, fondo de la quebrada, vuelo sobre el terreno
   var condor = null;
   function prepararCondores() {
-    // las cumbres: máximos de la rejilla, separados al menos 4 km, en torno a la ruta (lo que la cámara siempre muestra)
+    // como los loros, siguen quebradas por descenso de gradiente, pero sólo su parte alta: parten en una cumbre y bajan
+    // hasta que el terreno cae de CONDORES.piso m, con un trazado más suave (Benjamin, 2026-10-30: «los cracks que van
+    // casi llegando a las cumbres»). Van y vuelven por su quebrada, a CONDORES.altura sobre el terreno.
     var orden = [];
     for (var j = 2; j < T.nz - 2; j++) for (var i = 2; i < T.nx - 2; i++) {
       var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso;
-      if (x > 9000 && x < 31000 && z > 0 && z < 14000) orden.push([alturas[j * T.nx + i], x, z]);
+      if (x > 9000 && x < 31000 && z > 0 && z < 14000 && alturas[j * T.nx + i] > CONDORES.cumbre) orden.push([alturas[j * T.nx + i], i, j]);
     }
     orden.sort(function (a, b) { return b[0] - a[0]; });
-    var picos = [];
-    for (var k = 0; k < orden.length && picos.length < CONDORES.picos; k++) {
-      var o = orden[k];
-      if (picos.every(function (p) { return Math.hypot(p[1] - o[1], p[2] - o[2]) > 4000; })) picos.push(o);
-    }
     var semilla = 11;
     function az() { semilla = (semilla * 1664525 + 1013904223) >>> 0; return semilla / 4294967296; }
     condor = [];
-    for (var c = 0; c < CONDORES.n; c++) {
-      var p = picos[c % picos.length];
-      condor.push({ cx: p[1] + (az() - 0.5) * 1500, cz: p[2] + (az() - 0.5) * 1500, alto: (p[0] + 350 + az() * 600) * EXAG,
-                    radio: 700 + az() * 900, fase: az() * 6.28, giro: (az() < 0.5 ? -1 : 1) * (0.09 + az() * 0.05),   // rad/s: la mitad que el primer intento
-                    bate: az() * 30 });
+    for (var k = 0; k < orden.length && condor.length < CONDORES.n; k++) {
+      var o = orden[k], wx = T.x0 + o[1] * T.paso, wz = T.z0 + o[2] * T.paso;
+      if (condor.some(function (c) { return Math.hypot(c.pts[0][0] - wx, c.pts[0][1] - wz) < 3000; })) continue;
+      var tr = descenso(o[1], o[2], { caja: [3000, 35000, -3000, 18000], piso: CONDORES.piso, suave: 6, pasos: 80 });
+      if (tr.largo < 1500) continue;
+      tr.fase = az(); tr.bate = az() * 30; tr.hFase = az() * 6.28;
+      condor.push(tr);
+    }
+    // y uno o, a veces, dos más arriba en la cordillera, en quebradas cortas cerca de las cumbres más altas (Benjamin,
+    // 2026-10-30); el segundo aparece y desaparece en ciclos largos
+    var altos = [];
+    for (j = 2; j < T.nz - 2; j++) for (i = 2; i < T.nx - 2; i++) {
+      var hx = T.x0 + i * T.paso, hz = T.z0 + j * T.paso, hh = alturas[j * T.nx + i];
+      if (hx > 22000 && hx < 40000 && hz > -6000 && hz < 12000 && hh > CONDORES.cumbreAlta) altos.push([hh, i, j]);
+    }
+    altos.sort(function (a, b) { return b[0] - a[0]; });
+    var extra = 0;
+    for (k = 0; k < altos.length && extra < 2; k++) {
+      var oa = altos[k], ax = T.x0 + oa[1] * T.paso, azz = T.z0 + oa[2] * T.paso;
+      if (condor.some(function (c) { return Math.hypot(c.pts[0][0] - ax, c.pts[0][1] - azz) < 3500; })) continue;
+      var ta = descenso(oa[1], oa[2], { caja: [3000, 44000, -8000, 18000], piso: oa[0] - 450, suave: 4, pasos: 30 });
+      if (ta.largo < 600) continue;
+      ta.fase = az(); ta.bate = az() * 30; ta.hFase = az() * 6.28; ta.alto = true; ta.intermitente = extra === 1;
+      condor.push(ta); extra++;
     }
   }
   function condores() {
-    if (!alturas) return;
+    if (!alturas || tema === "oscuro") return;                          // de noche no vuelan (Benjamin, 2026-10-30)
     if (!condor) prepararCondores();
     var t = sim.reloj, colA = tema === "claro" ? "28,26,34" : "214,218,232";
     cr.lineCap = "round"; cr.lineJoin = "round";
     condor.forEach(function (c) {
-      var ang = c.fase + t * c.giro, x = c.cx + Math.cos(ang) * c.radio, z = c.cz + Math.sin(ang) * c.radio;
-      var y = c.alto + Math.sin(t * 0.2 + c.fase) * 120;                    // sube y baja con la térmica
+      // ida y vuelta por la quebrada, a la mitad de la rapidez de los loros; suave en los extremos, donde da la vuelta
+      var vuelta = 2 * c.largo / (LOROS.vel / 2), f = ((t / vuelta) + c.fase) % 1, u = f < 0.5 ? f * 2 : 2 - f * 2;
+      u = 0.5 - 0.5 * Math.cos(u * Math.PI);
+      var p = puntoTramo(c, u), p2 = puntoTramo(c, Math.min(1, u + 0.01)), sentido = f < 0.5 ? 1 : -1;
+      var x = p[0], z = p[1];
+      var y = (alturaEn(x, z) + CONDORES.altura) * EXAG + Math.sin(t * 0.2 + c.hFase) * 120;   // sube y baja con la térmica
       var cen = proyectar(x, y, z); if (!cen) return;
       // silueta en pantalla, como se ve un cóndor de lejos: alas abiertas en una "m" muy plana, con la envergadura que
-      // le da la distancia; se ladea con el giro y de vez en cuando da un par de aletazos
-      var sp = Math.max(5, Math.min(16, CONDORES.ala * (2600 / tamPantalla(x, y, z, 100)))), ladeo = Math.cos(ang) * 0.3 * Math.sign(c.giro);
+      // le da la distancia; se ladea con las curvas de la quebrada y de vez en cuando da un par de aletazos
+      var p3 = puntoTramo(c, Math.min(1, u + 0.03)), giro = Math.atan2(p3[1] - p2[1], p3[0] - p2[0]) - Math.atan2(p2[1] - p[1], p2[0] - p[0]);
+      giro = Math.atan2(Math.sin(giro), Math.cos(giro));
+      var sp = Math.max(5, Math.min(16, CONDORES.ala * (2600 / tamPantalla(x, y, z, 100)))), ladeo = Math.max(-0.35, Math.min(0.35, giro * 4 * sentido));
       var ciclo = (t + c.bate) % 14, alza = ciclo < 1.2 ? Math.sin(ciclo * 15) * 0.18 : 0;
       var a = veloEn(cen[0], cen[1], y / EXAG) * (tema === "claro" ? 0.8 : 0.65);
+      if (c.intermitente) a *= Math.max(0, Math.min(1, Math.sin(t * 0.05 + c.hFase) * 3));   // a veces está, a veces no
       if (a <= 0.02) return;
       cr.save();
       cr.translate(cen[0], cen[1]); cr.rotate(ladeo);
@@ -788,6 +878,16 @@
     lienzo.width = Math.round(W * dpr); lienzo.height = Math.round(H * dpr);
     capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr);
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
+    // logo inicial que cabe con todo el texto de la empresa debajo (Benjamin, 2026-10-30: párrafo nuevo): se mide el
+    // alto del texto y la separación logo–título, y se despeja el tamaño; nunca más que LOGO_INICIO
+    var img = document.querySelector(".marca img"), h1 = heroe && heroe.querySelector(".capa-empresa h1"), lug = heroe && heroe.querySelector(".capa-empresa > :last-child");   // el último párrafo (2026-10-30: sin «Santiago, desde 1991»)
+    if (img && h1 && lug && W >= 760) {
+      var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      var lAct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--logo")) || LOGO_FIN;
+      var bi = img.getBoundingClientRect().bottom, t1 = h1.getBoundingClientRect().top, alto = lug.getBoundingClientRect().bottom - t1;
+      var sobra = H - 1.5 * rem - (bi + (t1 - bi) + alto);
+      logoInicio = Math.max(LOGO_FIN + 1, Math.min(LOGO_INICIO, lAct + sobra / (2.147 * rem)));
+    }
   }
   function paso(dt) { if (dt) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }
 

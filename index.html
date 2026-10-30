@@ -48,17 +48,17 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
     <li><a href="empresa.html">Empresa</a></li>
     <li><a href="contacto.html">Contacto</a></li>
   </ul></nav>
-  <button class="tema" type="button">Tema claro</button>
+  <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
 </header>
 <!-- /barra -->
   <div class="heroe">
     <div class="capa capa-empresa" role="region" aria-label="Presentación">
       <h1>Andes Electrónica</h1>
-      <p class="entrada">Diseñamos, fabricamos y mantenemos electrónica: tacógrafos para buses y camiones, la plataforma SACEL e ingeniería a medida.</p>
-      <p class="lugar">Santiago, desde 1991</p>
+      <p class="entrada">Somos una empresa chilena de electrónica: diseñamos, fabricamos y mantenemos tacógrafos para buses y camiones, y <strong class="marca-sacel">SACEL</strong>, nuestro sistema en línea para gestionar la flota.</p>
+      <p class="entrada entrada-2">Investigamos y desarrollamos en casa: cada versión del tacógrafo nace de lo que aprendemos en ruta. Esa misma ingeniería la ponemos al servicio de proyectos a medida, en Santiago desde 1991.</p>
     </div>
     <section class="capa capa-sacel" aria-labelledby="t-sacel">
-      <p class="sello">Sistema SACEL</p>
+      <p class="sello">Sistema de Aseguramiento de Conducción Eficiente y Legal («SACEL»)</p>
       <h2 id="t-sacel">Cada viaje llega <em>a SACEL.</em></h2>
       <p class="entrada">Tacógrafos a bordo que registran cada viaje y una plataforma que lo reúne todo.</p>
       <div class="acciones"><a class="boton" href="sacel.html">Conocer SACEL</a><a class="enlace" href="productos.html">Ver productos</a></div>
@@ -77,20 +77,26 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
 </div>
 
 <main id="contenido">
+  <div class="productos-recorrido">
   <section class="seccion" aria-labelledby="t-productos">
     <div class="cabeza">
       <div><p class="sello">Productos</p><h2 id="t-productos">Del vehículo <em>a la plataforma.</em></h2></div>
       <p>Hardware a bordo y una plataforma en línea, desarrollados en Chile para cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes.</p>
     </div>
+    <!-- familia de productos (2026-10-30): a la izquierda el diagrama (el tacógrafo con profundidad y sus periféricos
+         en línea, unidos), a la derecha los textos; al pasar sobre un texto se marca su pieza en el diagrama -->
+    <!-- familia de productos (2026-10-30): a la izquierda el tacógrafo con profundidad y, colgando de él, sus periféricos
+         planos con su descripción debajo; a la derecha SACEL y el tacógrafo. Al pasar sobre el texto del tacógrafo se
+         marca su dibujo -->
     <div class="familia">
-      <a class="familia-raiz" href="sacel.html">
-        <div><span class="sello">Plataforma</span><h3>Sistema SACEL</h3></div>
-        <p>Control de asistencia para trabajadores de buses y camiones: actividades del conductor, rutas, velocidad e infracciones laborales.</p>
-      </a>
-      <a class="familia-centro" href="productos.html#tacografo">
+      <div class="familia-izq">
+        <figure class="familia-diagrama" aria-hidden="true">
+          <div class="dg-taco" data-pieza="tacografo">
 <!-- ilustracion-tacografo -->
-<svg class="ilus ilus-tacografo" viewBox="0 0 480 190" role="img" aria-labelledby="ilus-tacografo-t">
+<svg class="ilus ilus-tacografo" viewBox="0 0 500 190" role="img" aria-labelledby="ilus-tacografo-t">
   <title id="ilus-tacografo-t">Tacógrafo 4.0 dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre sube hacia SACEL.</title>
+  <path class="ilus-cara-sup" d="M14 52L36 38H488L466 52Z"/>
+  <path class="ilus-cara-lado" d="M472 58L494 44V158L472 172Z"/>
   <defs><clipPath id="ilus-tacografo-silueta"><rect x="8" y="52" width="464" height="126" rx="10"/></clipPath></defs>
   <path class="ilus-curvas" clip-path="url(#ilus-tacografo-silueta)" d="M9.2 143.7 34.8 150.7 60.0 152.9 54.8 149.2 33.2 144.0 14.2 133.0 M6.7 153.9 17.4 151.8 32.3 156.8 51.2 157.3 56.7 159.3 67.1 166.1 75.5 167.6 80.7 165.8 87.9 160.3 93.3 154.0 96.3 147.8 95.9 146.4 93.9 146.7 82.2 153.3 76.9 155.0 56.4 144.8 34.7 138.4 18.7 127.9 9.9 127.0 M16.0 175.7 12.1 163.7 12.4 161.5 14.6 160.3 19.6 161.4 29.9 166.9 34.4 166.1 40.6 163.0 44.2 162.9 47.4 165.7 50.8 172.3 60.0 177.2 78.1 175.8 90.4 166.0 102.6 163.3 100.9 156.8 104.1 150.9 107.1 140.1 112.1 134.4 124.1 126.1 127.6 121.0 108.3 123.0 97.8 118.0 97.1 129.9 92.7 134.8 88.4 136.0 84.4 134.2 79.3 128.7 74.6 126.2 70.0 126.7 58.7 131.9 52.8 133.1 45.9 130.5 35.6 129.4 19.7 119.1 11.0 117.6 M92.6 170.2 101.8 174.2 105.5 172.1 112.2 170.8 113.2 166.1 110.0 158.4 109.7 153.2 113.3 137.9 116.1 134.5 123.1 132.6 129.9 127.8 137.6 120.2 139.0 115.6 132.2 114.4 113.3 118.3 107.6 117.8 102.2 111.4 99.2 96.6 97.0 93.6 93.0 98.8 88.6 116.8 86.5 119.4 81.7 117.6 73.4 108.2 68.8 105.9 62.5 112.9 55.0 117.6 52.6 121.1 47.4 122.5 41.3 118.8 24.7 100.7 21.4 99.3 12.8 99.4 6.3 94.9 M117.1 175.3 120.2 166.1 120.0 162.7 117.1 155.9 120.5 139.6 128.2 134.8 136.0 126.3 140.0 123.8 148.2 121.4 163.9 119.1 169.6 116.5 173.2 111.9 176.8 103.5 188.1 93.3 178.9 96.0 169.6 100.9 162.6 110.6 158.9 112.8 139.0 111.9 116.6 112.6 111.3 109.6 109.5 104.8 109.7 80.9 107.1 76.5 103.0 75.1 98.4 77.1 93.5 82.5 83.4 101.6 79.2 101.5 67.4 92.5 62.6 90.7 46.6 106.8 42.2 108.5 40.1 107.2 35.7 98.4 33.4 89.6 33.6 84.1 23.6 80.0 12.4 68.0 M130.3 177.0 127.0 172.2 134.4 166.7 130.3 159.9 129.8 154.6 132.9 145.8 139.8 139.1 136.8 131.0 137.5 127.9 143.2 125.4 152.3 123.6 164.8 126.1 175.5 125.5 177.0 123.2 176.0 118.2 178.4 114.2 189.2 106.1 196.3 97.1 207.7 92.5 212.6 89.2 218.7 76.6 223.6 70.6 221.2 69.9 217.9 71.1 207.0 80.8 202.3 83.2 185.5 84.1 168.7 88.5 161.8 105.7 159.2 108.1 153.8 108.7 131.7 104.7 122.9 101.7 118.7 98.8 118.0 93.7 120.9 75.9 120.5 66.9 118.7 60.8 112.3 58.1 109.6 54.4 106.1 54.9 96.5 61.3 91.2 61.7 88.0 63.3 81.5 79.2 78.2 83.2 73.9 85.4 66.2 84.5 57.6 79.4 57.5 74.4 55.3 68.5 57.3 63.3 M139.6 176.6 142.8 175.9 144.4 173.7 147.7 153.8 152.7 144.6 158.0 138.8 159.0 133.6 174.2 131.3 180.9 128.5 183.9 125.4 189.6 113.2 195.0 106.8 201.9 102.0 215.8 96.2 222.1 88.6 231.5 89.2 234.4 83.8 236.4 82.6 251.8 81.0 269.3 75.4 278.2 69.1 281.1 65.4 270.4 66.4 258.3 65.6 244.9 69.2 242.4 68.2 240.3 64.4 224.0 62.8 210.7 70.5 201.0 74.5 166.7 81.0 163.1 86.1 158.4 100.7 154.3 104.2 145.7 100.6 138.8 93.3 136.6 86.4 135.9 74.1 134.1 71.4 129.8 68.5 129.6 64.1 126.7 59.0 M151.3 176.2 155.2 160.2 158.5 153.0 167.6 147.3 168.6 141.3 171.3 138.4 186.3 133.4 195.0 127.6 199.2 121.2 200.0 112.7 204.3 107.7 225.7 97.4 237.5 100.8 239.7 98.2 241.5 91.3 247.0 87.6 257.0 86.5 264.9 83.9 279.7 89.6 282.5 89.7 283.5 86.1 281.6 75.6 283.7 71.4 288.7 68.0 295.9 65.7 305.0 57.8 321.2 53.0 M287.1 56.0 271.3 60.9 267.7 60.6 264.1 57.4 261.3 57.2 247.9 62.9 M233.6 58.6 227.4 56.2 222.7 56.3 203.8 67.0 192.3 67.8 176.8 71.2 166.2 75.9 158.2 83.0 155.1 84.3 151.7 80.3 149.7 68.2 141.0 55.6 M162.4 158.6 174.9 152.8 180.7 145.4 193.5 143.1 201.0 138.6 208.0 129.0 211.4 112.8 217.1 107.6 227.8 105.5 242.1 109.0 245.2 106.0 246.6 99.9 249.9 95.0 255.4 92.0 264.0 90.6 271.4 92.5 275.9 96.4 281.6 104.2 284.1 104.4 288.3 97.8 293.1 94.2 293.6 92.6 287.1 78.6 287.1 74.7 298.9 71.7 305.7 65.2 311.1 62.6 330.9 60.7 332.3 59.6 330.3 55.3 331.2 53.0 M276.4 56.4 271.0 55.2 M203.0 60.7 181.7 65.1 170.4 65.9 163.2 63.8 157.4 54.7 M162.4 176.2 169.0 165.2 181.5 157.6 187.7 150.8 192.1 151.1 201.7 158.2 205.0 158.5 207.5 143.5 217.2 131.4 218.8 126.1 219.0 118.7 221.6 114.0 228.0 112.7 239.4 118.6 245.1 118.3 250.4 112.5 252.7 102.9 254.9 99.2 258.9 97.0 266.3 96.1 270.8 98.3 272.6 109.2 274.4 113.1 279.0 116.6 283.0 115.9 293.4 104.9 303.0 101.2 303.4 97.2 299.1 83.0 299.9 78.9 303.7 73.8 311.2 69.5 320.7 69.8 330.8 68.0 344.3 72.6 344.8 69.7 343.2 61.8 344.0 58.8 347.4 56.0 355.5 53.9 M199.4 54.3 180.6 59.2 177.8 58.7 178.4 54.7 M172.3 174.0 179.6 166.2 189.4 161.0 192.3 161.3 196.2 167.0 201.9 169.4 206.6 169.4 213.3 167.2 220.5 167.6 221.5 164.6 217.7 151.2 217.2 143.9 218.5 140.3 225.1 132.3 226.2 122.8 229.3 121.7 238.9 125.5 243.7 125.8 246.3 122.7 252.6 119.2 259.6 103.7 261.6 105.1 266.8 117.0 272.1 122.8 279.7 126.2 286.1 124.4 297.6 109.4 306.6 106.3 310.1 103.3 310.9 97.0 306.9 88.4 306.2 84.3 307.9 80.5 313.3 76.2 330.1 73.2 334.9 75.3 347.9 85.8 352.6 87.4 356.7 86.9 357.0 85.3 352.7 76.3 350.8 65.9 352.6 60.9 359.0 58.6 M185.9 174.5 204.4 178.2 214.8 177.4 M239.7 176.6 235.3 170.6 235.1 164.7 228.4 157.5 225.8 143.7 230.4 136.6 235.6 133.2 244.4 132.0 251.7 125.9 260.1 122.8 263.3 123.9 268.3 129.0 273.8 131.0 277.4 134.1 282.9 135.1 287.3 134.2 290.7 130.6 297.8 114.4 301.8 112.8 311.2 112.1 314.6 109.5 317.4 99.8 312.9 85.0 313.9 83.2 318.0 81.2 325.1 79.9 331.2 81.2 347.7 91.5 358.0 93.8 366.0 98.0 365.8 90.9 358.8 77.4 357.2 65.8 M251.8 178.7 254.7 176.8 254.4 174.7 247.7 166.4 244.7 158.4 238.5 155.4 236.5 152.6 235.7 146.5 238.8 141.7 248.9 135.4 259.6 132.8 263.8 133.7 270.8 138.3 277.4 140.7 285.2 141.9 291.8 140.3 294.7 137.3 297.6 127.2 301.4 121.4 305.3 119.1 316.5 116.0 320.4 112.6 322.7 104.3 322.9 89.4 325.4 86.2 331.5 87.6 344.1 96.1 356.7 99.8 368.3 106.9 374.7 108.5 379.4 107.4 381.7 104.9 381.7 102.5 374.2 96.0 369.8 84.7 363.8 76.6 363.6 71.0 365.9 67.0 372.3 62.1 379.0 54.0 382.7 52.4 391.4 51.7 M258.2 168.0 249.4 149.4 248.9 145.2 250.6 140.9 257.4 138.9 269.4 145.4 279.2 148.0 291.0 147.8 294.7 146.4 298.7 141.9 303.3 127.8 306.9 124.2 314.5 123.5 325.3 127.0 328.4 126.2 327.0 107.2 328.2 100.1 330.9 96.5 333.5 96.5 343.2 101.6 354.5 104.8 362.7 110.3 372.4 114.8 378.1 116.1 382.0 115.1 387.4 109.1 397.0 101.7 398.8 96.7 397.6 95.9 385.8 96.7 380.4 94.9 370.6 74.7 370.2 70.1 383.6 57.7 388.6 56.6 400.7 57.3 M286.4 176.6 278.2 173.1 270.7 166.8 263.3 156.1 263.3 152.7 267.7 151.8 285.6 154.2 296.5 152.8 301.4 150.5 303.9 147.7 306.6 135.7 309.2 132.2 312.3 131.5 328.9 133.5 336.0 132.2 337.6 129.8 337.8 126.1 334.3 110.0 335.0 107.2 336.6 106.4 342.9 107.0 350.7 109.6 358.9 115.0 368.4 117.6 379.4 124.5 385.1 124.4 389.1 116.0 398.8 108.3 405.3 100.7 410.1 92.1 410.7 88.1 409.6 86.7 405.9 86.3 391.2 89.2 385.1 87.9 379.5 80.7 378.1 76.3 378.4 70.6 381.6 66.0 388.4 62.3 405.3 61.6 M398.6 67.1 398.6 67.1 M303.5 177.0 296.5 173.7 293.2 165.5 289.8 164.7 283.7 165.9 282.9 163.6 284.0 161.9 304.3 153.1 309.1 148.3 312.7 141.1 317.4 138.2 330.2 138.6 339.4 143.8 343.0 143.7 346.8 138.9 349.3 131.9 346.6 117.2 357.7 121.5 365.6 122.9 380.5 130.4 385.4 130.5 389.3 128.7 391.8 126.2 393.2 121.0 396.0 116.9 413.4 101.7 427.1 86.2 438.3 78.7 443.5 63.6 447.7 57.3 M314.9 172.8 307.3 167.3 305.6 163.8 319.5 146.9 325.9 147.2 328.3 148.9 332.3 155.3 337.6 156.2 347.6 152.5 356.7 147.4 357.8 144.2 355.0 137.3 356.3 134.7 359.7 132.4 367.5 132.3 383.9 136.3 390.5 135.2 395.5 131.8 399.3 127.4 400.0 123.3 402.4 119.7 416.8 107.7 425.0 97.5 434.5 90.9 441.3 84.1 447.0 74.5 452.7 58.6 M323.8 171.0 320.4 163.4 321.1 161.6 332.8 165.0 342.6 162.6 350.7 162.5 365.1 151.0 371.4 142.9 388.2 142.0 397.0 137.5 405.0 129.7 408.8 122.1 422.3 111.4 427.4 103.7 434.8 101.3 439.9 97.7 445.5 90.1 457.3 68.9 M413.5 162.5 407.2 160.2 399.6 165.5 M336.2 177.0 343.4 171.0 353.0 172.2 359.2 164.2 369.9 157.5 375.1 151.6 390.8 146.8 397.6 143.4 407.5 135.2 415.1 125.0 434.4 114.9 443.1 108.4 450.7 98.4 457.1 78.3 464.5 63.3 M385.7 155.6 385.7 155.6 M424.2 174.0 424.3 159.3 422.0 150.9 416.3 148.2 404.8 149.5 402.7 148.6 413.6 137.6 419.4 129.7 441.5 121.5 456.5 104.2 460.0 95.1 465.1 68.5 470.5 55.6 M442.0 178.7 431.3 174.2 427.7 170.4 430.7 152.2 429.2 147.0 425.4 140.7 424.8 136.8 426.6 133.5 430.0 131.5 440.4 131.2 444.8 129.2 451.9 122.1 459.3 111.1 465.1 99.7 466.6 88.1 470.4 75.8 469.1 65.0 M473.0 156.9 473.4 168.0 M444.2 170.6 436.1 172.8 432.4 172.1 436.3 151.0 434.8 141.0 437.5 139.7 447.6 140.1 451.5 137.6 455.6 124.9 465.1 113.5 468.9 106.5 471.5 96.9 470.9 89.4 M466.2 147.5 463.6 160.4 460.3 164.8 457.0 166.0 450.9 165.8 446.5 164.2 444.1 161.5 443.3 156.1 444.4 151.3 448.3 148.6 454.9 147.0 458.3 143.7 459.5 137.9 459.1 126.5"/>
   <rect class="ilus-borde" x="8" y="52" width="464" height="126" rx="10"/>
@@ -108,13 +114,10 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   </g>
 </svg>
 <!-- /ilustracion-tacografo -->
-        <div class="familia-texto"><span class="sello">A bordo</span>
-        <h3>Tacógrafo 4.0</h3>
-        <p>Registra la velocidad y los parámetros de conducción del vehículo y su conductor, y transmite en línea al Sistema SACEL por 4G.</p>
-        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p></div>
-      </a>
-      <ul class="familia-ramas">
-        <li><a href="productos.html#smartcard">
+          </div>
+        </figure>
+        <ul class="familia-ramas">
+          <li><a class="familia-item" data-pieza="smartcard" href="productos.html#smartcard">
 <!-- ilustracion-smartcard -->
 <svg class="ilus ilus-smartcard" viewBox="0 0 290 230" role="img" aria-labelledby="ilus-smartcard-t">
   <title id="ilus-smartcard-t">Tarjeta SmartCard dibujada con las curvas de nivel de la ruta H-25; un pulso de cobre sube hacia SACEL.</title>
@@ -133,8 +136,8 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   </g>
 </svg>
 <!-- /ilustracion-smartcard -->
-          <span class="sello">Periférico</span><h3>Tarjeta SmartCard</h3><p>Identifica al trabajador y lleva la bitácora electrónica de sus marcaciones.</p><p class="sello ilus-dato">A SACEL: quién conduce y su bitácora</p></a></li>
-        <li><a href="productos.html#display">
+            <span class="sello">Periférico</span><h3>Tarjeta SmartCard</h3><p>Identifica al trabajador y lleva la bitácora electrónica de sus marcaciones.</p><p class="sello ilus-dato">A SACEL: quién conduce y su bitácora</p></a></li>
+          <li><a class="familia-item" data-pieza="display" href="productos.html#display">
 <!-- ilustracion-display -->
 <svg class="ilus ilus-display" viewBox="0 0 480 150" role="img" aria-labelledby="ilus-display-t">
   <title id="ilus-display-t">Display alfanumérico dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre baja desde el tacógrafo.</title>
@@ -152,8 +155,8 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   </g>
 </svg>
 <!-- /ilustracion-display -->
-          <span class="sello">Periférico</span><h3>Display alfanumérico</h3><p>Panel digital independiente en cada salón de pasajeros del bus, para desplegar información a los pasajeros.</p><p class="sello ilus-dato">Al pasajero: la información del tacógrafo</p></a></li>
-        <li><a href="productos.html#visor">
+            <span class="sello">Periférico</span><h3>Display alfanumérico</h3><p>Panel digital independiente en cada salón de pasajeros del bus, para desplegar información a los pasajeros.</p><p class="sello ilus-dato">Al pasajero: la información del tacógrafo</p></a></li>
+          <li><a class="familia-item" data-pieza="visor" href="productos.html#visor">
 <!-- ilustracion-visor -->
 <svg class="ilus ilus-visor" viewBox="0 0 320 210" role="img" aria-labelledby="ilus-visor-t">
   <title id="ilus-visor-t">Visor de velocidad VI7GPS dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre baja hacia el equipo.</title>
@@ -170,10 +173,21 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   </g>
 </svg>
 <!-- /ilustracion-visor -->
-          <span class="sello">Periférico</span><h3>Visor VI7GPS</h3><p>Visor de velocidad para pasajeros de buses y minibuses, con GNSS, ajuste automático de brillo y alerta de exceso.</p><p class="sello ilus-dato">Al pasajero: la velocidad y la alerta de exceso</p></a></li>
-      </ul>
+            <span class="sello">Periférico</span><h3>Visor VI7GPS</h3><p>Visor de velocidad para pasajeros de buses y minibuses, con GNSS, ajuste automático de brillo y alerta de exceso.</p><p class="sello ilus-dato">Al pasajero: la velocidad y la alerta de exceso</p></a></li>
+        </ul>
+      </div>
+      <div class="familia-textos">
+      <a class="familia-item familia-principal" data-pieza="tacografo" href="productos.html#tacografo">
+        <span class="sello">A bordo</span>
+        <h3>Tacógrafo <span class="ver" aria-hidden="true">v.<span class="ver-paleta"><b>4</b><i>5</i><s>4</s></span><svg class="ver-dial" viewBox="0 0 48 48"><path class="perilla-marca" d="M11.3 36.7L9.2 38.8"/><path class="perilla-marca" d="M6.2 21.2L3.3 20.7"/><path class="perilla-marca" d="M15.8 8.0L14.5 5.3"/><path class="perilla-marca" d="M32.2 8.0L33.5 5.3"/><path class="perilla-marca perilla-cuatro" d="M41.8 21.2L44.7 20.7"/><path class="perilla-marca" d="M36.7 36.7L38.8 38.8"/><g class="perilla"><circle class="perilla-cuerpo" cx="24" cy="24" r="13"/><g class="perilla-estrias"><path d="M24.0 11.0L24.0 13.4"/><path d="M28.4 11.8L27.6 14.0"/><path d="M32.4 14.0L30.8 15.9"/><path d="M35.3 17.5L33.2 18.7"/><path d="M36.8 21.7L34.4 22.2"/><path d="M36.8 26.3L34.4 25.8"/><path d="M35.3 30.5L33.2 29.3"/><path d="M32.4 34.0L30.8 32.1"/><path d="M28.4 36.2L27.6 34.0"/><path d="M24.0 37.0L24.0 34.6"/><path d="M19.6 36.2L20.4 34.0"/><path d="M15.6 34.0L17.2 32.1"/><path d="M12.7 30.5L14.8 29.3"/><path d="M11.2 26.3L13.6 25.8"/><path d="M11.2 21.7L13.6 22.2"/><path d="M12.7 17.5L14.8 18.7"/><path d="M15.6 14.0L17.2 15.9"/><path d="M19.6 11.8L20.4 14.0"/></g><circle class="perilla-tapa" cx="24" cy="24" r="9"/><path class="perilla-indice" d="M24 14.5V21"/></g></svg></span><span class="logos-oculta">4.0</span></h3>
+        <p>Es el equipo que va a bordo de cada bus o camión. Registra la velocidad, los recorridos y la actividad del conductor, identificado con su tarjeta, y lo transmite en línea a SACEL por 4G.</p>
+        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p>
+      </a>
+      </div>
+    </div>
     </div>
   </section>
+  </div>
 
   <div class="banda">
     <section class="seccion" aria-labelledby="t-servicios">
@@ -251,7 +265,7 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
       <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
     </ul></nav>
   </div>
-  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Ubicación de quiscos y quillayes: observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
+  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
   <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
 </footer>
 <!-- /pie -->
@@ -262,5 +276,6 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
 <script src="flota-mapa.js"></script>
 <script src="flota-3d.js"></script>
 <script src="clientes.js"></script>
+<script src="productos-nube.js"></script>
 </body>
 </html>

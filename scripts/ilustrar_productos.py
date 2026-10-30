@@ -108,11 +108,22 @@ def pulso(x, borde, sube):
   </g>"""
 
 
-def svg(pieza, ancho, alto, cuerpo, rx, d, piezas, titulo, x_pulso, sube):
+def caras(cuerpo, prof):
+    """Profundidad (2026-10-30): la cara de arriba y la del costado derecho, en proyección oblicua (dx, dy)."""
+    if not prof:
+        return ""
+    cx, cy, cw, ch = cuerpo
+    dx, dy = prof
+    x1, y1 = cx + cw, cy + ch
+    return (f'<path class="ilus-cara-sup" d="M{cx + 6} {cy}L{cx + 6 + dx} {cy - dy}H{x1 + dx - 6}L{x1 - 6} {cy}Z"/>\n  '
+            f'<path class="ilus-cara-lado" d="M{x1} {cy + 6}L{x1 + dx} {cy - dy + 6}V{y1 - dy - 6}L{x1} {y1 - 6}Z"/>\n  ')
+
+
+def svg(pieza, ancho, alto, cuerpo, rx, d, piezas, titulo, x_pulso, sube, prof=None):
     cx, cy, cw, ch = cuerpo
     return f"""<svg class="ilus ilus-{pieza}" viewBox="0 0 {ancho} {alto}" role="img" aria-labelledby="ilus-{pieza}-t">
   <title id="ilus-{pieza}-t">{titulo}</title>
-  <defs><clipPath id="ilus-{pieza}-silueta"><rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="{rx}"/></clipPath></defs>
+  {caras(cuerpo, prof)}<defs><clipPath id="ilus-{pieza}-silueta"><rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="{rx}"/></clipPath></defs>
   <path class="ilus-curvas" clip-path="url(#ilus-{pieza}-silueta)" d="{d}"/>
   {rect(cx, cy, cw, ch, rx, "ilus-borde")}
   {piezas}
@@ -129,13 +140,14 @@ def main():
     c = (8, 52, 464, 126)
     d, _ = curvas(D, c, 12000, usados)
     botones = "".join(rect(262, 70 + k * 19, 22, 13, 3, "ilus-pieza") for k in range(5))
-    salida["tacografo"] = svg("tacografo", 480, 190, c, 10, d, f"""{rect(22, 66, 62, 98, 4, "ilus-pieza")}
+    salida["tacografo"] = svg("tacografo", 500, 190, c, 10, d, f"""{rect(22, 66, 62, 98, 4, "ilus-pieza")}
   {rect(108, 70, 140, 76, 5, "ilus-pantalla")}
   <path class="ilus-linea" d="M120 92h62M120 112h96M120 128h48"/>
   {botones}
   {rect(300, 64, 160, 104, 5, "ilus-pieza")}
   <path class="ilus-linea" d="M314 78h132M330 154h12M108 160h140"/>""",
-        "Tacógrafo 4.0 dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre sube hacia SACEL.", 380, True)
+        "Tacógrafo 4.0 dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre sube hacia SACEL.", 380, True,
+        prof=(22, 14))   # con profundidad: el equipo central; los periféricos quedan planos
 
     # tarjeta SmartCard (formato ID-1): chip de contactos, foto del trabajador y líneas de datos
     c = (10, 52, 270, 170)
