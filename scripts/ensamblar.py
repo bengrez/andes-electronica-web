@@ -13,7 +13,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 PARTES = {n: (RAIZ / "partes" / f"{n}.html").read_text().strip() for n in ("cabeza", "barra", "pie")}
 OPCIONALES = {f"ilustracion-{n}": (RAIZ / f"partes/ilustracion-{n}.svg").read_text().strip()
-              for n in ("tacografo", "smartcard", "display", "visor")}
+              for n in ("tacografo", "smartcard", "display", "visor", "reportes")}
 
 for pagina in sorted(RAIZ.glob("*.html")):
     t = pagina.read_text()

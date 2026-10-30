@@ -179,6 +179,17 @@ def main():
   {"".join(segmentos)}""",
         "Visor de velocidad VI7GPS dibujado con las curvas de nivel de la ruta H-25; un pulso de cobre baja hacia el equipo.", 160, False)
 
+    # reportes y análisis (Benjamin, 2026-10-30, reemplaza al visor en el inicio): un monitor con un gráfico de barras,
+    # una línea de tendencia y una fila de indicadores; el pulso baja desde SACEL
+    c = (10, 52, 300, 150)
+    d, _ = curvas(D, c, 8000, usados)
+    barras = "".join(rect(52 + k * 30, 170 - hb, 18, hb, 2, "ilus-pieza") for k, hb in enumerate([34, 52, 42, 68, 58, 82]))
+    salida["reportes"] = svg("reportes", 320, 210, c, 12, d, f"""{rect(28, 66, 264, 122, 6, "ilus-pantalla")}
+  {barras}
+  <path class="ilus-linea" d="M44 172h236M58 128l30-14 30 8 30-22 30 6 30-26 30-6"/>
+  {rect(44, 76, 52, 10, 3, "ilus-pieza")}{rect(106, 76, 52, 10, 3, "ilus-pieza")}{rect(168, 76, 52, 10, 3, "ilus-pieza")}""",
+        "Pantalla de reportes y análisis dibujada con las curvas de nivel de la ruta H-25; un pulso de cobre baja desde SACEL.", 160, False)
+
     for pieza, texto in salida.items():
         destino = RAIZ / f"partes/ilustracion-{pieza}.svg"
         destino.write_text(texto)
