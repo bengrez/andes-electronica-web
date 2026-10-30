@@ -38,12 +38,17 @@
     var f = Math.max(0, Math.min(1, (x - 4) / 0.9));
     if (asoma) { asoma.style.setProperty("--caida", (86 * f).toFixed(1)); asoma.style.setProperty("--asoma", f > 0.01 ? "1" : "0"); }
   }
+  // lo que lleva cada trama que sale de la antena: va cambiando (Benjamin, 2026-10-30); [texto, ¿alerta?]
+  var TRAMAS = [["posición GPS · 64 km/h", 0], ["consumo de combustible", 0], ["RPM del motor", 0], ["presión de frenos", 0],
+                ["geocerca: entrada a faena", 1], ["horas de conducción", 0], ["aceleración promedio", 0],
+                ["conductor identificado", 0], ["emergencia: botón de pánico", 1], ["frenada brusca", 1], ["temperatura del motor", 0],
+                ["geocerca: salida de ruta autorizada", 1]];
   var ACEL = 14, VUELO = 2.6, CADA = 3.6;          // como las tramas del mapa; s de vuelo; s entre señales
-  var EXTRA = 1.2;                                 // scroll adicional, en altos de pantalla, con la sección fija
+  var EXTRA = 2.4;   // 2026-10-30: más recorrido, para que cada etapa se lea por separado (antes 1,2)                                 // scroll adicional, en altos de pantalla, con la sección fija
   // etapas, como fracción del tramo fijo
   // entradas: lo que el tacógrafo recibe (GPS y bus CAN del vehículo), en la pausa antes de que aparezca SACEL
   // version: umbral que dispara la animación de la paleta del tacógrafo, de v.1 a v.4 (y se queda ahí: la 5 está por venir)
-  var ETAPA = { version: 0.04, ramas: [0.04, 0.32], entradas: [0.36, 0.5], antena: [0.55, 0.68], nube: [0.58, 0.78], senal: 0.8 };
+  var ETAPA = { version: 0.03, ramas: [0.08, 0.3], entradas: [0.38, 0.5], antena: [0.58, 0.65], nube: [0.66, 0.8], senal: 0.86 };
   var COLORES = {
     claro:  { nube: ["255,255,255", "232,235,241", "170,176,192"], nubeA: 1, texto: "rgba(0,16,79,.7)", traza: "184,112,42", antena: "0,16,79" },
     oscuro: { nube: ["196,204,226", "130,140,170", "40,48,80"], nubeA: 0.85, texto: "rgba(242,237,227,.7)", traza: "246,196,138", antena: "242,237,227" }
@@ -75,7 +80,10 @@
     TACO = [t.left - r.left, t.top - r.top, t.width, t.height];
     PUNTA = [BASE[0], BASE[1] - ALTO_ANTENA];
     var h = titulo.getBoundingClientRect();
-    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [PUNTA[0], h.top - r.top + h.height * 0.55];
+    // la nube de SACEL va siempre al lado del título, donde estuvo desde el principio, aunque el tacógrafo se mueva
+    // (Benjamin, 2026-10-30): anclada al borde derecho del título, no a la antena
+    var rg = document.createRange(); rg.selectNodeContents(titulo); var txt = rg.getBoundingClientRect();   // el texto, no la caja del h2
+    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [txt.right - r.left + 185, h.top - r.top + h.height * 0.55];
   }
   function progreso() {
     if (!recorrido || quieto) return 1;
@@ -126,37 +134,53 @@
       }
     }
   }
-  // lo que entra al tacógrafo: el GPS (un satélite arriba a la izquierda) y el bus CAN del vehículo (por el costado
-  // izquierdo); puntos que fluyen hacia el equipo, de forma continua
+  // lo que entra al tacógrafo, por la derecha (Benjamin, 2026-10-30): el GPS por el aire y el bus CAN por un cable que
+  // sube, dobla hacia la izquierda y entra por el costado, con pulsos eléctricos
+  function cable(P, pts, t, fase) {               // pts: inicio, codo y llegada; esquina redondeada; pulsos hacia la llegada
+    var r = 14, a = pts[0], k = pts[1], b = pts[2];
+    var d1 = Math.hypot(k[0] - a[0], k[1] - a[1]), d2 = Math.hypot(b[0] - k[0], b[1] - k[1]);
+    var k1 = [k[0] - (k[0] - a[0]) / d1 * r, k[1] - (k[1] - a[1]) / d1 * r], k2 = [k[0] + (b[0] - k[0]) / d2 * r, k[1] + (b[1] - k[1]) / d2 * r];
+    c.strokeStyle = "rgba(" + P.antena + ",.45)"; c.lineWidth = 1.3;
+    c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(k1[0], k1[1]); c.quadraticCurveTo(k[0], k[1], k2[0], k2[1]); c.lineTo(b[0], b[1]); c.stroke();
+    c.fillStyle = "rgba(" + P.antena + ",.85)"; c.fillRect(b[0] - 1, b[1] - 3, 4, 6);   // el conector, en el costado
+    var largo = d1 + d2;
+    function en(s) {                               // punto a la distancia s del inicio (sin la esquina, basta)
+      if (s <= d1) return [a[0] + (k[0] - a[0]) * s / d1, a[1] + (k[1] - a[1]) * s / d1];
+      var q = (s - d1) / d2; return [k[0] + (b[0] - k[0]) * q, k[1] + (b[1] - k[1]) * q];
+    }
+    for (var j = 0; j < 3; j++) {
+      var f = ((t * 0.4) + fase + j / 3) % 1, q = en(f * largo);
+      var g = c.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+      g.addColorStop(0, "rgba(" + P.traza + "," + (0.9 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + P.traza + ",0)");
+      c.fillStyle = g; c.beginPath(); c.arc(q[0], q[1], 6, 0, 7); c.fill();
+    }
+  }
   function entradas(P, v, t) {
     if (v <= 0) return;
     var x0 = TACO[0], y0 = TACO[1], w = TACO[2], h = TACO[3], movil = W < 760;
-    var gps = movil ? [x0 + w * 0.12, y0 - 34] : [x0 - 34, y0 - 44];
-    var gIn = [x0 + w * 0.14, y0 + h * 0.3];                              // entra por arriba a la izquierda
-    var can = movil ? null : [x0 - 92, y0 + h * 0.62], cIn = [x0 + w * 0.01, y0 + h * 0.62];
+    var xr = x0 + w * 0.985, xc = xr + (movil ? 26 : 64);   // cables y GPS cerca del equipo                 // costado derecho del equipo; columna de entrada
+    var gIn = [xr + 2, y0 + h * 0.42], cIn = [xr, y0 + h * 0.74];
+    var gps = [xc + (movil ? 0 : 20), y0 + h * 0.05], can = [xc, y0 + h + (movil ? 26 : 40)];
     c.save(); c.globalAlpha = v;
-    function linea(a, b) {
-      c.strokeStyle = "rgba(" + P.antena + ",.35)"; c.lineWidth = 1; c.setLineDash([2, 4]);
-      c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); c.setLineDash([]);
-      for (var k = 0; k < 3; k++) {                                          // los datos, entrando
-        var f = ((t * 0.55) + k / 3) % 1;
-        c.fillStyle = "rgba(" + P.traza + "," + (Math.sin(f * Math.PI) * 0.9).toFixed(3) + ")";
-        c.beginPath(); c.arc(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, 1.8, 0, 7); c.fill();
-      }
+    // GPS: por el aire (Benjamin, 2026-10-30): ondas que salen del satélite hacia el equipo y paquetes que cruzan
+    var ang = Math.atan2(gIn[1] - gps[1], gIn[0] - gps[0]), dist = Math.hypot(gIn[0] - gps[0], gIn[1] - gps[1]);
+    for (var k = 0; k < 3; k++) {
+      var f = ((t * 0.5) + k / 3) % 1, rr = 8 + f * (dist - 8);
+      c.strokeStyle = "rgba(" + P.traza + "," + (0.55 * (1 - f)).toFixed(3) + ")"; c.lineWidth = 1.2;
+      c.beginPath(); c.arc(gps[0], gps[1], rr, ang - 0.32, ang + 0.32); c.stroke();
     }
-    linea(gps, gIn);
-    // el satélite: cuerpo y dos paneles
-    c.strokeStyle = "rgba(" + P.antena + ",.8)"; c.lineWidth = 1.2;
+    c.strokeStyle = "rgba(" + P.antena + ",.85)"; c.lineWidth = 1.2;
     c.save(); c.translate(gps[0], gps[1]); c.rotate(-0.5);
     c.strokeRect(-3, -3, 6, 6); c.strokeRect(-13, -2.5, 8, 5); c.strokeRect(5, -2.5, 8, 5);
     c.restore();
-    c.fillStyle = P.texto; c.font = "500 10px 'Plex Mono', monospace"; c.textAlign = "center"; c.textBaseline = "bottom";
-    c.fillText("GPS", gps[0], gps[1] - 10);
-    if (can) {
-      linea(can, cIn);
-      c.strokeStyle = "rgba(" + P.antena + ",.8)"; c.strokeRect(can[0] - 7, can[1] - 4, 7, 8);   // el conector
-      c.fillStyle = P.texto; c.textAlign = "left"; c.fillText("CAN bus", can[0] - 7, can[1] - 8);
-    }
+    c.fillStyle = "rgba(" + P.antena + ",.85)"; c.beginPath(); c.arc(gIn[0] + 2, gIn[1], 2.2, 0, 7); c.fill();   // receptor en el costado
+    // CAN bus: por cable, con pulsos eléctricos
+    cable(P, [can, [xc, cIn[1]], cIn], t, 0.5);
+    c.strokeRect(can[0] - 5, can[1], 10, 7); c.beginPath(); c.moveTo(can[0] - 2, can[1] + 7); c.lineTo(can[0] - 2, can[1] + 11);
+    c.moveTo(can[0] + 2, can[1] + 7); c.lineTo(can[0] + 2, can[1] + 11); c.stroke();
+    c.fillStyle = P.texto; c.font = "500 10px 'Plex Mono', monospace"; c.textAlign = "left"; c.textBaseline = "middle";
+    c.fillText("GPS", gps[0] + 18, gps[1] - 10);
+    c.fillText("CAN bus", can[0] + 12, can[1] + 5);
     c.restore();
   }
   function arco(u) {                              // sube desde la punta de la antena y se curva hacia la base de la nube
@@ -199,7 +223,9 @@
         if (u < 0.6) {                              // la trama que sale: qué lleva
           c.save(); c.globalAlpha = senal * Math.min(1, u / 0.1) * Math.min(1, (0.6 - u) / 0.2);
           c.fillStyle = P.texto; c.font = "500 10px 'Plex Mono', monospace"; c.textAlign = "right"; c.textBaseline = "middle";
-          c.fillText("trama: GPS · velocidad · CAN · conductor", PUNTA[0] - 12, PUNTA[1] - 6 - u * 10);   // a la izquierda: no invade los textos
+          var tr = TRAMAS[Math.floor(t / CADA) % TRAMAS.length];
+          if (tr[1]) c.fillStyle = "rgb(" + P.traza + ")";                   // emergencias y alertas, en cobre
+          c.fillText(tr[0], PUNTA[0] - 12, PUNTA[1] - 6 - u * 10);           // a la izquierda: no invade los textos
           c.restore();
         }
       }

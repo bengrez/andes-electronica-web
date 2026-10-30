@@ -20,7 +20,8 @@ imágenes de relieve.
 
 | Archivo | Qué es |
 |---|---|
-| `index.html`, `productos.html`, `sacel.html`, `servicios.html`, `empresa.html`, `contacto.html`, `privacidad.html` | Las 7 páginas |
+| `index.html`, `productos.html`, `sacel.html`, `servicios.html`, `empresa.html`, `contacto.html`, `privacidad.html`, `iso.html` | Las 8 páginas |
+| `descargas/` | Archivos para descargar: el certificado ISO 9001 en PDF |
 | `base.css` | Todos los estilos, temas claro y oscuro |
 | `sitio.js` | Botón de tema y página actual en la barra |
 | `flota-3d.js`, `flota-sim.js`, `flota-mapa.js`, `flota-perfil.js`, `flota.js` | Portada: relieve 3D de la ruta H-25, buses, tramas a SACEL, flora y aves |
@@ -41,6 +42,15 @@ El resultado de cada script ya está guardado en la carpeta. Sólo hacen falta p
 | `scripts/ilustrar_productos.py` | `partes/ilustracion-*.svg` (dibujos de los productos con curvas de nivel) | Al cambiar un dibujo |
 | `scripts/preparar_h25.py` | `datos/h25.js`, `img/alturas-3d.png` y los relieves | Al cambiar la ruta o el recorte del mapa |
 | `scripts/extraer_tacografo.py` | `datos/tacografo-modelo.js`, desde la animación original | Al cambiar el modelo 3D |
+
+## Seguridad
+
+El sitio no tiene formularios, cookies, analítica ni conexiones a otros servidores: es de sólo lectura y no expone
+ningún sistema de Andes. Cada página declara una política de seguridad de contenido (`Content-Security-Policy`) que
+sólo permite los scripts propios del sitio (los dos `<script>` en línea van por hash) y prohíbe conectarse a otros
+dominios, enviar formularios e incrustar objetos. `scripts/ensamblar.py` recalcula los hashes. Si el servidor lo permite,
+conviene agregar además la cabecera `X-Frame-Options: DENY` (o `frame-ancestors 'none'`), que no se puede fijar desde
+el HTML.
 
 ## Accesibilidad
 

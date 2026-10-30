@@ -107,7 +107,7 @@ function createSoftwareGL(canvas,data){
     const data=window.TACOGRAFO_MODELO;   // datos legibles (datos/tacografo-modelo.js), sin descomprimir (2026-10-30)
     let gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
     if(!gl)gl=createSoftwareGL(canvas,data);
-    const TAMANO=0.5;   // tamaño en pantalla respecto del original (Benjamin, 2026-10-27: «hazlo 50 % más chico»)
+    const TAMANO=0.72;   // tamaño en pantalla respecto del original (0,5 el 27-oct; 2026-10-30: más compacto, menos aire alrededor)
     const state={explode:0,door:0,printerOpen:1,yaw:.42,pitch:.30,distance:445,target:[0,-1,-67]};
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const identity=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
@@ -187,6 +187,66 @@ function createSoftwareGL(canvas,data){
     // tema: claro como el original; oscuro con más relleno, borde azulado y sombra negra más marcada
     const TEMAS={claro:{relleno:1,borde:0,sombra:[0,.063,.31],alfa:1},oscuro:{relleno:1.55,borde:.32,sombra:[0,0,0],alfa:2.4}};
     let width=0,height=0,tema=TEMAS.claro,visible=true;
+    // notas sobre las piezas (Benjamin, 2026-10-30): al girar se detiene en el panel posterior y explica para qué sirve
+    // cada conexión; al abrir la tapa, lo mismo con el frente. g: grupo del modelo; pos: punto de la pieza en el grupo
+    const NOTAS=[
+      {g:8,pos:[-16.2,12,6.8],cara:'atras',t:'GPS',d:'Posición, rumbo y velocidad del bus en cada punto de la ruta.'},
+      {g:8,pos:[-54,12,6.8],cara:'atras',t:'4G-LTE',d:'Envía cada viaje a SACEL en línea, sin esperar a que el bus vuelva.'},
+      {g:8,pos:[-6.2,-14,4],cara:'atras',t:'Conector del vehículo',d:'Alimentación y señales: contacto, velocidad y bus CAN (consumo, RPM, frenos).'},
+      {g:8,pos:[-41,-13,5],cara:'atras',t:'Puertos seriales',d:'Conectan los periféricos: display para pasajeros y visor de velocidad.'},
+      {g:8,pos:[26.1,-16.3,2],cara:'atras',t:'Tarjeta SD',d:'Respaldo de la caja negra: los datos quedan aunque se corte la señal.'},
+      {g:8,pos:[77,-13,4],cara:'atras',t:'Parlante',d:'Alertas audibles para el conductor.'},
+      {g:2,pos:[-30.1,6,8],cara:'frente',t:'Pantalla',d:'Tiempos de conducción, alertas y estado del equipo.'},
+      {g:2,pos:[-30,-23.2,7],cara:'frente',t:'Ranura SmartCard',d:'El conductor se identifica al iniciar la jornada.'},
+      {g:2,pos:[-74,5.8,9],cara:'frente',t:'Puerto serial',d:'Conexión con equipos de taller y configuración.'},
+      {g:2,pos:[-74,-18.3,9],cara:'frente',t:'USB',d:'Descarga de datos en terreno, para fiscalización o respaldo.'},
+      {g:2,pos:[47.2,-0.9,8],cara:'frente',t:'Impresora',d:'Comprobantes y reportes que exige la normativa, impresos en la cabina.'}
+    ];
+    const VENTANA={atras:[.17,.33],frente:[.55,.70]};   // tramos del recorrido en que se ven las notas de cada cara
+    const capaNotas=document.createElement('div');capaNotas.className='taco-notas';
+    capaNotas.innerHTML='<svg class="taco-guias" aria-hidden="true"></svg>';
+    canvas.parentNode.appendChild(capaNotas);
+    const guias=capaNotas.firstChild;
+    NOTAS.forEach(n=>{n.el=document.createElement('div');n.el.className='taco-nota-pieza';n.el.innerHTML='<b>'+n.t+'</b><span>'+n.d+'</span>';capaNotas.appendChild(n.el);});
+    const chile=document.createElement('p');chile.className='taco-chile';
+    chile.innerHTML='Diseñado, iterado y fabricado <em>en Chile.</em><span>Industria nacional, de la placa al software.</span>';
+    root.querySelector('.taco-copy').appendChild(chile);   // bajo el texto de la etapa
+    function proyectar(vp,m,p){
+      const w=[m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13],m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14]];
+      const x=vp[0]*w[0]+vp[4]*w[1]+vp[8]*w[2]+vp[12],y=vp[1]*w[0]+vp[5]*w[1]+vp[9]*w[2]+vp[13],q=vp[3]*w[0]+vp[7]*w[1]+vp[11]*w[2]+vp[15];
+      return q>0?[x/q,y/q]:null;
+    }
+    function dibujarNotas(vp,rect){
+      const memo={},visibles=[];
+      NOTAS.forEach((n,i)=>{
+        const v=VENTANA[n.cara],k=NOTAS.filter(o=>o.cara===n.cara).indexOf(n);
+        const a=reduced?(lastProgress>=v[0]&&lastProgress<v[1]?1:0):clamp((lastProgress-v[0]-k*.012)/.025)*clamp((v[1]-lastProgress)/.025);
+        n.a=a;n.el.style.opacity=a.toFixed(3);n.el.style.visibility=a>0?'visible':'hidden';
+        if(a<=0)return;
+        const q=proyectar(vp,groupMatrix(n.g,memo),n.pos);if(!q){n.el.style.visibility='hidden';return;}
+        n.x=(q[0]*.5+.5)*rect.width;n.y=(1-(q[1]*.5+.5))*rect.height;visibles.push(n);
+      });
+      let svg='';
+      {
+        // la mitad de las notas a cada lado, según dónde está su pieza (de izquierda a derecha)
+        const orden=visibles.slice().sort((a,b)=>a.x-b.x),mitad=Math.ceil(orden.length/2);
+        orden.forEach((n,i)=>{n.lado=i<mitad?'izq':'der';});
+        ['izq','der'].forEach(lado=>{
+          const grupo=visibles.filter(n=>n.lado===lado).sort((a,b)=>a.y-b.y);
+          let y=-Infinity;
+          grupo.forEach(n=>{
+            const h=n.el.offsetHeight||40;y=Math.max(n.y-h/2,y+8);n.ly=Math.min(Math.max(y,0),rect.height-h);y=n.ly+h;
+            if(lado==='izq'){n.el.style.left='0';n.el.style.right='auto';}else{n.el.style.left='auto';n.el.style.right='0';}
+            n.el.style.top=n.ly+'px';
+            const bx=lado==='izq'?n.el.offsetWidth+6:rect.width-n.el.offsetWidth-6,by=n.ly+12;
+            svg+='<path d="M'+bx+' '+by+'H'+(bx+(lado==='izq'?14:-14))+'L'+n.x.toFixed(1)+' '+n.y.toFixed(1)+'" style="opacity:'+n.a.toFixed(3)+'"/><circle cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="3" style="opacity:'+n.a.toFixed(3)+'"/>';
+          });
+        });
+      }
+      guias.setAttribute('viewBox','0 0 '+rect.width+' '+rect.height);guias.innerHTML=svg;
+      const c=reduced?(lastProgress>=.8?1:0):clamp((lastProgress-.8)/.08);
+      chile.style.opacity=c.toFixed(3);chile.style.transform='translateY('+((1-c)*12).toFixed(1)+'px)';
+    }
     function readTheme(){tema=document.documentElement.getAttribute('data-tema')==='oscuro'?TEMAS.oscuro:TEMAS.claro;draw();}
     function groupMatrix(i,memo){
       if(memo[i])return memo[i];
@@ -228,6 +288,7 @@ function createSoftwareGL(canvas,data){
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,d.i);gl.drawElements(gl.TRIANGLES,d.count,gl.UNSIGNED_SHORT,0);
       });
       gl.disableVertexAttribArray(attrs.p);gl.disableVertexAttribArray(attrs.n);if(gl.__software)gl.flush();
+      dibujarNotas(vp,rect);
     }
     const clamp=x=>Math.max(0,Math.min(1,x));
     const ease=x=>{x=clamp(x);return x*x*(3-2*x);};
@@ -239,16 +300,18 @@ function createSoftwareGL(canvas,data){
 
     function setProgress(value){
       const p=clamp(value);lastProgress=p;
-      const rotateP=segment(p,0.035,.40),openP=segment(p,.37,.51),printP=segment(p,.48,.68),explodeP=segment(p,.68,.96);
+      // gira hasta mostrar el panel posterior y se detiene (notas), termina la vuelta, abre las tapas y se detiene (notas),
+      // y al final se abre por dentro (2026-10-30)
+      const rotA=segment(p,.03,.16),rotB=segment(p,.34,.44),openP=segment(p,.43,.51),printP=segment(p,.49,.56),explodeP=segment(p,.72,.96);
       if(reduced){
-        state.yaw=.55;state.pitch=.44;state.door=p>=.45?1:0;state.printerOpen=p>=.57?1:0;state.explode=p>=.79?1:0;
+        state.yaw=p>=.17&&p<.44?.55+Math.PI:.55;state.pitch=.44;state.door=p>=.45?1:0;state.printerOpen=p>=.5?1:0;state.explode=p>=.79?1:0;
         state.distance=state.explode?500:435;
       }else{
-        state.yaw=.55+2*Math.PI*rotateP-.25*segment(p,.40,.58)+.34*segment(p,.62,1);
-        state.pitch=.34+.23*segment(p,.51,.92);
-        state.door=openP;state.printerOpen=printP;state.explode=explodeP;state.distance=420+85*segment(p,.65,.96);
+        state.yaw=.55+Math.PI*(rotA+rotB)-.25*segment(p,.44,.56)+.34*segment(p,.70,1);
+        state.pitch=.34+.23*segment(p,.70,.92);
+        state.door=openP;state.printerOpen=printP;state.explode=explodeP;state.distance=420+85*segment(p,.70,.96);
       }
-      const phase=p<.075?0:p<.40?1:p<.70?2:3;
+      const phase=p<.03?0:p<.44?1:p<.72?2:3;
       if(lastPhase!==phase){
         const info=phaseInfo[phase];root.querySelector('[data-title]').textContent=info.title;
         root.querySelector('[data-description]').textContent=info.description;

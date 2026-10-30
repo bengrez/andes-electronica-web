@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+<!-- cabeza -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Seguridad (2026-10-30): el navegador sólo ejecuta los scripts propios del sitio y no se conecta a ningún servidor
+     externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
+<link rel="stylesheet" href="base.css">
+<script>
+/* Antes de pintar: tema elegido (o el del sistema). */
+(function () {
+  var d = document.documentElement, t = null;
+  try { t = localStorage.getItem("tema"); } catch (e) {}
+  if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+  d.setAttribute("data-tema", t);
+})();
+</script>
+<!-- /cabeza -->
+<title>Certificado ISO 9001 | Andes Electrónica</title>
+<meta name="description" content="Certificado ISO 9001:2015 y NCh-ISO 9001:2015 de Andes Electrónica, emitido por Bureau Veritas Certification Chile. Alcance, fechas y descarga.">
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+<!-- Certificado ISO (pedido de JI, 2026-10-30): visible y descargable. Datos tomados del certificado; al renovarse, cambiar
+     la imagen, el PDF y la ficha de abajo. -->
+<div class="cabecera">
+<!-- barra -->
+<header class="barra">
+  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
+  <nav class="nav" aria-label="Principal"><ul>
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="productos.html">Productos</a></li>
+    <li><a href="sacel.html">SACEL</a></li>
+    <li><a href="servicios.html">Servicios</a></li>
+    <li><a href="empresa.html">Empresa</a></li>
+    <li><a href="iso.html" aria-current="page">Certificado ISO</a></li>
+    <li><a href="contacto.html">Contacto</a></li>
+  </ul></nav>
+  <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
+</header>
+<!-- /barra -->
+  <div class="titulo" role="region" aria-label="Presentación">
+    <p class="sello">Calidad</p>
+    <h1>Certificado <em>ISO 9001.</em></h1>
+    <p class="entrada">Nuestro sistema de gestión de la calidad está certificado por Bureau Veritas Certification Chile según ISO 9001:2015 y NCh-ISO 9001:2015, desde 2004.</p>
+  </div>
+</div>
+
+<main id="contenido">
+  <section class="seccion certificado" aria-labelledby="t-cert">
+    <h2 id="t-cert" class="logos-oculta">El certificado</h2>
+    <figure class="cert-imagen">
+      <a href="img/certificado-iso-9001.webp"><img src="img/certificado-iso-9001.webp" width="1200" height="1552"
+        alt="Certificado ISO 9001:2015 y NCh-ISO 9001:2015 de Andes Electrónica Limitada, emitido por Bureau Veritas Certification Chile S.A."></a>
+      <figcaption>Pulse la imagen para verla en tamaño completo.</figcaption>
+    </figure>
+    <div class="cert-ficha">
+      <dl class="datos">
+        <dt>Normas</dt><dd>ISO 9001:2015 · NCh-ISO 9001:2015</dd>
+        <dt>Organización</dt><dd>Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago</dd>
+        <dt>Certificadora</dt><dd>Bureau Veritas Certification Chile S.A., acreditada por el INN (registro N° 341)</dd>
+        <dt>Certificado</dt><dd>Serie N° BVCSG13456</dd>
+        <dt>Ciclo original</dt><dd>Desde el 27 de agosto de 2004</dd>
+        <dt>Ciclo del certificado</dt><dd data-vigencia>13 de junio de 2022 al 6 de junio de 2025</dd>
+      </dl>
+      <h3 class="cert-alcance-t">Alcance</h3>
+      <blockquote class="cita">«Venta, diseño y desarrollo, armado, reparación e instalación de equipos electrónicos tacógrafos, utilizados en el monitoreo de vehículos de transporte.»</blockquote>
+      <p class="cert-descarga"><a class="boton" href="descargas/certificado-iso-9001-andes.pdf" download>Descargar el certificado (PDF)</a></p>
+      <p class="nota">La validez de un certificado se puede confirmar directamente con Bureau Veritas Certification Chile.</p>
+    </div>
+  </section>
+</main>
+
+<!-- pie -->
+<footer class="pie">
+  <div class="pie-fila">
+    <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
+    <nav aria-label="Pie"><ul>
+      <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
+    </ul></nav>
+  </div>
+  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
+  <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
+</footer>
+<!-- /pie -->
+<script src="sitio.js"></script>
+</body>
+</html>

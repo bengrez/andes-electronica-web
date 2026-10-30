@@ -36,20 +36,20 @@
   color-scheme: dark;
 }
 :root[data-tema="claro"] {
-  --pagina: #f3efe6;
-  --pagina-2: #ebe5d8;
+  --pagina: #ebeeec;   /* «niebla» (Benjamin, 2026-10-30): gris verdoso frío, acompaña el mapa; antes #f3efe6 */
+  --pagina-2: #e0e4e1;
   --tinta: #00104f;
   --tinta-2: #3d4466;
   --tinta-3: #5f6580;
   --linea: rgba(0, 16, 79, .16);
   --acento: #8f5213;          /* cobre sobre el marfil: 5,9:1 */
-  --boton: #00104f; --boton-tinta: #f3efe6;
+  --boton: #00104f; --boton-tinta: #ebeeec;
   --cielo: linear-gradient(180deg, #8db8e0 0%, #cfe0ee 55%, #f4e6cc 100%);
   --velo: none;   /* el fundido con el papel lo hace flota-3d.js siguiendo el relieve (2026-10-29) */
-  --velo-sin3d: linear-gradient(180deg, rgba(243,239,230,.95) 0%, rgba(243,239,230,.65) 13%, transparent 27%), linear-gradient(90deg, #f3efe6 0%, #f3efe6 var(--velo-solido), rgba(243,239,230,.6) calc(var(--velo-solido) + 5rem), transparent calc(var(--velo-solido) + 11rem));
-  --velo-movil: linear-gradient(180deg, rgba(246,243,236,.95) 0%, rgba(246,243,236,.85) 62%, transparent 86%);
+  --velo-sin3d: linear-gradient(180deg, rgba(235,238,236,.95) 0%, rgba(235,238,236,.65) 13%, transparent 27%), linear-gradient(90deg, #ebeeec 0%, #ebeeec var(--velo-solido), rgba(235,238,236,.6) calc(var(--velo-solido) + 5rem), transparent calc(var(--velo-solido) + 11rem));
+  --velo-movil: linear-gradient(180deg, rgba(239,241,239,.95) 0%, rgba(239,241,239,.85) 62%, transparent 86%);
   --relieve: url("img/relieve-dia.webp");
-  --relieve-velo: linear-gradient(90deg, rgba(243,239,230,.96) 0%, rgba(243,239,230,.82) 45%, rgba(243,239,230,.6) 100%);
+  --relieve-velo: linear-gradient(90deg, rgba(235,238,236,.96) 0%, rgba(235,238,236,.82) 45%, rgba(235,238,236,.6) 100%);
   --logo-filtro: none;
   --logos-filtro: brightness(0);
   color-scheme: light;
@@ -71,7 +71,11 @@ a { color: inherit; }
 /* ─── barra ─── */
 .barra { position: relative; z-index: 3; width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: 1.25rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 2rem; }
 .marca { display: flex; align-items: center; gap: .8rem; text-decoration: none; margin-right: auto; }
-.marca img { width: calc(2.4rem * var(--logo, 1.7)); height: auto; filter: var(--logo-filtro); }
+.marca img { width: calc(2.4rem * var(--logo, 1.7)); height: auto; }
+/* dos versiones del logo (2026-10-30): la oscura lleva «ANDES» calado; antes se invertía con un filtro y las letras se perdían */
+.logo-oscuro, :root[data-tema="claro"] .logo-oscuro { display: none; }
+:root:not([data-tema="claro"]) .logo-oscuro { display: block; }
+:root:not([data-tema="claro"]) .logo-claro { display: none; }
 .marca b { font: 600 1.05rem/1 "DM Sans", sans-serif; letter-spacing: -.01em; }
 .nav ul { display: flex; flex-wrap: wrap; gap: .3rem 1.6rem; }
 .nav a { text-decoration: none; font-size: .95rem; font-weight: 600; color: var(--tinta-2); padding: .25rem 0; border-bottom: 2px solid transparent; }
@@ -137,7 +141,7 @@ a { color: inherit; }
   .sacel-datos { margin-top: 1.5rem; }
   .sacel-datos .pasos p { display: none; }
 }
-.pausa { position: relative; z-index: 2; align-self: flex-end; margin: 0 1.25rem 1.25rem 0; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.pausa { position: relative; z-index: 2; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
 @media (max-width: 47.5rem) {
   .portada::before { background: var(--velo-movil); }
   .heroe { padding-top: 1rem; }
@@ -291,20 +295,19 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .familia a:hover h3, .familia a:focus-visible h3 { color: var(--acento); }
 .familia p { color: var(--tinta-2); }
 .familia .sello { display: block; margin-bottom: .35rem; color: var(--acento); }
-.familia-diagrama { margin: 0; display: flex; flex-direction: column; align-items: center; }
-.dg-taco { position: relative; width: min(100%, 27rem); margin-top: 0; filter: drop-shadow(10px 16px 16px rgba(0, 16, 79, .10)); transition: transform .3s ease; }
+.familia-diagrama { margin: 0; display: flex; flex-direction: column; align-items: flex-start; }   /* el tacógrafo a la izquierda: a su derecha entran el GPS y el CAN bus */
+.dg-taco { position: relative; width: min(100%, 27rem); margin-top: 0; margin-left: max(0px, calc((100% - 27rem - 6rem) / 2));   /* el equipo y sus entradas, centrados en la columna */ filter: drop-shadow(10px 16px 16px rgba(0, 16, 79, .10)); transition: transform .3s ease; }
 :root:not([data-tema="claro"]) .dg-taco { filter: drop-shadow(10px 16px 16px rgba(0, 0, 0, .45)); }
 .dg-taco .ilus { display: block; width: 100%; height: auto; }
 .dg-taco .ilus-pulso { display: none; }   /* su señal la dibuja productos-nube.js, hacia la nube de SACEL */
-.pausa-productos { position: absolute; right: 0; bottom: 1.2rem; z-index: 2; margin: 0; }
 .productos-lienzo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-.dg-taco::after { content: ""; position: absolute; left: 50%; top: 96%; height: 1.6rem; width: 1px; background: var(--linea); opacity: var(--ramas, 1); }
+.dg-taco::after { content: ""; position: absolute; left: 50%; top: 96%; height: 3.6rem; width: 1px; background: var(--linea); opacity: var(--ramas, 1); }
 .ilus-cara-sup { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
 .ilus-cara-lado { fill: color-mix(in srgb, var(--tinta) 16%, var(--pagina)); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
 .familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco { transform: translateY(-4px); }
 .familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco .ilus-borde { stroke: var(--acento); }
 /* periféricos: una columna cada uno, el dibujo plano y debajo su texto, unidos al tacógrafo por líneas cortas */
-.familia-ramas { position: relative; margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem 1.6rem; text-align: center; }
+.familia-ramas { position: relative; margin-top: 5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem 1.6rem; text-align: center; }
 .familia-ramas::before { content: ""; position: absolute; top: -1.3rem; left: 16.5%; right: 16.5%; height: 1px; background: var(--linea); opacity: var(--ramas, 1); }
 .familia-ramas li { position: relative; }
 .familia-ramas li::before { content: ""; position: absolute; left: 50%; top: -1.3rem; height: 1.3rem; width: 1px; background: var(--linea); }
@@ -409,18 +412,30 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .pie .atribucion { color: var(--tinta-3); font-size: .8rem; }
 
 /* ─── exploración del tacógrafo (productos.html, tacografo-3d.js): adaptada de la animación de Benjamin ─── */
-.taco-story { position: relative; height: 400vh; height: 400svh; isolation: isolate; border-bottom: 1px solid var(--linea); }
+.taco-story { position: relative; height: 420vh; height: 420svh;   /* 2026-10-30: compacta, con pausas para las notas */ isolation: isolate; border-bottom: 1px solid var(--linea); }
 .taco-stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
   background: radial-gradient(ellipse at 70% 48%, var(--taco-halo) 0, transparent 62%), var(--pagina); }
 :root, :root[data-tema="oscuro"] { --taco-halo: rgba(40, 62, 150, .32); }
-:root[data-tema="claro"] { --taco-halo: #faf9f5; }
-.taco-copy { position: absolute; z-index: 2; left: max(1.25rem, calc((100% - 80rem) / 2)); top: 22%; width: 30%; max-width: 26rem; }
+:root[data-tema="claro"] { --taco-halo: #f4f6f5; }
+.taco-copy { position: absolute; z-index: 2; left: max(1.25rem, calc((100% - 80rem) / 2)); top: 50%; transform: translateY(-58%); width: 30%; max-width: 26rem; }
 .taco-copy h2 { margin-top: .9rem; font-size: clamp(2.1rem, 4.2vw, 3.6rem); }
 .taco-copy p[data-description] { margin-top: 1.25rem; color: var(--tinta-2); }
-.taco-model-area { position: absolute; top: 0; bottom: 0; right: 0; width: 66%; }
+.taco-model-area { position: absolute; top: 20%; bottom: 0; right: max(0px, calc((100% - 80rem) / 2)); width: min(62%, 52rem); }
 .taco-model-area canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
 .taco-model-area .taco-foto { position: absolute; inset: 18% 6% auto 6%; border-radius: 14px; overflow: hidden; }
 [data-ready="true"] .taco-foto { display: none; }
+/* notas sobre las piezas del tacógrafo y el cierre «en Chile» (tacografo-3d.js, 2026-10-30) */
+.taco-notas { position: absolute; inset: 0; pointer-events: none; }
+.taco-guias { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.taco-guias path { fill: none; stroke: var(--acento); stroke-width: 1; }
+.taco-guias circle { fill: var(--acento); }
+.taco-nota-pieza { position: absolute; max-width: 15rem; padding: .45rem .6rem; border-left: 2px solid var(--acento); background: color-mix(in srgb, var(--pagina) 88%, transparent);
+  font-size: .8rem; line-height: 1.35; color: var(--tinta-2); visibility: hidden; transition: top .2s ease; }
+.taco-nota-pieza b { display: block; font: 500 .68rem/1.2 "Plex Mono", monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--acento); margin-bottom: .15rem; }
+.taco-chile { margin-top: 1.6rem; padding-top: 1rem; border-top: 1px solid var(--linea); font: 600 clamp(1.25rem, 2.1vw, 1.75rem)/1.15 var(--titulos); color: var(--tinta); opacity: 0; }
+@media (max-width: 47.5rem) { .taco-notas { display: none; } .taco-chile { margin-top: .8rem; padding-top: .6rem; } }
+.taco-chile em { font-style: normal; color: var(--acento); }
+.taco-chile span { display: block; margin-top: .4rem; font: 500 .8rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); }
 .taco-loading { position: absolute; inset: auto 12% 14%; text-align: center; font-size: .85rem; color: var(--tinta-3); }
 .taco-bottom { position: absolute; z-index: 3; left: max(1.25rem, calc((100% - 80rem) / 2)); right: max(1.25rem, calc((100% - 80rem) / 2)); bottom: 1.4rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem 1.5rem; align-items: end; }
 .taco-hint { font: 500 .72rem/1.5 "Plex Mono", monospace; color: var(--tinta-3); }
@@ -433,7 +448,7 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .taco-progress::-moz-progress-bar { background: var(--acento); }
 .taco-nota { position: absolute; z-index: 2; right: max(1.25rem, calc((100% - 80rem) / 2)); top: 1.2rem; font-size: .75rem; color: var(--tinta-3); max-width: 22rem; text-align: right; }
 @media (max-width: 47.5rem) {
-  .taco-copy { top: 7%; left: 1.25rem; right: 1.25rem; width: auto; }
+  .taco-copy { top: 7%; transform: none; left: 1.25rem; right: 1.25rem; width: auto; }
   .taco-copy h2 { font-size: clamp(1.9rem, 8vw, 2.6rem); }
   .taco-copy p[data-description] { margin-top: .7rem; font-size: .92rem; }
   .taco-model-area { top: 34%; bottom: 13%; width: 100%; }
@@ -441,6 +456,31 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
   .taco-hint { display: none; }
   .taco-nav { gap: .4rem; justify-content: space-between; flex-wrap: nowrap; }
   .taco-nav a { font-size: .68rem; }
-  .taco-nota { top: auto; bottom: 4.4rem; left: 1.25rem; text-align: left; font-size: .66rem; }
+  .taco-nota { top: auto; bottom: 7rem; left: 1.25rem; text-align: left; font-size: .66rem; }
 }
 @media (max-width: 23rem) { .taco-nav a span { display: none; } .taco-nav a { font-size: .8rem; padding-inline: .4rem; } }
+
+/* certificado ISO (iso.html, 2026-10-30): la imagen a la izquierda, la ficha y la descarga a la derecha */
+.certificado { display: grid; gap: 2.5rem 4rem; align-items: start; }
+@media (min-width: 52rem) { .certificado { grid-template-columns: 5fr 6fr; } }
+.cert-imagen { margin: 0; }
+.cert-imagen img { width: 100%; height: auto; border: 1px solid var(--linea); border-radius: 6px; box-shadow: 0 18px 40px -28px rgba(0, 16, 79, .35); }
+.cert-imagen figcaption { margin-top: .6rem; font-size: .8rem; color: var(--tinta-3); }
+.cert-alcance-t { margin: 2rem 0 .8rem; font-size: 1.1rem; }
+.cert-descarga { margin-top: 1.8rem; }
+
+/* «Seguir»: pasa a la etapa siguiente de las secciones que avanzan con el scroll (seguir.js, 2026-10-30) */
+.controles { position: absolute; z-index: 2; right: 1.25rem; bottom: 1.25rem; display: flex; gap: .5rem; align-items: center; }
+.controles-productos { right: 0; bottom: 1.2rem; }
+.seguir { display: inline-flex; align-items: center; gap: .25rem; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--boton-tinta); background: var(--boton);
+  border: 1px solid var(--boton); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
+.seguir svg { width: .62rem; height: .62rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: seguir 1.8s ease-in-out infinite; }
+.seguir:hover { filter: brightness(1.15); }
+.saltar-seccion { display: inline-flex; align-items: center; gap: .25rem; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta); background: var(--pagina);
+  border: 1px solid var(--tinta-3); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
+.saltar-seccion svg { width: .62rem; height: .62rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.saltar-seccion:hover { border-color: var(--tinta); }
+@keyframes seguir { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) { .seguir, .saltar-seccion { display: none; } }
+.taco-hint-fila { display: flex; align-items: center; gap: .5rem; }
+.taco-hint-fila .taco-hint { margin-right: .5rem; }

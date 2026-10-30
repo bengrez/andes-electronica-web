@@ -5,6 +5,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Seguridad (2026-10-30): el navegador sólo ejecuta los scripts propios del sitio y no se conecta a ningún servidor
+     externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
 <link rel="stylesheet" href="base.css">
 <script>
@@ -25,13 +29,14 @@
 <div class="cabecera">
 <!-- barra -->
 <header class="barra">
-  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img src="img/logo-andes.svg" alt="" width="38" height="34"></a>
+  <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
   <nav class="nav" aria-label="Principal"><ul>
     <li><a href="index.html">Inicio</a></li>
     <li><a href="productos.html" aria-current="page">Productos</a></li>
     <li><a href="sacel.html">SACEL</a></li>
     <li><a href="servicios.html">Servicios</a></li>
     <li><a href="empresa.html">Empresa</a></li>
+    <li><a href="iso.html">Certificado ISO</a></li>
     <li><a href="contacto.html">Contacto</a></li>
   </ul></nav>
   <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
@@ -60,7 +65,11 @@
       </div>
       <p class="taco-nota">Reconstrucción visual basada en fotografías: medidas y distribución interna aproximadas.</p>
       <div class="taco-bottom">
-        <p class="taco-hint" data-hint>Desplácese para explorar</p>
+        <div class="taco-hint-fila">
+          <p class="taco-hint" data-hint>Desplácese para explorar</p>
+          <button class="seguir seguir-taco" type="button" data-recorrido=".taco-story" data-etapas="0.25,0.62,0.96" aria-label="Ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
+          <button class="saltar-seccion" type="button" data-recorrido=".taco-story" aria-label="Saltar la animación e ir a la sección siguiente">Saltar <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h8M7.5 4.5 11 8l-3.5 3.5M13.5 4v8"/></svg></button>
+        </div>
         <nav class="taco-nav" aria-label="Etapas de la exploración del tacógrafo">
           <a href="#tacografo" data-seek="0" data-phase="0" aria-label="Etapa 1: Equipo" aria-current="step"
              data-etiqueta="Tacógrafo Electrónico · TAE-4.0" data-titulo="Tacógrafo 4.0"
@@ -68,7 +77,7 @@
           <a href="#tacografo" data-seek="0.25" data-phase="1" aria-label="Etapa 2: Conexiones"
              data-etiqueta="Conexiones" data-titulo="Lee el vehículo, habla con SACEL."
              data-texto="Toma la velocidad del bus CAN y OBD2, de sensores o de GNSS (GPS y Glonass), identifica a la tripulación con la tarjeta SmartCard y transmite en línea al Sistema SACEL por la red 4G-LTE.">02<span> · Conexiones</span></a>
-          <a href="#tacografo" data-seek="0.67" data-phase="2" aria-label="Etapa 3: Impresora"
+          <a href="#tacografo" data-seek="0.62" data-phase="2" aria-label="Etapa 3: Impresora"
              data-etiqueta="Impresora y alertas" data-titulo="Reportes al instante."
              data-texto="La impresora integrada emite los reportes que exige la normativa vigente. Alertas audibles y en pantalla por exceso de velocidad y de tiempo de conducción, y alertas preventivas para evitar infracciones laborales.">03<span> · Impresora</span></a>
           <a href="#tacografo" data-seek="0.96" data-phase="3" aria-label="Etapa 4: Interior"
@@ -191,7 +200,7 @@
     <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
     <nav aria-label="Pie"><ul>
       <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
-      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
+      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
     </ul></nav>
   </div>
   <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
@@ -201,5 +210,6 @@
 <script src="sitio.js"></script>
 <script src="datos/tacografo-modelo.js"></script>
 <script src="tacografo-3d.js"></script>
+<script src="seguir.js"></script>
 </body>
 </html>
