@@ -141,7 +141,7 @@ a { color: inherit; }
   .sacel-datos { margin-top: 1.5rem; }
   .sacel-datos .pasos p { display: none; }
 }
-.pausa { position: relative; z-index: 2; font: 500 .75rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+.pausa { position: relative; z-index: 2; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
 @media (max-width: 47.5rem) {
   .portada::before { background: var(--velo-movil); }
   .heroe { padding-top: 1rem; }
