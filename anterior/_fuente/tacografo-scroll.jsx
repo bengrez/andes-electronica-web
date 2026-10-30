@@ -375,7 +375,7 @@ function PCBGroup({ stroke, copper, mono, opacity }) {
 }
 
 // ─── Callout: number + line + label, positioned in screen space
-function Callout({ num, label, x, y, lineTo, copper, mono, visible }) {
+function Callout({ num, label, x, y, lineTo, copper, mono, visible, stroke }) {
   return (
     <div style={{
       position: 'absolute',
@@ -583,18 +583,18 @@ function TacografoScroll({ theme }) {
         {/* Callouts */}
         {calloutSet === 'outer' && (
           <>
-            <Callout num="01" label="Slot tarjeta conductor" x="14%" y="46%" copper={copper} mono={mono} visible={a3 > 0.05 || a2 >= 0.6}/>
-            <Callout num="02" label="Display información operativa" x="14%" y="32%" copper={copper} mono={mono} visible={a3 > 0.15 || a2 >= 0.7}/>
-            <Callout num="03" label="Carcasa IP54 anti-tamper" x="72%" y="28%" copper={copper} mono={mono} visible={a3 > 0.30 || a2 >= 0.85}/>
-            <Callout num="04" label="178 × 130 × 50 mm" x="72%" y="62%" copper={copper} mono={mono} visible={a3 > 0.45 || a2 >= 1}/>
+            <Callout num="01" label="Slot tarjeta conductor" x="14%" y="46%" copper={copper} stroke={stroke} mono={mono} visible={a3 > 0.05 || a2 >= 0.6}/>
+            <Callout num="02" label="Display información operativa" x="14%" y="32%" copper={copper} stroke={stroke} mono={mono} visible={a3 > 0.15 || a2 >= 0.7}/>
+            <Callout num="03" label="Carcasa IP54 anti-tamper" x="72%" y="28%" copper={copper} stroke={stroke} mono={mono} visible={a3 > 0.30 || a2 >= 0.85}/>
+            <Callout num="04" label="178 × 130 × 50 mm" x="72%" y="62%" copper={copper} stroke={stroke} mono={mono} visible={a3 > 0.45 || a2 >= 1}/>
           </>
         )}
         {calloutSet === 'inner' && (
           <>
-            <Callout num="05" label="PCB · CPU + GPS + LTE 4G" x="14%" y="40%" copper={copper} mono={mono} visible={a4 > 0.2}/>
-            <Callout num="06" label="Cabezal térmico 8 dots/mm" x="72%" y="32%" copper={copper} mono={mono} visible={a4 > 0.4}/>
-            <Callout num="07" label="Flex cable 24 vías" x="72%" y="52%" copper={copper} mono={mono} visible={a4 > 0.55}/>
-            <Callout num="08" label="Tapa metálica · sleeve DIN" x="46%" y="14%" copper={copper} mono={mono} visible={a4 > 0.7}/>
+            <Callout num="05" label="PCB · CPU + GPS + LTE 4G" x="14%" y="40%" copper={copper} stroke={stroke} mono={mono} visible={a4 > 0.2}/>
+            <Callout num="06" label="Cabezal térmico 8 dots/mm" x="72%" y="32%" copper={copper} stroke={stroke} mono={mono} visible={a4 > 0.4}/>
+            <Callout num="07" label="Flex cable 24 vías" x="72%" y="52%" copper={copper} stroke={stroke} mono={mono} visible={a4 > 0.55}/>
+            <Callout num="08" label="Tapa metálica · sleeve DIN" x="46%" y="14%" copper={copper} stroke={stroke} mono={mono} visible={a4 > 0.7}/>
           </>
         )}
 

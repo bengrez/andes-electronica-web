@@ -6,7 +6,7 @@ Sitio institucional de Andes Electrónica, en revisión interna. Tres variantes 
 
 ```
 index.html         ← Redirect a anterior/ (entrada por defecto, desde el 2026-10-30)
-anterior/          ← Variante 1 actualizada (texto de portada y sigla de SACEL) y precompilada: sin Babel ni CDN
+anterior/          ← Variante 1 actualizada y plana: HTML estático, sin JavaScript, cookies ni CDN (fuente en anterior/_fuente/)
 nuevo/             ← Versión nueva, plana (HTML, CSS y JS escritos a mano); fuente en la rama iter/001-sitio-plano
 v1-original/       ← Variante 1 — paleta light, accent copper (publicada inicialmente)
 v2-deep-teal/      ← Variante 2 — paleta deep-teal
@@ -18,7 +18,7 @@ Las 3 variantes son builds estáticos autocontenidos (HTML + JSX + Babel runtime
 ## URLs
 
 - Root (redirige a anterior): `https://bengrez.github.io/andes-electronica-web/`
-- Versión anterior precompilada: `https://bengrez.github.io/andes-electronica-web/anterior/`
+- Versión anterior plana: `https://bengrez.github.io/andes-electronica-web/anterior/`
 - Versión nueva: `https://bengrez.github.io/andes-electronica-web/nuevo/`
 - Variante 1: `https://bengrez.github.io/andes-electronica-web/v1-original/`
 - Variante 2: `https://bengrez.github.io/andes-electronica-web/v2-deep-teal/`
@@ -43,11 +43,16 @@ Editar `<variante>/data/runtime.config.json` y reemplazar `ga4MeasurementId` con
 
 Ver `.gitignore`. Se excluyen `debug/` y `uploads/` (sandbox de exploración).
 
-## Versión anterior precompilada (`anterior/`, 2026-10-30)
+## Versión anterior plana (`anterior/`, 2026-10-30)
 
-Copia de `v1-original/` con el texto de portada y la sigla de SACEL nuevos. Los `.jsx` se compilan a `anterior/js/`
-con esbuild (sin minificar, legibles) y React va en su build de producción desde `anterior/vendor/`, así que la página
-ya no compila JSX en el navegador ni usa CDN para scripts. Para regenerar `js/` después de editar un `.jsx`:
+Copia de `v1-original/` con el texto de portada y la sigla de SACEL nuevos, sin cookies ni analítica, y publicada como
+HTML estático: las páginas no cargan JavaScript, React ni nada desde CDN; las fuentes están en `anterior/fuentes/` y los
+menús desplegables se abren con CSS. Lo que en React se animaba quedó en su estado final.
 
-    npm install esbuild@0.24.0                     # en una carpeta aparte
-    cd anterior && node compilar.mjs <carpeta>/node_modules/esbuild
+La fuente React está en `anterior/_fuente/` (Jekyll no publica las carpetas con `_`). Para regenerar las páginas después
+de editar un `.jsx`:
+
+    npm install esbuild@0.24.0 playwright             # en una carpeta aparte; npx playwright install chromium
+    cd anterior/_fuente
+    node compilar.mjs <carpeta>/node_modules/esbuild    # .jsx → js/
+    node aplanar.mjs <carpeta>/node_modules/playwright  # js/ → ../*.html, planas

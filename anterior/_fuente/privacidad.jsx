@@ -14,12 +14,12 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
       <Breadcrumb theme={theme} items={[
         { label: 'Home', href: './index.html' },
         { label: 'Empresa', href: './Empresa.html' },
-        { label: 'Privacidad y cookies' },
+        { label: 'Privacidad' },
       ]}/>
 
       <PageHero
         theme={theme}
-        eyebrow="Privacidad y cookies"
+        eyebrow="Privacidad"
         title="Cómo tratamos tus datos en este sitio."
         accentWord="tus datos"
         credentials={`Última actualización · ${lastUpdated} · Pendiente de revisión legal`}
@@ -33,7 +33,7 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
           ['Solo lo necesario', 'Pedimos los datos mínimos para responder tu consulta o entregar el servicio que contratas.'],
           ['No vendemos datos',  'No compartimos tu información con terceros con fines comerciales o publicitarios.'],
           ['Tú decides',         'Puedes consultar, modificar o eliminar tus datos cuando quieras, escribiéndonos al correo de contacto.'],
-          ['Cookies acotadas',   'Solo cookies funcionales y analíticas básicas. No usamos cookies de seguimiento publicitario.'],
+          ['Sin cookies',        'Este sitio no usa cookies ni herramientas de analítica o seguimiento.'],
         ].map(([t, d], i) => (
           <div key={i} style={{ background: p.surface, padding: 28, borderTop: `2px solid ${copper}` }}>
             <div style={{ ...mono, fontSize: 11, color: copper, letterSpacing: '0.18em', marginBottom: 14 }}>0{i+1}</div>
@@ -69,31 +69,12 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
         </LegalBlock>
       </article>
 
-      {/* ── Cookies ── */}
-      <SectionHead theme={theme} num="03" eyebrow="Cookies" title="Cookies que utiliza este sitio" accentWord="este sitio" border/>
+      {/* ── Cookies ── (2026-10-30: el sitio quedó plano, sin cookies ni analítica) */}
+      <SectionHead theme={theme} num="03" eyebrow="Cookies" title="Este sitio no usa cookies" accentWord="no usa cookies" border/>
       <div style={{ padding: `20px ${pad}px 80px`, maxWidth: 1100 }}>
-        <p style={{ margin: '0 0 32px', fontSize: 16, color: p.inkSub, lineHeight: 1.65, maxWidth: 760 }}>
-          Una cookie es un pequeño archivo que un sitio web almacena en tu navegador. Este sitio usa tres categorías de cookies, descritas a continuación. Puedes desactivarlas desde la configuración de tu navegador — el sitio sigue funcionando, aunque algunas funciones podrían comportarse de forma distinta.
+        <p style={{ margin: 0, fontSize: 16, color: p.inkSub, lineHeight: 1.65, maxWidth: 760 }}>
+          Es un sitio estático: no guarda cookies en tu navegador ni usa herramientas de analítica o seguimiento de terceros.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 0, border: `1px solid ${p.inkFaint}` }}>
-          {[
-            ['Esenciales',  'Necesarias para que el sitio funcione (preferencias de tema, estado del menú, sesión).', 'Sesión',       'No requiere consentimiento'],
-            ['Analíticas',  'Permiten entender el uso agregado del sitio. No identifican individualmente al visitante.', 'Hasta 24 meses', 'Consentimiento opcional'],
-            ['Marketing',   'Este sitio NO utiliza cookies de seguimiento publicitario ni de redes sociales de terceros.', '—',             'No aplica'],
-          ].map(([cat, desc, dur, consent], i) => (
-            <div key={i} style={{
-              display: 'grid', gridTemplateColumns: '160px 1fr 160px 200px',
-              gap: 24, padding: '22px 24px',
-              borderTop: i === 0 ? 'none' : `1px solid ${p.inkFaint}`,
-              alignItems: 'baseline',
-            }}>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: '0.18em', color: copper, textTransform: 'uppercase' }}>{cat}</div>
-              <div style={{ fontSize: 14, color: p.ink, lineHeight: 1.6 }}>{desc}</div>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: '0.12em', color: p.inkSub, textTransform: 'uppercase' }}>{dur}</div>
-              <div style={{ ...mono, fontSize: 11, letterSpacing: '0.12em', color: p.inkDim, textTransform: 'uppercase' }}>{consent}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ── Contacto del oficial de datos ── */}
@@ -117,27 +98,6 @@ function Privacidad({ palette = 'deep-teal', accent = 'copper', typeface = 'inte
           </div>
         </div>
 
-        {/* Manage cookie consent — opens the same banner that appears on first
-            visit. Implemented via window.AndesCookies (defined in cookie-consent.jsx). */}
-        <div style={{ marginTop: 28, padding: '20px 22px', background: p.surface, borderLeft: `2px solid ${copper}`, maxWidth: 720 }}>
-          <div style={{ ...mono, fontSize: 11, letterSpacing: '0.22em', color: copper, textTransform: 'uppercase', marginBottom: 8, fontWeight: 600 }}>
-            Gestionar mis preferencias
-          </div>
-          <div style={{ fontSize: 14, color: p.inkSub, lineHeight: 1.6, marginBottom: 14 }}>
-            Puedes revisar o cambiar tus preferencias de cookies analíticas en cualquier momento. Tu elección se guarda en este navegador y no se comparte con terceros.
-          </div>
-          <button
-            type="button"
-            onClick={() => { if (window.AndesCookies) window.AndesCookies.openBanner(); }}
-            style={{
-              ...mono, fontSize: 12, letterSpacing: '0.06em', fontWeight: 600,
-              background: 'transparent', color: copper,
-              border: `1px solid ${copper}`, padding: '10px 18px',
-              cursor: 'pointer', borderRadius: 2,
-            }}>
-            Abrir preferencias de cookies →
-          </button>
-        </div>
         <div style={{ marginTop: 32, ...mono, fontSize: 10.5, letterSpacing: '0.18em', color: p.inkDim, textTransform: 'uppercase' }}>
           Marco legal · Ley N° 19.628 sobre Protección de la Vida Privada · Última actualización: {lastUpdated}
         </div>
