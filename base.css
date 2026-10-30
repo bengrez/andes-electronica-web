@@ -340,9 +340,9 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .ver-paleta { perspective: 6rem; }
 .ver-paleta s { transform-origin: 50% 50%; transform: rotateX(calc(var(--caida, 0) * -1deg)); backface-visibility: hidden; }
 .ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #000 30%); --pl-2: color-mix(in srgb, var(--pagina-2), #000 42%); --pl-b: color-mix(in srgb, var(--pagina-2), #000 62%);
-  position: relative; display: inline-grid; place-items: center; width: .74em; height: 1.06em; margin-left: .06em; vertical-align: -.17em; border-radius: .08em;
+  position: relative; display: inline-grid; place-items: center; width: .58em; height: .8em; margin-left: .06em; vertical-align: -.04em; border-radius: .07em;   /* el número del alto de las letras de la frase */
   background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-b) 50%, var(--pl-1) 52%, var(--pl-2)); perspective: 10rem; overflow: hidden;
-  font: 600 1em/1 "Barlow Condensed", "Archivo", sans-serif; color: var(--tinta); }
+  font: 600 .8em/1 "Barlow Condensed", "Archivo", sans-serif; color: var(--tinta); }
 :root[data-tema="claro"] .ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #3a2c10 7%); --pl-2: color-mix(in srgb, var(--pagina-2), #3a2c10 11%); --pl-b: color-mix(in srgb, var(--pagina-2), #3a2c10 30%); }
 .ver-paleta::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--pl-b); }
 .ver-paleta b { font-weight: inherit; display: block; }
