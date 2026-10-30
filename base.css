@@ -77,8 +77,11 @@ a { color: inherit; }
 .nav a { text-decoration: none; font-size: .95rem; font-weight: 600; color: var(--tinta-2); padding: .25rem 0; border-bottom: 2px solid transparent; }
 .nav a:hover { color: var(--tinta); }
 .nav a[aria-current="page"] { color: var(--tinta); border-bottom-color: var(--acento); }
-.tema { font: 500 .78rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: none; border: 1px solid var(--linea); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; }
+/* tema: botón redondo con un símbolo, junto a Contacto (2026-10-30) */
+.tema { width: 2.1rem; height: 2.1rem; padding: 0; display: grid; place-items: center; color: var(--tinta-2); background: none; border: 1px solid var(--linea); border-radius: 50%; cursor: pointer; }
+.tema svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .tema:hover { color: var(--tinta); border-color: var(--tinta-2); }
+@media (min-width: 47.5rem) { .tema { margin-left: -1rem; } }   /* pegado a Contacto */
 @media (max-width: 47.5rem) {
   .barra { padding-top: .9rem; gap: .6rem 1rem; }
   .marca img { width: calc(1.6rem * var(--logo, 1.7)); }
@@ -156,6 +159,8 @@ a { color: inherit; }
 h1 { margin-top: 1.25rem; font: 600 clamp(2.5rem, 6vw, 5.2rem)/1 var(--titulos); letter-spacing: -.03em; max-width: 15ch; text-wrap: balance; }
 h1 em, h2 em { font-style: normal; color: var(--acento); }
 .entrada { margin-top: 1.5rem; font-size: clamp(1.08rem, 1.5vw, 1.25rem); color: var(--tinta-2); max-width: 36rem; }
+.entrada-2 { margin-top: 1rem; }
+.marca-sacel { font-weight: 700; color: var(--acento); }   /* SACEL en el primer párrafo, en el cobre de «a SACEL.» (2026-10-30) */   /* segundo párrafo de la portada: industria chilena y cordillera (2026-10-30) */
 h2 { font: 600 clamp(1.9rem, 3.6vw, 3rem)/1.06 var(--titulos); letter-spacing: -.025em; max-width: 20ch; text-wrap: balance; }
 h3 { font: 600 1.35rem/1.2 var(--titulos); letter-spacing: -.012em; }
 h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spacing: 0; }
@@ -269,16 +274,85 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
   .ficha:nth-child(n + 7) { display: none; }
 }
 
-.familia-ramas { position: relative; width: 100%; margin-top: 2rem; display: grid; gap: 1.6rem 3rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
-.familia-ramas li { position: relative; border-top: 1px solid var(--linea); padding-top: 1.1rem; }
-.familia-ramas p { margin-top: .55rem; }
-.familia-ramas .ilus { display: block; width: 100%; height: 7.5rem; margin: 0 0 .8rem; }   /* misma caja: los títulos quedan alineados */
-.familia-ramas .ilus-dato { margin-top: .7rem; }
-@media (min-width: 52rem) {
-  .familia-ramas li::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 1rem; background: var(--linea); }
-  .familia-ramas::before { content: ""; position: absolute; top: -1rem; left: calc((100% - 6rem) / 6); right: calc((100% - 6rem) / 6); height: 1px; background: var(--linea); }
-  .familia-ramas li { text-align: center; border-top: 0; }
-  .familia-centro::after { height: 1rem; }
+/* cita literal (alcance del certificado) — restaurada el 30-oct (se había borrado por error en una edición del 30-oct) */
+.cita { border-left: 2px solid var(--acento); padding: .4rem 0 .4rem 1.4rem; font: 400 1.35rem/1.4 "Source Serif", Georgia, serif; font-style: italic; max-width: 46rem; }
+.nota { font-size: .9rem; color: var(--tinta-3); margin-top: .9rem; }
+
+/* llamada final */
+.llamada { display: grid; gap: 1.5rem 4rem; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 52rem) { .llamada { grid-template-columns: 7fr 5fr; } }
+
+/* familia de productos (inicio, 2026-10-30): a la izquierda el tacógrafo con profundidad y, colgando de él, los
+   periféricos planos con su descripción debajo; a la derecha SACEL y el tacógrafo. Al pasar sobre el texto del
+   tacógrafo su dibujo sube y se marca en cobre; los periféricos se marcan solos. */
+.familia { display: grid; gap: 2.5rem 4rem; align-items: center; }
+@media (min-width: 60rem) { .familia { grid-template-columns: 7fr 5fr; } }
+.familia a { text-decoration: none; color: inherit; }
+.familia a:hover h3, .familia a:focus-visible h3 { color: var(--acento); }
+.familia p { color: var(--tinta-2); }
+.familia .sello { display: block; margin-bottom: .35rem; color: var(--acento); }
+.familia-diagrama { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.dg-taco { position: relative; width: min(100%, 27rem); margin-top: 0; filter: drop-shadow(10px 16px 16px rgba(0, 16, 79, .10)); transition: transform .3s ease; }
+:root:not([data-tema="claro"]) .dg-taco { filter: drop-shadow(10px 16px 16px rgba(0, 0, 0, .45)); }
+.dg-taco .ilus { display: block; width: 100%; height: auto; }
+.dg-taco .ilus-pulso { display: none; }   /* su señal la dibuja productos-nube.js, hacia la nube de SACEL */
+.productos-lienzo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.dg-taco::after { content: ""; position: absolute; left: 50%; top: 96%; height: 1.6rem; width: 1px; background: var(--linea); opacity: var(--ramas, 1); }
+.ilus-cara-sup { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
+.ilus-cara-lado { fill: color-mix(in srgb, var(--tinta) 16%, var(--pagina)); stroke: var(--tinta); stroke-width: 1.2; stroke-linejoin: round; }
+.familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco { transform: translateY(-4px); }
+.familia:has(.familia-principal:is(:hover, :focus-visible)) .dg-taco .ilus-borde { stroke: var(--acento); }
+/* periféricos: una columna cada uno, el dibujo plano y debajo su texto, unidos al tacógrafo por líneas cortas */
+.familia-ramas { position: relative; margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem 1.6rem; text-align: center; }
+.familia-ramas::before { content: ""; position: absolute; top: -1.3rem; left: 16.5%; right: 16.5%; height: 1px; background: var(--linea); opacity: var(--ramas, 1); }
+.familia-ramas li { position: relative; }
+.familia-ramas li::before { content: ""; position: absolute; left: 50%; top: -1.3rem; height: 1.3rem; width: 1px; background: var(--linea); }
+.familia-ramas .ilus { display: block; width: 100%; height: 5rem; margin-bottom: .7rem; transition: transform .3s ease; }
+.familia-ramas .ilus-pulso { display: none; }   /* planos y quietos: el pulso queda en el tacógrafo */
+.familia-ramas .familia-item:is(:hover, :focus-visible) .ilus { transform: translateY(-3px); }
+.familia-ramas .familia-item:is(:hover, :focus-visible) .ilus-borde { stroke: var(--acento); }
+.familia-ramas h3 { font-size: 1.02rem; }
+.familia-ramas p:not(.sello) { margin-top: .3rem; font-size: .9rem; line-height: 1.5; }
+.familia-textos { display: grid; gap: 1.6rem; }
+.familia-raiz { display: block; padding: 1.1rem 1.3rem; border: 1px solid var(--linea); border-top: 2px solid var(--acento); border-radius: 14px; background: var(--pagina-2); }
+.familia-raiz h3 { font-size: clamp(1.35rem, 2vw, 1.75rem); }
+.familia-principal h3 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.15; }   /* más grande: la paleta de la versión calza en la línea */
+.familia-raiz p, .familia-principal p:not(.sello) { margin-top: .45rem; }
+.familia-principal { display: block; padding-left: 1.3rem; border-left: 2px solid var(--acento); }
+/* «Tacógrafo v.N»: el número en una paleta de tablero que gira de v.1 a v.4 con el scroll (productos-nube.js, 2026-10-30) */
+.ver { white-space: nowrap; }
+/* la perilla que mueve la versión (2026-10-30): gira de 0 a 4, se pasa hacia el 5 —que se asoma en la paleta sin
+   llegar a caer— y vuelve a 4 */
+.ver-dial { display: inline-block; width: 1em; height: 1em; margin-left: .2em; vertical-align: -.16em; overflow: visible; }
+.perilla-marca { stroke: var(--tinta-3); stroke-width: 2; stroke-linecap: round; }
+.perilla-cuatro { stroke: var(--acento); stroke-width: 2.8; }
+.perilla { transform-origin: 24px 24px; transform: rotate(var(--giro, -135deg)); }
+.perilla-cuerpo { fill: var(--pagina-2); stroke: var(--tinta); stroke-width: 1.6; }
+.perilla-estrias path { stroke: var(--tinta-3); stroke-width: 1.2; stroke-linecap: round; }
+.perilla-tapa { fill: var(--pagina); stroke: var(--linea); stroke-width: 1; }
+.perilla-indice { stroke: var(--acento); stroke-width: 2.6; stroke-linecap: round; }
+/* el 5 que se asoma, como en un tablero real: la mitad de arriba del 4 empieza a caer sobre la bisagra y deja ver
+   detrás la mitad de arriba del 5; a medio caer, vuelve (--caida en grados, productos-nube.js) */
+.ver-paleta i, .ver-paleta s { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; text-decoration: none;
+  color: var(--tinta); background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-b) 50%, transparent 50%); clip-path: inset(0 0 50% 0);
+  opacity: var(--asoma, 0); }
+.ver-paleta { perspective: 6rem; }
+.ver-paleta s { transform-origin: 50% 50%; transform: rotateX(calc(var(--caida, 0) * -1deg)); backface-visibility: hidden; }
+.ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #000 30%); --pl-2: color-mix(in srgb, var(--pagina-2), #000 42%); --pl-b: color-mix(in srgb, var(--pagina-2), #000 62%);
+  position: relative; display: inline-grid; place-items: center; width: .74em; height: 1.06em; margin-left: .06em; vertical-align: -.17em; border-radius: .08em;
+  background: linear-gradient(var(--pl-1), var(--pl-2) 48%, var(--pl-b) 50%, var(--pl-1) 52%, var(--pl-2)); perspective: 10rem; overflow: hidden;
+  font: 600 1em/1 "Barlow Condensed", "Archivo", sans-serif; color: var(--tinta); }
+:root[data-tema="claro"] .ver-paleta { --pl-1: color-mix(in srgb, var(--pagina-2), #3a2c10 7%); --pl-2: color-mix(in srgb, var(--pagina-2), #3a2c10 11%); --pl-b: color-mix(in srgb, var(--pagina-2), #3a2c10 30%); }
+.ver-paleta::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--pl-b); }
+.ver-paleta b { font-weight: inherit; display: block; }
+/* cada número cae como una paleta (acelerando, con un rebote corto) cuando la perilla lo cruza */
+.ver-paleta.gira b { animation: paleta-cae var(--dur, .42s) cubic-bezier(.55, 0, .85, .35); transform-origin: 50% 50%; }
+@keyframes paleta-cae { 0% { transform: rotateX(95deg); opacity: .45; } 80% { transform: rotateX(-12deg); opacity: 1; } 100% { transform: none; } }
+
+.familia .ilus-dato { margin-top: .5rem; font-size: .68rem; }
+@media (max-width: 40rem) {   /* celular: los periféricos uno debajo del otro */
+  .familia-ramas { grid-template-columns: 1fr; margin-top: 2rem; }
+  .familia-ramas::before, .familia-ramas li::before, .dg-taco::after { display: none; }
 }
 
 /* ilustraciones de línea con curvas de nivel (partes/ilustracion-*.svg, generadas por scripts/) */
