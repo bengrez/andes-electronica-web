@@ -80,8 +80,11 @@
     TACO = [t.left - r.left, t.top - r.top, t.width, t.height];
     PUNTA = [BASE[0], BASE[1] - ALTO_ANTENA];
     var h = titulo.getBoundingClientRect();
-    // la nube, a la altura del título pero a su derecha (no encima del texto)
-    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [Math.max(PUNTA[0], h.right - r.left + 120), h.top - r.top + h.height * 0.55];
+    // la nube de SACEL no se mueve aunque el tacógrafo se corra a la izquierda (Benjamin, 2026-10-30): queda donde
+    // estaría la antena con el tacógrafo centrado en su columna, a la altura del título
+    var col = sec.querySelector(".familia-diagrama").getBoundingClientRect();
+    var xCentrado = col.left - r.left + (col.width - t.width) / 2 + t.width * 430 / 500;
+    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [xCentrado, h.top - r.top + h.height * 0.55];
   }
   function progreso() {
     if (!recorrido || quieto) return 1;
@@ -132,8 +135,8 @@
       }
     }
   }
-  // lo que entra al tacógrafo (Benjamin, 2026-10-30): dos cables que llegan desde la derecha, el GPS desde arriba y el
-  // bus CAN desde abajo, doblan hacia la izquierda y entran por el costado del equipo; los datos los recorren como pulsos
+  // lo que entra al tacógrafo, por la derecha (Benjamin, 2026-10-30): el GPS por el aire y el bus CAN por un cable que
+  // sube, dobla hacia la izquierda y entra por el costado, con pulsos eléctricos
   function cable(P, pts, t, fase) {               // pts: inicio, codo y llegada; esquina redondeada; pulsos hacia la llegada
     var r = 14, a = pts[0], k = pts[1], b = pts[2];
     var d1 = Math.hypot(k[0] - a[0], k[1] - a[1]), d2 = Math.hypot(b[0] - k[0], b[1] - k[1]);
@@ -156,22 +159,28 @@
   function entradas(P, v, t) {
     if (v <= 0) return;
     var x0 = TACO[0], y0 = TACO[1], w = TACO[2], h = TACO[3], movil = W < 760;
-    var xr = x0 + w * 0.985, xc = xr + (movil ? 26 : 120);                 // costado derecho del equipo; columna de los cables
-    var gIn = [xr, y0 + h * 0.42], cIn = [xr, y0 + h * 0.74];
-    var gps = [xc, y0 - (movil ? 30 : 64)], can = [xc, y0 + h + (movil ? 26 : 40)];   // el CAN, sobre la línea de los periféricos
+    var xr = x0 + w * 0.985, xc = xr + (movil ? 26 : 120);                 // costado derecho del equipo; columna de entrada
+    var gIn = [xr + 2, y0 + h * 0.42], cIn = [xr, y0 + h * 0.74];
+    var gps = [xc + (movil ? 0 : 20), y0 + h * 0.05], can = [xc, y0 + h + (movil ? 26 : 40)];
     c.save(); c.globalAlpha = v;
-    cable(P, [gps, [xc, gIn[1]], gIn], t, 0);
-    cable(P, [can, [xc, cIn[1]], cIn], t, 0.5);
-    // el satélite, arriba
+    // GPS: por el aire (Benjamin, 2026-10-30): ondas que salen del satélite hacia el equipo y paquetes que cruzan
+    var ang = Math.atan2(gIn[1] - gps[1], gIn[0] - gps[0]), dist = Math.hypot(gIn[0] - gps[0], gIn[1] - gps[1]);
+    for (var k = 0; k < 3; k++) {
+      var f = ((t * 0.5) + k / 3) % 1, rr = 8 + f * (dist - 8);
+      c.strokeStyle = "rgba(" + P.traza + "," + (0.55 * (1 - f)).toFixed(3) + ")"; c.lineWidth = 1.2;
+      c.beginPath(); c.arc(gps[0], gps[1], rr, ang - 0.32, ang + 0.32); c.stroke();
+    }
     c.strokeStyle = "rgba(" + P.antena + ",.85)"; c.lineWidth = 1.2;
-    c.save(); c.translate(gps[0], gps[1] - 8); c.rotate(-0.5);
+    c.save(); c.translate(gps[0], gps[1]); c.rotate(-0.5);
     c.strokeRect(-3, -3, 6, 6); c.strokeRect(-13, -2.5, 8, 5); c.strokeRect(5, -2.5, 8, 5);
     c.restore();
-    // el conector del bus CAN, abajo
+    c.fillStyle = "rgba(" + P.antena + ",.85)"; c.beginPath(); c.arc(gIn[0] + 2, gIn[1], 2.2, 0, 7); c.fill();   // receptor en el costado
+    // CAN bus: por cable, con pulsos eléctricos
+    cable(P, [can, [xc, cIn[1]], cIn], t, 0.5);
     c.strokeRect(can[0] - 5, can[1], 10, 7); c.beginPath(); c.moveTo(can[0] - 2, can[1] + 7); c.lineTo(can[0] - 2, can[1] + 11);
     c.moveTo(can[0] + 2, can[1] + 7); c.lineTo(can[0] + 2, can[1] + 11); c.stroke();
     c.fillStyle = P.texto; c.font = "500 10px 'Plex Mono', monospace"; c.textAlign = "left"; c.textBaseline = "middle";
-    c.fillText("GPS", gps[0] + 18, gps[1] - 8);
+    c.fillText("GPS", gps[0] + 18, gps[1] - 10);
     c.fillText("CAN bus", can[0] + 12, can[1] + 5);
     c.restore();
   }
