@@ -107,7 +107,7 @@ function createSoftwareGL(canvas,data){
     const data=window.TACOGRAFO_MODELO;   // datos legibles (datos/tacografo-modelo.js), sin descomprimir (2026-10-30)
     let gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
     if(!gl)gl=createSoftwareGL(canvas,data);
-    const TAMANO=0.5;   // tamaño en pantalla respecto del original (Benjamin, 2026-10-27: «hazlo 50 % más chico»)
+    const TAMANO=0.72;   // tamaño en pantalla respecto del original (0,5 el 27-oct; 2026-10-30: más compacto, menos aire alrededor)
     const state={explode:0,door:0,printerOpen:1,yaw:.42,pitch:.30,distance:445,target:[0,-1,-67]};
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const identity=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
