@@ -8,6 +8,9 @@ compararlas. Las dos son planas: se sirven como archivos estáticos, sin compila
 | **Nueva** (plana, escrita a mano) | https://bengrez.github.io/andes-electronica-web/nuevo/ | rama [`iter/001-sitio-plano`](../../tree/iter/001-sitio-plano) |
 | **Anterior** (diseño de Claude Design, aplanado) | https://bengrez.github.io/andes-electronica-web/anterior/ | rama `main` (este README) y [`gh-pages/anterior/_fuente`](../../tree/gh-pages/anterior/_fuente) |
 
+**Para revisar o evaluar el repositorio** (también con un asistente de IA), empezar por [`REVISION.md`](REVISION.md): mapa de
+ramas, qué es escrito a mano y qué es generado, criterios de Andes y límites conocidos.
+
 La raíz https://bengrez.github.io/andes-electronica-web/ lleva a la anterior. Las variantes de color del primer
 preview siguen en `v1-original/`, `v2-deep-teal/` y `v3-near-black/` de la rama `gh-pages`, sin cambios.
 
