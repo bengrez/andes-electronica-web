@@ -80,11 +80,10 @@
     TACO = [t.left - r.left, t.top - r.top, t.width, t.height];
     PUNTA = [BASE[0], BASE[1] - ALTO_ANTENA];
     var h = titulo.getBoundingClientRect();
-    // la nube de SACEL no se mueve aunque el tacógrafo se corra a la izquierda (Benjamin, 2026-10-30): queda donde
-    // estaría la antena con el tacógrafo centrado en su columna, a la altura del título
-    var col = sec.querySelector(".familia-diagrama").getBoundingClientRect();
-    var xCentrado = col.left - r.left + (col.width - t.width) / 2 + t.width * 430 / 500;
-    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [xCentrado, h.top - r.top + h.height * 0.55];
+    // la nube de SACEL va siempre al lado del título, donde estuvo desde el principio, aunque el tacógrafo se mueva
+    // (Benjamin, 2026-10-30): anclada al borde derecho del título, no a la antena
+    var rg = document.createRange(); rg.selectNodeContents(titulo); var txt = rg.getBoundingClientRect();   // el texto, no la caja del h2
+    N = W < 760 ? [PUNTA[0] - 40, PUNTA[1] - 60] : [txt.right - r.left + 185, h.top - r.top + h.height * 0.55];
   }
   function progreso() {
     if (!recorrido || quieto) return 1;
@@ -159,7 +158,7 @@
   function entradas(P, v, t) {
     if (v <= 0) return;
     var x0 = TACO[0], y0 = TACO[1], w = TACO[2], h = TACO[3], movil = W < 760;
-    var xr = x0 + w * 0.985, xc = xr + (movil ? 26 : 120);                 // costado derecho del equipo; columna de entrada
+    var xr = x0 + w * 0.985, xc = xr + (movil ? 26 : 64);   // cables y GPS cerca del equipo                 // costado derecho del equipo; columna de entrada
     var gIn = [xr + 2, y0 + h * 0.42], cIn = [xr, y0 + h * 0.74];
     var gps = [xc + (movil ? 0 : 20), y0 + h * 0.05], can = [xc, y0 + h + (movil ? 26 : 40)];
     c.save(); c.globalAlpha = v;
