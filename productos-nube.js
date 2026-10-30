@@ -207,14 +207,24 @@
     nube(P, t, vNube);
   }
 
-  var raf = 0, visible = false;
-  function cuadro(ms) { dibujar(ms / 1000); raf = visible && !quieto ? requestAnimationFrame(cuadro) : 0; }
+  // botón «Pausar animación» propio de la sección (accesibilidad: lo que se mueve solo se puede detener)
+  var raf = 0, visible = false, pausado = false, boton = sec.querySelector(".pausa-productos");
+  if (boton) {
+    if (quieto) boton.hidden = true;
+    boton.addEventListener("click", function () {
+      pausado = !pausado; boton.setAttribute("aria-pressed", String(pausado));
+      boton.textContent = pausado ? "Reanudar animación" : "Pausar animación";
+      if (!pausado && visible && !raf) raf = requestAnimationFrame(cuadro);
+    });
+  }
+  function cuadro(ms) { dibujar(ms / 1000); raf = visible && !quieto && !pausado ? requestAnimationFrame(cuadro) : 0; }
+  window.addEventListener("scroll", function () { if (pausado) dibujar(performance.now() / 1000); }, { passive: true });
   if (ver && !quieto) { ver.textContent = "0"; ponerPerilla(0); } else { ponerPerilla(4); }
   medir(); dibujar(0);
   window.addEventListener("resize", function () { medir(); dibujar(performance.now() / 1000); });
   new MutationObserver(function () { dibujar(performance.now() / 1000); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-tema"] });
   if ("ResizeObserver" in window) new ResizeObserver(function () { medir(); dibujar(performance.now() / 1000); }).observe(sec);
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; if (visible && !raf && !quieto) raf = requestAnimationFrame(cuadro); }).observe(sec);
+    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; if (visible && !raf && !quieto && !pausado) raf = requestAnimationFrame(cuadro); }).observe(sec);
   } else { visible = true; raf = requestAnimationFrame(cuadro); }
 })();

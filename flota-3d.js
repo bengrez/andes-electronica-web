@@ -713,7 +713,7 @@
   // (siempre a la celda vecina más baja, con algo de inercia; en los planos cruza sin volver atrás), así el trayecto
   // cae al fondo del valle y lo sigue aguas abajo (Benjamin: que los caminos sigan los valles). Vuelan a LOROS.altura
   // sobre el terreno, a LOROS.vel m/s, y pasan cada LOROS.ciclo s. No se transparentan con el mapa.
-  var LOROS = { n: 9, altura: 380, ciclo: 80, vel: 484, minLargo: 7000 };
+  var LOROS = { n: 9, altura: 380, ciclo: 110, vel: 242, minLargo: 7000 };   // vel a la mitad (2026-10-30); el aleteo no cambia
   var bandada = null, pasada = -1, tramo = null;
   // descenso de gradiente sobre la rejilla del relieve, desde la celda (i, j): siempre a la vecina más baja, con algo de
   // inercia, sin volver atrás; termina sin salida, si habría que subir mucho, al bajar de op.piso m o al salir de
@@ -796,7 +796,7 @@
   }
 
   // ─── cóndores (Benjamin, 2026-10-30): unos pocos, diminutos, planeando en círculos sobre las cumbres nevadas ───
-  var CONDORES = { n: 3, ala: 9, cumbre: 2650, piso: 2150, altura: 520, cumbreAlta: 3200 };   // cuántos; envergadura en px; m: cumbre de partida, fondo de la quebrada, vuelo sobre el terreno
+  var CONDORES = { n: 3, ala: 9, cumbre: 2650, piso: 2150, altura: 520, cumbreAlta: 3200, vel: 242 };   // cuántos; envergadura en px; m: cumbre de partida, fondo de la quebrada, vuelo sobre el terreno; m/s del mapa
   var condor = null;
   function prepararCondores() {
     // como los loros, siguen quebradas por descenso de gradiente, pero sólo su parte alta: parten en una cumbre y bajan
@@ -843,8 +843,8 @@
     var t = sim.reloj, colA = tema === "claro" ? "28,26,34" : "214,218,232";
     cr.lineCap = "round"; cr.lineJoin = "round";
     condor.forEach(function (c) {
-      // ida y vuelta por la quebrada, a la mitad de la rapidez de los loros; suave en los extremos, donde da la vuelta
-      var vuelta = 2 * c.largo / (LOROS.vel / 2), f = ((t / vuelta) + c.fase) % 1, u = f < 0.5 ? f * 2 : 2 - f * 2;
+      // ida y vuelta por la quebrada, a CONDORES.vel (ahora igual a la de los loros); suave en los extremos, donde da la vuelta
+      var vuelta = 2 * c.largo / CONDORES.vel, f = ((t / vuelta) + c.fase) % 1, u = f < 0.5 ? f * 2 : 2 - f * 2;
       u = 0.5 - 0.5 * Math.cos(u * Math.PI);
       var p = puntoTramo(c, u), p2 = puntoTramo(c, Math.min(1, u + 0.01)), sentido = f < 0.5 ? 1 : -1;
       var x = p[0], z = p[1];
