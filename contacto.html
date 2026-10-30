@@ -5,6 +5,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Seguridad (2026-10-30): el navegador sólo ejecuta los scripts propios del sitio y no se conecta a ningún servidor
+     externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
 <link rel="stylesheet" href="base.css">
 <script>
@@ -63,7 +67,7 @@
     <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
     <nav aria-label="Pie"><ul>
       <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
-      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="privacidad.html">Privacidad</a></li>
+      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
     </ul></nav>
   </div>
   <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>

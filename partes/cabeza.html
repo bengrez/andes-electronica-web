@@ -1,6 +1,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Seguridad (2026-10-30): el navegador sólo ejecuta los scripts propios del sitio y no se conecta a ningún servidor
+     externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
+<meta http-equiv="Content-Security-Policy" content="CSP">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
 <link rel="stylesheet" href="base.css">
 <script>
