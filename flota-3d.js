@@ -49,9 +49,9 @@
     oscuro: { niebla: [0.008, 0.016, 0.075], brillo: 1.1, lavado: 0.45, verde: 0.3, bruma: [0.05, 0.07, 0.14], papel: [0.008, 0.016, 0.065], velo: true, borde: [0.004, 0.012, 0.06],
               calzada: [0.15, 0.18, 0.34], linea: [0.96, 0.77, 0.54], panel: "rgba(1,4,20,.7)", focos: true,
               cielo: ["#000004", "#01030f", "#01030f"] },  // sin banda azul abajo: el velo deja ver el cielo (2026-10-30)
-    claro:  { niebla: [0.953, 0.937, 0.902], brillo: 1.04, lavado: 0.36, verde: 0.6, bruma: [0.70, 0.76, 0.82], papel: [0.953, 0.937, 0.902], velo: true, borde: [0.08, 0.09, 0.14],
-              calzada: [0.2, 0.22, 0.29], linea: [0.97, 0.8, 0.5], panel: "rgba(250,247,240,.86)", focos: false,
-              cielo: ["#f3efe6", "#f3efe6", "#f1e9da"] }
+    claro:  { niebla: [0.922, 0.933, 0.925], brillo: 1.04, lavado: 0.36, verde: 0.6, bruma: [0.70, 0.76, 0.82], papel: [0.922, 0.933, 0.925], velo: true, borde: [0.08, 0.09, 0.14],
+              calzada: [0.2, 0.22, 0.29], linea: [0.97, 0.8, 0.5], panel: "rgba(244,246,245,.86)", focos: false,
+              cielo: ["#ebeeec", "#ebeeec", "#e7ebe9"] }
   };
   function temaActual() { return document.documentElement.getAttribute("data-tema") === "claro" ? "claro" : "oscuro"; }
   var tema = temaActual(), TM = TEMAS[tema];
@@ -377,7 +377,8 @@
   function medidasVelo() {
     var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     var solido = W < 760 ? -1e5 : Math.max(1.25 * rem, (W - 80 * rem) / 2) + 31 * rem;
-    return [solido, 18 * rem, Math.max(8 * rem, H * 0.28), H];
+    // transición más larga (Benjamin, 2026-10-30): el fundido empieza antes y se reparte en 30 rem (antes 18)
+    return [solido - 3 * rem, 30 * rem, Math.max(12 * rem, H * 0.4), H];
   }
   function centroMapa() {                        // x del medio del espacio del mapa, en coordenadas de -1 a 1
     if (W < 760) return 0;
@@ -486,7 +487,7 @@
   // que la registra en su gráfico. Las de alerta, en el color fuerte. ───
   var PULSO = {
     oscuro: { sombra: "rgba(0,0,4,.5)", normal: "246,196,138", alerta: "255,238,214", caja: "rgba(1,4,20,.82)", nube: ["196,204,226", "130,140,170", "40,48,80"], nubeA: 0.85, borde: "246,196,138", texto: "rgba(242,237,227,.7)" },
-    claro:  { sombra: "rgba(70,52,22,.22)", normal: "184,112,42", alerta: "120,56,8", caja: "rgba(250,247,240,.92)", nube: ["255,255,255", "232,235,241", "170,176,192"], nubeA: 1, borde: "0,16,79", texto: "rgba(0,16,79,.7)" }
+    claro:  { sombra: "rgba(70,52,22,.22)", normal: "184,112,42", alerta: "120,56,8", caja: "rgba(244,246,245,.92)", nube: ["255,255,255", "232,235,241", "170,176,192"], nubeA: 1, borde: "0,16,79", texto: "rgba(0,16,79,.7)" }
   };
   var puertos = [0, 0, 0, 0, 0, 0], estPuerto = [0, 0, 0, 0, 0, 0];
   var ACEL_TRAMA = 14;                          // e^(14u): a 3/4 del vuelo lleva ~3 % del recorrido; el último
