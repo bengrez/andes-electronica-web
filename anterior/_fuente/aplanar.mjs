@@ -75,6 +75,8 @@ for (const f of paginas) {
   }), finales);
   if (escenas.length) console.log(`  ${f}: ${escenas.length} escena(s) fijada(s) en su estado final`);
   let html = await pg.evaluate(() => {
+    // la esfera de la portada es un fondo fijo que el JS desvanecía al bajar; sin JS quedaba pegada sobre todo
+    document.querySelectorAll('.hero-bg-image').forEach(e => { e.style.position = 'absolute'; });
     document.querySelectorAll('script').forEach(s => s.remove());
     document.querySelectorAll('link[href*="fonts.googleapis"], link[href*="fonts.gstatic"], link[href*="font-awesome"], link[rel="preconnect"]').forEach(l => l.remove());
     return '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
