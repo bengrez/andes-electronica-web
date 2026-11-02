@@ -51,7 +51,7 @@
 
 <main id="contenido">
   <!-- Exploración 3D (tacografo-3d.js). Sin JS, o mientras carga, se ve la foto con la lista de capacidades. -->
-  <section class="taco-story" id="tacografo" aria-labelledby="t-taco">
+  <section class="taco-story" id="tacografo" data-etapas="0.25,0.62,0.96" aria-labelledby="t-taco">
     <div class="taco-stage">
       <div class="taco-copy">
         <p class="sello"><span data-step-number>01 / 04</span> · <span data-step-caption>Tacógrafo Electrónico · TAE-4.0</span></p>
@@ -67,8 +67,6 @@
       <div class="taco-bottom">
         <div class="taco-hint-fila">
           <p class="taco-hint" data-hint>Desplácese para explorar</p>
-          <button class="seguir seguir-taco" type="button" data-recorrido=".taco-story" data-etapas="0.25,0.62,0.96" aria-label="Seguir: ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
-          <button class="saltar-seccion" type="button" data-recorrido=".taco-story" aria-label="Saltar: dejar la animación e ir a la sección siguiente">Saltar <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h8M7.5 4.5 11 8l-3.5 3.5M13.5 4v8"/></svg></button>
         </div>
         <nav class="taco-nav" aria-label="Etapas de la exploración del tacógrafo">
           <a href="#tacografo" data-seek="0" data-phase="0" aria-label="01 · Equipo (etapa 1 de 4)" aria-current="step"
@@ -210,6 +208,6 @@
 <script src="sitio.js"></script>
 <script src="datos/tacografo-modelo.js"></script>
 <script src="tacografo-3d.js"></script>
-<script src="seguir.js"></script>
+<script src="etapas.js"></script>
 </body>
 </html>

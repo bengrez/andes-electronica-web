@@ -8,7 +8,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Seguridad (2026-10-30): el navegador sólo ejecuta los scripts propios del sitio y no se conecta a ningún servidor
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-JBKSK8uU7UUCtSezdcPGYyXP9pgBCZAMPJ7Yp5dxN3o=' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
 <link rel="stylesheet" href="base.css">
 <script>
@@ -26,21 +26,10 @@
 <meta property="og:title" content="Andes Electrónica">
 <meta property="og:description" content="Tacógrafos a bordo y la plataforma SACEL. Electrónica diseñada y mantenida en Chile desde 1991.">
 <meta property="og:locale" content="es_CL">
-<script>
-/* Sólo en inicio: el logo parte grande y se achica mientras baja la cámara (flota-3d.js). */
-document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduced-motion: reduce)").matches ? "1.7" : matchMedia("(min-width: 47.5rem)").matches ? "8" : "4");
-</script>
 </head>
 <body>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
-<div class="recorrido">
-<div class="portada">
-  <canvas id="cielo" aria-hidden="true"></canvas>
-  <canvas id="flota3d" aria-hidden="true" data-alturas="img/alturas-3d.png"
-          data-relieve-oscuro="img/relieve-3d-noche.webp" data-relieve-claro="img/relieve-3d-dia.webp"></canvas>
-  <div class="camara" aria-hidden="true"><canvas id="flota" data-relieve-oscuro="img/relieve-noche.webp" data-relieve-claro="img/relieve-dia.webp"></canvas></div>
-  <canvas id="flota-reg" aria-hidden="true"></canvas>
 <!-- barra -->
 <header class="barra">
   <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
@@ -56,9 +45,27 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
   <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
 </header>
 <!-- /barra -->
+<main id="contenido">
+  <!-- portada «cordillera» (Benjamin, 2026-11-02): sólo el cielo, el título y la bajada. En escritorio deja asomar el
+       borde superior del mapa de la sección siguiente (sus cumbres nevadas), primero como imagen fija de su primer
+       cuadro y, al bajar, el mapa vivo (scripts/renderizar_mapa_inicial.cjs, base.css --mapa-inicial). -->
+  <section class="cordillera" aria-labelledby="t-inicio">
+    <div class="cordillera-texto">
+      <h1 id="t-inicio">Andes Electrónica</h1>
+      <p class="entrada">Desde 1991 desarrollando servicios y productos electrónicos de la más alta calidad.</p>
+    </div>
+    <a class="bajar" href="#mapa" aria-label="Bajar a la siguiente sección"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg></a>
+  </section>
+
+<div class="recorrido" id="mapa" data-etapas="0.3,0.68,0.97">
+<div class="portada">
+  <canvas id="cielo" aria-hidden="true"></canvas>
+  <canvas id="flota3d" aria-hidden="true" data-alturas="img/alturas-3d.png"
+          data-relieve-oscuro="img/relieve-3d-noche.webp" data-relieve-claro="img/relieve-3d-dia.webp"></canvas>
+  <div class="camara" aria-hidden="true"><canvas id="flota" data-relieve-oscuro="img/relieve-noche.webp" data-relieve-claro="img/relieve-dia.webp"></canvas></div>
+  <canvas id="flota-reg" aria-hidden="true"></canvas>
   <div class="heroe">
     <div class="capa capa-empresa" role="region" aria-label="Presentación">
-      <h1>Andes Electrónica</h1>
       <p class="entrada">Somos una empresa chilena de electrónica: diseñamos, fabricamos y mantenemos tacógrafos para buses y camiones, y <strong class="marca-sacel">SACEL</strong>, nuestro sistema en línea para gestionar la flota.</p>
       <p class="entrada entrada-2">Investigamos y desarrollamos en casa: cada versión del tacógrafo nace de lo que aprendemos en ruta. Esa misma ingeniería la ponemos al servicio de proyectos a medida, en Santiago desde 1991.</p>
     </div>
@@ -78,15 +85,11 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
     </section>
   </div>
   <div class="controles">
-    <button class="seguir" type="button" data-recorrido=".recorrido" data-etapas="0.3,0.68,0.97" aria-label="Seguir: ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
-    <button class="saltar-seccion" type="button" data-recorrido=".recorrido" aria-label="Saltar: dejar la animación e ir a la sección siguiente">Saltar <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h8M7.5 4.5 11 8l-3.5 3.5M13.5 4v8"/></svg></button>
   <button class="pausa" type="button" aria-pressed="false">Pausar animación</button>
   </div>
 </div>
 </div>
-
-<main id="contenido">
-  <div class="productos-recorrido">
+  <div class="productos-recorrido" data-etapas="0.3,0.5,0.8,0.96">
   <section class="seccion" aria-labelledby="t-productos">
     <div class="cabeza">
       <div><p class="sello">Productos</p><h2 id="t-productos">Del vehículo <em>a la plataforma.</em></h2></div>
@@ -197,8 +200,6 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
       </div>
     </div>
     <div class="controles controles-productos">
-      <button class="seguir" type="button" data-recorrido=".productos-recorrido" data-etapas="0.3,0.5,0.8,0.96" aria-label="Seguir: ir a la siguiente etapa">Seguir <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v9M4 8.5 8 12.5 12 8.5"/></svg></button>
-      <button class="saltar-seccion" type="button" data-recorrido=".productos-recorrido" aria-label="Saltar: dejar la animación e ir a la sección siguiente">Saltar <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h8M7.5 4.5 11 8l-3.5 3.5M13.5 4v8"/></svg></button>
       <button class="pausa pausa-productos" type="button">Pausar animación</button>
     </div>
   </section>
@@ -292,6 +293,6 @@ document.documentElement.style.setProperty("--logo", matchMedia("(prefers-reduce
 <script src="flota-3d.js"></script>
 <script src="clientes.js"></script>
 <script src="productos-nube.js"></script>
-<script src="seguir.js"></script>
+<script src="etapas.js"></script>
 </body>
 </html>

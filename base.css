@@ -33,6 +33,10 @@
   --relieve-velo: linear-gradient(90deg, rgba(1,3,15,.94) 0%, rgba(1,3,15,.75) 45%, rgba(1,3,15,.45) 100%);
   --logo-filtro: brightness(0) invert(1);
   --logos-filtro: brightness(0) invert(1);
+  --cordillera-cielo: url("img/cielo-noche.webp") center top / cover, #000004;   /* las mismas estrellas del mapa (semilla 7) */
+  --cordillera-cielo-movil: url("img/cielo-noche-movil.webp") center top / cover, #000004;
+  --mapa-inicial: url("img/mapa-inicio-noche.webp");         /* primer cuadro del mapa (scripts/renderizar_mapa_inicial.cjs) */
+  --mapa-inicial-ancho: url("img/mapa-inicio-noche-ancho.webp");
   color-scheme: dark;
 }
 :root[data-tema="claro"] {
@@ -52,6 +56,10 @@
   --relieve-velo: linear-gradient(90deg, rgba(235,238,236,.96) 0%, rgba(235,238,236,.82) 45%, rgba(235,238,236,.6) 100%);
   --logo-filtro: none;
   --logos-filtro: brightness(0);
+  --cordillera-cielo: #ebeeec;   /* el cielo del mapa de día */
+  --cordillera-cielo-movil: #ebeeec;
+  --mapa-inicial: url("img/mapa-inicio-dia.webp");
+  --mapa-inicial-ancho: url("img/mapa-inicio-dia-ancho.webp");
   color-scheme: light;
 }
 
@@ -94,7 +102,33 @@ a { color: inherit; }
   .nav ul { gap: .1rem 1.1rem; }
 }
 
-/* ─── portada de inicio: queda fija mientras se recorre .recorrido; la cámara baja según el avance ─── */
+/* ─── portada de inicio «cordillera» (Benjamin, 2026-11-02): cielo, título y bajada. En escritorio mide 78 % de la
+   pantalla y deja asomar el borde superior del mapa (las cumbres nevadas de su primer cuadro): «que el mapa sobresalga».
+   En el celular, por ahora, ocupa la pantalla entera (Benjamin: el celular se ve más adelante). La barra flota encima. ─── */
+body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; }
+.cordillera { position: relative; height: 78vh; height: 78svh; min-height: 30rem; display: flex; flex-direction: column; background: var(--cordillera-cielo); }
+.cordillera-texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(8rem, 24vh, 15rem) 0 2rem; }
+.cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, 7vw, 6rem); }
+.cordillera .entrada { margin-top: 1.5rem; font-size: clamp(1.1rem, 1.7vw, 1.4rem); max-width: 34rem; }
+.bajar { margin: auto auto 1rem; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; color: var(--tinta-3); }
+.bajar svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.bajar:hover { color: var(--tinta); }
+.bajar:hover svg { transform: translateY(2px); }
+/* antes de que cargue WebGL, el lienzo del mapa muestra su primer cuadro fijo (el mismo que dibuja después) */
+@media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
+  .con-mapa:not(.con-3d):not(.sin-3d) .recorrido .portada { background: var(--mapa-inicial) right top / cover no-repeat, var(--cordillera-cielo); }
+}
+@media (min-width: 47.51rem) and (min-aspect-ratio: 17/10) and (prefers-reduced-motion: no-preference) {
+  .con-mapa:not(.con-3d):not(.sin-3d) .recorrido .portada { background: var(--mapa-inicial-ancho) right top / cover no-repeat, var(--cordillera-cielo); }
+}
+@media (max-width: 47.5rem) {
+  .cordillera { height: auto; min-height: 100vh; min-height: 100svh; background: var(--cordillera-cielo-movil); }
+  .cordillera-texto { padding-top: clamp(7.5rem, 22vh, 11rem); }
+}
+/* con movimiento reducido el mapa no parte en ese cuadro (queda quieto en el final): la portada ocupa la pantalla */
+@media (prefers-reduced-motion: reduce) { .cordillera { height: auto; min-height: 100vh; min-height: 100svh; } }
+
+/* ─── mapa de inicio: queda fijo mientras se recorre .recorrido; la cámara baja según el avance ─── */
 .recorrido { height: 900vh; }   /* descenso en la primera mitad; la segunda, con la cámara quieta. 900vh (antes 420 y 640): más pausa para leer (2026-10-30) */
 .portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
 .portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -130,14 +164,6 @@ a { color: inherit; }
   .con-mapa:not(.sin-3d) .capa-sacel { opacity: clamp(0, 2 * var(--sacel, 0) - 1, 1); transform: translateY(calc((1 - var(--sacel, 0)) * 1rem)); }
   .con-mapa:not(.sin-3d) .sacel-datos { opacity: var(--datos, 0); transform: translateY(calc((1 - var(--datos, 0)) * 1rem)); }
   .con-mapa:not(.sin-3d) .capa-empresa { padding-top: clamp(3rem, 14vh, 9rem); }
-}
-/* logo grande al inicio (Benjamin, 2026-10-29: el doble que antes, 8 → 1,7): cuelga hacia la columna vacía sin agrandar
-   la barra, así el menú no baja sobre el mapa. El título va amarrado al borde inferior del logo con separación fija
-   (Benjamin, 2026-10-30): los dos dependen sólo de --logo, así que suben juntos y el título llega al lugar donde después
-   entra SACEL. 2,147 rem = alto del logo por unidad de --logo (2,4 rem × 34/38). */
-@media (prefers-reduced-motion: no-preference) and (min-width: 47.5rem) {
-  .con-mapa:not(.sin-3d) .marca img { margin-bottom: calc(-2.147rem * (var(--logo, 1.7) - 1.7)); }
-  .con-mapa:not(.sin-3d) .capa-empresa { padding-top: 0; margin-top: calc(2.147rem * (var(--logo, 1.7) - 1.7) + 1.25rem - var(--heroe-pad)); }
 }
 @media (max-height: 50rem) and (min-width: 47.5rem) {   /* pantallas bajas (1366 × 768): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
@@ -510,22 +536,11 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .cert-alcance-t { margin: 2rem 0 .8rem; font-size: 1.1rem; }
 .cert-descarga { margin-top: 1.8rem; }
 
-/* «Seguir»: pasa a la etapa siguiente de las secciones que avanzan con el scroll (seguir.js, 2026-10-30) */
+/* controles de las secciones que avanzan con el scroll: sólo la pausa (Seguir y Saltar salieron el 2026-11-02; etapas.js) */
 .controles { position: absolute; z-index: 2; right: 1.25rem; bottom: 1.25rem; display: flex; gap: .5rem; align-items: center; }
 .controles-productos { right: 0; bottom: 1.2rem; }
-.seguir { display: inline-flex; align-items: center; gap: .25rem; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--boton-tinta); background: var(--boton);
-  border: 1px solid var(--boton); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
-.seguir svg { width: .62rem; height: .62rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: seguir 1.8s ease-in-out infinite; }
-.seguir:hover { filter: brightness(1.15); }
-.saltar-seccion { display: inline-flex; align-items: center; gap: .25rem; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta); background: var(--pagina);
-  border: 1px solid var(--tinta-3); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
-.saltar-seccion svg { width: .62rem; height: .62rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.saltar-seccion:hover { border-color: var(--tinta); }
-@keyframes seguir { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(2px); } }
-/* Área tocable de 24 px (WCAG 2.2, 2.5.8) sin cambiar el tamaño que se ve (Benjamin, 2026-10-30: texto de .56 rem): un ::before
-   transparente sobresale .2 rem por cada lado (el hueco entre botones es .5 rem, así que las áreas no se pisan). */
-.seguir, .saltar-seccion, .pausa { position: relative; }
-.seguir::before, .saltar-seccion::before, .pausa::before { content: ""; position: absolute; inset: -.2rem; }
-@media (prefers-reduced-motion: reduce) { .seguir, .saltar-seccion { display: none; } }
+/* Área tocable de 24 px (WCAG 2.2, 2.5.8) sin cambiar el tamaño que se ve: un ::before transparente sobresale .2 rem por lado */
+.pausa { position: relative; }
+.pausa::before { content: ""; position: absolute; inset: -.2rem; }
 .taco-hint-fila { display: flex; align-items: center; gap: .5rem; }
 .taco-hint-fila .taco-hint { margin-right: .5rem; }

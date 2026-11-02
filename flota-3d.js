@@ -3,9 +3,10 @@
    forma determinista (cada posición del scroll es siempre la misma pose) hasta quedar sobre el valle, mirando la
    cordillera, con el camino subiendo hacia el fondo y los buses con sus focos.
    Dos temas (atributo data-tema de <html>): oscuro, de noche con estrellas; claro, de día, con el sol todavía detrás
-   de la cordillera. El logo empieza grande (LOGO_INICIO) y se achica mientras la cámara baja hasta LOGO_FIN (variable CSS --logo).
+   de la cordillera. Desde el 2026-11-02 el mapa es la segunda sección de inicio (debajo de la portada «cordillera»):
+   ya no mueve el logo, y WebGL y las texturas se piden recién cuando la sección se acerca a la pantalla.
    Textos (.heroe): arriba, la empresa; desde la mitad del descenso, SACEL (--sacel); con la cámara quieta, sus 4 pasos
-   (--datos). WebGL y las texturas se piden después de pintar la página, para no demorar el texto.
+   (--datos).
    WebGL 1 escrito a mano, sin librerías. Datos: datos/h25.js (ruta, alturas del camino y cuadro 3D),
    img/alturas-3d.png (altura = R·256 + G, en m) e img/relieve-3d-{noche,dia}.webp (relieve sombreado de cada tema).
    Si no hay WebGL o las imágenes no se pueden leer, se usa la vista 2D (flota-mapa.js). */
@@ -21,7 +22,14 @@
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
     if (document.readyState === "complete") ya(); else window.addEventListener("load", ya, { once: true });
   }
-  despues(empezar);
+  // WebGL y las texturas, recién cuando se empieza a bajar hacia el mapa (portada cordillera, 2026-11-02): mientras sólo
+  // asoma su borde, se ve su primer cuadro fijo (base.css, --mapa-inicial) y la portada no pide nada 3D
+  if (recorrido && "IntersectionObserver" in window) {
+    var vigia = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) { vigia.disconnect(); despues(empezar); }
+    }, { rootMargin: "0px 0px -30% 0px" });
+    vigia.observe(recorrido);
+  } else despues(empezar);
   function empezar() {
 
   var ACELERACION_TIEMPO = 10;                  // el reloj corre 10 veces más rápido que el real
@@ -30,10 +38,6 @@
   var FOV = 38;                                 // grados, campo vertical
   var FRACCION_DESCENSO = 0.5;                  // la cámara baja en la primera mitad del recorrido; la segunda queda quieta
                                                 // (reservada para la animación de los datos: window.FlotaPortada.datos)
-  var LOGO_INICIO = 8, LOGO_FIN = 1.7;          // tamaño del logo arriba de todo y al final del descenso (veces 2,4 rem);
-                                                // en el celular parte en LOGO_INICIO_MOVIL
-  var LOGO_INICIO_MOVIL = 4;
-  var logoInicio = LOGO_INICIO;                 // el que cabe: en pantallas bajas, menor, para que el texto no se salga (medir)
   var opacMapa = 1, opacVida = 1, nieblaAct = [1, 2];
   var MAPA_FINAL = 0.4;                         // cuánto se transparenta el relieve al final del scroll
   var RUTA_TENUE = 0.45;                        // opacidad de la ruta y los buses arriba de todo
@@ -71,7 +75,6 @@
   function fallar() {
     if (fallado) return; fallado = true;
     document.documentElement.classList.add("sin-3d");
-    document.documentElement.style.setProperty("--logo", String(LOGO_FIN));
     if (window.iniciarFlotaMapa) window.iniciarFlotaMapa();
   }
 
@@ -408,9 +411,6 @@
     window.FlotaPortada.descenso = pCam; window.FlotaPortada.datos = pDatos;
     var dist = camara(pCam);
     pintarCielo();
-    var li = W < 760 ? LOGO_INICIO_MOVIL : logoInicio;
-    // el logo termina de achicarse antes de que entren los textos de SACEL, para no toparse con ellos
-    document.documentElement.style.setProperty("--logo", (li - (li - LOGO_FIN) * suave(Math.min(1, pCam / 0.55))).toFixed(3));
     textos();
     gl.viewport(0, 0, lienzo.width, lienzo.height);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -879,16 +879,6 @@
     lienzo.width = Math.round(W * dpr); lienzo.height = Math.round(H * dpr);
     capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr);
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
-    // logo inicial que cabe con todo el texto de la empresa debajo (Benjamin, 2026-10-30: párrafo nuevo): se mide el
-    // alto del texto y la separación logo–título, y se despeja el tamaño; nunca más que LOGO_INICIO
-    var img = [].filter.call(document.querySelectorAll(".marca img"), function (i) { return i.offsetParent !== null; })[0], h1 = heroe && heroe.querySelector(".capa-empresa h1"), lug = heroe && heroe.querySelector(".capa-empresa > :last-child");   // el último párrafo (2026-10-30: sin «Santiago, desde 1991»)
-    if (img && h1 && lug && W >= 760) {
-      var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      var lAct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--logo")) || LOGO_FIN;
-      var bi = img.getBoundingClientRect().bottom, t1 = h1.getBoundingClientRect().top, alto = lug.getBoundingClientRect().bottom - t1;
-      var sobra = H - 1.5 * rem - (bi + (t1 - bi) + alto);
-      logoInicio = Math.max(LOGO_FIN + 1, Math.min(LOGO_INICIO, lAct + sobra / (2.147 * rem)));
-    }
   }
   function paso(dt) { if (dt) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }
 
