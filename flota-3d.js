@@ -248,7 +248,7 @@
 
   // ─── cámara determinista ───
   var W = 0, H = 0, dpr = 1, ojo = [0, 0, 0], VP = null, pAct = 0, pCam = 0, pDatos = 0;
-  window.FlotaPortada = { descenso: 0, datos: 0 };
+  window.FlotaPortada = { descenso: 0, datos: 0, sim: sim };   // sim: para las pruebas (ritmo en tiempo real con las fichas)
   function suave(t) { return t * t * (3 - 2 * t); }
   function lerp(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
   function pose(p) {
@@ -503,7 +503,7 @@
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
-  var RES = { flota: 0, nube: 0, bus: 0 }, META = { flota: 0, nube: 0, bus: 0 }, tRes = 0;
+  var RES = { flota: 0, nube: 0, bus: 0, pc: 0 }, META = { flota: 0, nube: 0, bus: 0, pc: 0 }, tRes = 0;
   [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
     var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
     function on() { ks.forEach(function (k) { META[k] = 1; }); paso(0); } function off() { ks.forEach(function (k) { META[k] = 0; }); paso(0); }
@@ -522,9 +522,11 @@
     var cerca = focos.map(function (f, i) {
       return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
     }).filter(function (o) { return o.c && o.c[0] > 0 && o.c[0] < W && o.c[1] > 0 && o.c[1] < H; })
-      .sort(function (a, b) { return a.d - b.d; }).slice(0, 3)
-      .sort(function (a, b) { return a.c[1] - b.c[1]; });
-    var claro = tema === "claro", ANCHO = 176, ALTO = 82, ocupado = -1e9;
+      .sort(function (a, b) { return a.d - b.d; });
+    // dos fichas (Benjamin, 2026-11-02): el bus más cerca que sube y el más cerca que baja
+    var sube1 = cerca.filter(function (o) { return o.f.b.dir > 0; })[0], baja1 = cerca.filter(function (o) { return o.f.b.dir < 0; })[0];
+    cerca = [sube1, baja1].filter(Boolean).sort(function (a, b) { return a.c[1] - b.c[1]; });
+    var claro = tema === "claro", ANCHO = 180, ALTO = 82, ocupado = -1e9;
     cr.save();
     cr.globalAlpha = op;
     cerca.forEach(function (o) {
@@ -543,10 +545,14 @@
       cr.strokeStyle = claro ? "rgba(0,16,79,.5)" : "rgba(242,237,227,.55)"; cr.lineWidth = 1;
       cr.beginPath(); cr.moveTo(o.c[0] + 5, o.c[1]); cr.lineTo(x, y + 20); cr.stroke();
       cr.fillStyle = claro ? "rgba(0,16,79,.8)" : "rgba(242,237,227,.85)"; cr.beginPath(); cr.arc(o.c[0], o.c[1], 2.5, 0, 7); cr.fill();
-      // tarjeta
-      cr.fillStyle = claro ? "rgba(248,249,248,.82)" : "rgba(5,10,34,.78)";
+      // tarjeta, con color por sentido (Benjamin, 2026-11-02: «un poco de color»): cálida (cobre) si sube, fría (azul) si baja
+      var arriba = b.dir > 0;
+      var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
+      var franja = arriba ? (claro ? "#8f5213" : "#d99a55") : (claro ? "#2f5fb3" : "#8fb0f0");
+      cr.fillStyle = tinte;
       cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
       redondeado(x, y, ANCHO, ALTO, 10); cr.fill(); cr.stroke();
+      cr.save(); redondeado(x, y, ANCHO, ALTO, 10); cr.clip(); cr.fillStyle = franja; cr.fillRect(x, y, 4, ALTO); cr.restore();
       var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
       var alerta = estado === "Sobre el límite", acento = claro ? "#8f5213" : "#d99a55";
       cr.textBaseline = "alphabetic";
@@ -555,7 +561,9 @@
       var wv = cr.measureText(kmh + " km/h").width;
       cr.font = "400 11.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta2; cr.fillText("límite " + lim, x + 18 + wv, y + 44);
       cr.fillText(alt + " m s. n. m. · km " + km, x + 12, y + 61);
-      cr.fillStyle = alerta ? acento : tinta2; cr.fillText(estado, x + 12, y + 75);
+      var colEstado = alerta ? acento : estado === "Detenido" ? (claro ? "#7a7f8f" : "#9aa0b4") : franja;
+      cr.fillStyle = colEstado; cr.beginPath(); cr.arc(x + 15, y + 71.5, 3, 0, 7); cr.fill();
+      cr.fillStyle = alerta ? acento : tinta2; cr.fillText(estado, x + 22, y + 75);
       cr.font = "500 9px 'Plex Mono', monospace"; cr.fillStyle = tinta2; cr.textAlign = "right"; cr.fillText("simulación", x + ANCHO - 10, y + 75); cr.textAlign = "left";
     });
     cr.restore();
@@ -671,11 +679,39 @@
       cr.fillStyle = "rgba(" + (estPuerto[k] === 2 ? P.alerta : P.normal) + "," + (0.5 + 0.5 * brillo).toFixed(3) + ")";
       cr.fillRect(-8 + k * 4.6, 7 - hb, 3, hb);
     }
-    cr.globalAlpha = aN;
+    cr.globalAlpha = aN * (1 - RES.pc);                                      // con «Hardware e IoT», el computador en su lugar
     cr.fillStyle = P.texto; cr.font = "600 15.75px 'Plex Mono', monospace"; cr.textAlign = "right"; cr.textBaseline = "middle";
-    cr.fillText("SACEL", -26, 2);                                            // 75 % más grande que el rótulo original (9 px)                                            // a la izquierda de la nube
+    cr.fillText("SACEL", -26, 2);
+    if (RES.pc > 0.01) computador(P, aN * RES.pc);                                            // 75 % más grande que el rótulo original (9 px)                                            // a la izquierda de la nube
     cr.restore();
     cr.globalAlpha = 1;
+  }
+
+  // ─── «Hardware e IoT» (Benjamin, 2026-11-02): junto a la nube, un computador del que salen pulsos hacia ella, como las
+  // tramas de los buses (mismo arco que acelera y estela). En coordenadas de la nube (cr ya trasladado y escalado) ───
+  function computador(P, a) {
+    cr.save(); cr.globalAlpha = a; cr.lineJoin = "round"; cr.lineCap = "round";
+    var x0 = -64, y0 = -7;                                                   // pantalla: 20 × 13, con pie
+    cr.fillStyle = PULSO[tema].caja; cr.strokeStyle = "rgba(" + P.borde + ",.9)"; cr.lineWidth = 1.3;
+    redondeado(x0, y0, 20, 13, 2); cr.fill(); cr.stroke();
+    cr.fillStyle = "rgba(" + P.normal + ",.55)"; cr.fillRect(x0 + 3, y0 + 3, 14, 7);
+    cr.beginPath(); cr.moveTo(x0 + 10, y0 + 13); cr.lineTo(x0 + 10, y0 + 17); cr.moveTo(x0 + 5, y0 + 17.5); cr.lineTo(x0 + 15, y0 + 17.5); cr.stroke();
+    // pulsos: uno cada 0,9 s, del computador al borde de la nube, en arco
+    var o = [x0 + 20, y0 + 4], z = [-17, -2], mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) - 16;
+    for (var n = 0; n < 2; n++) {
+      var u = ((sim.reloj / 0.9) + n * 0.5) % 1;
+      function arco(t) { t = (Math.exp(4 * t) - 1) / (Math.exp(4) - 1); var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; }
+      var fin = Math.min(1, (1 - u) / 0.15);
+      cr.lineWidth = 2.2;
+      for (var j = 0; j < 12; j++) {
+        var t1 = Math.max(0, u - j * 0.035), t0 = Math.max(0, u - (j + 1) * 0.035); if (t1 <= 0) break;
+        var p1 = arco(t1), p0 = arco(t0);
+        cr.strokeStyle = "rgba(" + P.normal + "," + (fin * (1 - j / 12)).toFixed(3) + ")";
+        cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
+      }
+      var h = arco(u); cr.fillStyle = "rgba(" + P.normal + "," + fin.toFixed(3) + ")"; cr.beginPath(); cr.arc(h[0], h[1], 2.2, 0, 7); cr.fill();   // la cabeza
+    }
+    cr.restore();
   }
 
   // ─── flora y fauna del sector (Benjamin, 2026-10-30; especies de iNaturalist en el recuadro Rancagua–Sewell) ───
@@ -963,7 +999,10 @@
     capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr);
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
   }
-  function paso(dt) { if (dt) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
+  // con las fichas de «Rastreo de flotas» a la vista, la simulación pasa a tiempo real (Benjamin, 2026-11-02: datos
+  // plausibles): el ritmo baja de 1 a 1/ESCALA_SIM a medida que aparecen las fichas (RES.flota)
+  var ESCALA_SIM = ACELERACION_TIEMPO * VELOCIDAD_BUSES;
+  function paso(dt) { if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * RES.flota)); if (listo === 2 && alturas) dibujar(); }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
 
   function aplicarTema() {
     tema = temaActual(); TM = TEMAS[tema]; sim.tema(tema);
