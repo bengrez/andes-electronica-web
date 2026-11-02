@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muestra: portada cordillera | Andes Electrónica</title>
+<!-- Muestra para Benjamin (2026-11-02, handoff 017): el render fijo de las cumbres (mismo modelo 3D de la H-25, desde
+     el valle hacia el este) con el título y la bajada encima, en noche y día. Sin JS. No es la portada integrada. -->
+<style>
+@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4.woff2") format("woff2"); font-weight: 400 600; }
+@font-face { font-family: "DM Sans"; src: url("../fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; }
+@font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; }
+html { background: #0b0f1e; font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; }
+body { margin: 0; }
+.portada { position: relative; min-height: 100svh; background: center bottom / cover no-repeat; display: flex; flex-direction: column; }
+.noche { background-image: url("cumbres-render-oscuro.webp"); background-color: #01030f; color: #f2ede3; }
+.dia { background-image: url("cumbres-render-claro.webp"); background-color: #ebeeec; color: #00104f; }
+.texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding-top: clamp(5rem, 18vh, 12rem); }
+.rotulo { font: 500 .78rem/1 "Plex Mono", monospace; letter-spacing: .02em; opacity: .75; }
+h1 { margin: 1.25rem 0 0; font: 400 clamp(2.7rem, 7vw, 6rem)/1 "Source Serif", Georgia, serif; letter-spacing: -.025em; }
+p.bajada { margin: 1.5rem 0 0; font-size: clamp(1.1rem, 1.7vw, 1.4rem); max-width: 34rem; opacity: .85; }
+.chevron { margin: auto auto 1.5rem; width: 1.6rem; height: 1.6rem; opacity: .7; }
+.chevron path { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.dia .chevron { color: #f8f8f4; }
+</style>
+</head>
+<body>
+<section class="portada noche" aria-label="Versión noche">
+  <div class="texto">
+    <p class="rotulo">Muestra · tema oscuro</p>
+    <h1>Andes Electrónica</h1>
+    <p class="bajada">Desde 1991 desarrollando servicios y productos electrónicos de la más alta calidad.</p>
+  </div>
+  <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+</section>
+<section class="portada dia" aria-label="Versión día">
+  <div class="texto">
+    <p class="rotulo">Muestra · tema claro</p>
+    <h1>Andes Electrónica</h1>
+    <p class="bajada">Desde 1991 desarrollando servicios y productos electrónicos de la más alta calidad.</p>
+  </div>
+  <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+</section>
+</body>
+</html>
