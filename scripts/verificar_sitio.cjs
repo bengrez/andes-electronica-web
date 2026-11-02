@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Revisión automática del sitio con Playwright (desbordes, conexiones externas, CSP, errores, foco, contraste,
-   tamaños táctiles). Uso:
+   tamaños táctiles con área ampliada y excepciones de WCAG 2.5.8). Uso:
    PW=<ruta al módulo playwright> CHROMIUM=<ruta a chrome> node scripts/verificar_sitio.cjs [--paginas a,b]
      [--anchos 360x780,390x844,1440x900] [--salida dir] [--capturas]
    Levanta su propio servidor local y lo apaga al terminar. Exit 0 sin fallas duras, 1 con fallas, 2 error de uso. */
@@ -58,7 +58,7 @@ function medirDOM() {
     const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
     return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0;
   };
-  const out = { desborde: null, tactil: [], solapes: [], contraste: [], etiqueta: [], infinitas: [] };
+  const out = { desborde: null, tactil: [], tactilFalso: [], solapesAreas: [], solapes: [], contraste: [], etiqueta: [], infinitas: [] };
   const de = document.documentElement;
   if (de.scrollWidth > de.clientWidth + 1) {
     const l = [];
@@ -70,13 +70,39 @@ function medirDOM() {
     }
     out.desborde = { scrollWidth: de.scrollWidth, clientWidth: de.clientWidth, elementos: l };
   }
-  /* táctiles */
+  /* área tocable real: la caja del control más lo que sobresale su ::before transparente (si lo hay) */
+  const area = e => {
+    const r = e.getBoundingClientRect();
+    let a = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    const ps = getComputedStyle(e, '::before');
+    if (ps.content !== 'none' && ps.position === 'absolute' && parseFloat(ps.width) > 0) {
+      const cs = getComputedStyle(e);
+      const l = r.left + parseFloat(cs.borderLeftWidth) + parseFloat(ps.left), t = r.top + parseFloat(cs.borderTopWidth) + parseFloat(ps.top);
+      a = { left: Math.min(a.left, l), top: Math.min(a.top, t), right: Math.max(a.right, l + parseFloat(ps.width)), bottom: Math.max(a.bottom, t + parseFloat(ps.height)) };
+    }
+    return a;
+  };
+  /* ¿el área ampliada responde de verdad al toque? elementFromPoint en las cuatro esquinas (1 px hacia dentro) */
+  const esquinas = (e, a) => [[a.left + 1, a.top + 1], [a.right - 1, a.top + 1], [a.left + 1, a.bottom - 1], [a.right - 1, a.bottom - 1]]
+    .every(([x, y]) => { if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return true; const t = document.elementFromPoint(x, y); return !!t && (t === e || e.contains(t)); });
+  /* táctiles (WCAG 2.2, 2.5.8): 24 × 24 px; el aviso lleva si la excepción de espaciado o la de enlace en línea se cumple */
   const ctrls = [...document.querySelectorAll('a, button, [role=button], summary')].filter(visible);
   for (const e of ctrls) {
-    const r = e.getBoundingClientRect();
-    if (r.width < 24 || r.height < 24) {
+    const r = e.getBoundingClientRect(), ar = area(e);
+    const w = ar.right - ar.left, h = ar.bottom - ar.top;
+    if (w < 24 || h < 24) {
       const enLinea = e.tagName === 'A' && !!e.closest('p, li') && (e.closest('p, li').textContent || '').trim().length > (e.textContent || '').trim().length;
-      out.tactil.push({ el: sel(e), w: Math.round(r.width), h: Math.round(r.height), enLinea });
+      /* espaciado: un círculo de 24 px centrado en el control no toca a ningún otro control */
+      const cx = (ar.left + ar.right) / 2, cy = (ar.top + ar.bottom) / 2;
+      const espaciado = !ctrls.some(o => {
+        if (o === e || o.contains(e) || e.contains(o)) return false;
+        const q = o.getBoundingClientRect();
+        const dx = Math.max(q.left - cx, 0, cx - q.right), dy = Math.max(q.top - cy, 0, cy - q.bottom);
+        return Math.hypot(dx, dy) < 12;
+      });
+      out.tactil.push({ el: sel(e), w: Math.round(w), h: Math.round(h), enLinea, espaciado });
+    } else if (w - r.width > 0.5 || h - r.height > 0.5) {
+      if (!esquinas(e, ar)) out.tactilFalso.push({ el: sel(e), w: Math.round(w), h: Math.round(h) });
     }
   }
   /* solapes: controles clave contra cualquier control interactivo visible */
@@ -93,6 +119,16 @@ function medirDOM() {
         const k = sel(a) + '|' + sel(b);
         if (!vistos.has(k)) { vistos.add(k); out.solapes.push({ a: sel(a), b: sel(b), px: Math.round(w) + 'x' + Math.round(h) }); }
       }
+    }
+  }
+  /* las áreas tocables ampliadas de los controles clave tampoco se pisan entre sí ni con otro control */
+  for (const a of clave) {
+    const aa = area(a);
+    for (const b of todos) {
+      if (a === b || a.contains(b) || b.contains(a)) continue;
+      const ab = area(b);
+      const w = Math.min(aa.right, ab.right) - Math.max(aa.left, ab.left), h = Math.min(aa.bottom, ab.bottom) - Math.max(aa.top, ab.top);
+      if (w > 0.5 && h > 0.5) out.solapesAreas.push({ a: sel(a), b: sel(b), px: Math.round(w) + 'x' + Math.round(h) });
     }
   }
   /* contraste */
@@ -217,7 +253,9 @@ async function main() {
           const m = await page.evaluate(medirDOM);
           const at = { scroll: pc };
           if (m.desborde) dura('desborde-horizontal', { ...at, ...m.desborde });
-          for (const x of m.tactil) aviso('tactil-pequeno', { ...at, ...x });
+          for (const x of m.tactil) aviso(x.espaciado || x.enLinea ? 'tactil-por-excepcion' : 'tactil-pequeno', { ...at, ...x });   // 2.5.8: espaciado o enlace en línea
+          for (const x of m.tactilFalso) dura('tactil-area-no-responde', { ...at, ...x });
+          for (const x of m.solapesAreas) aviso('solape-areas-tocables', { ...at, ...x });
           for (const x of m.solapes) aviso('solape-controles', { ...at, ...x });
           for (const x of m.contraste) aviso(x.noEvaluable ? 'contraste-no-evaluable' : 'contraste-bajo', { ...at, ...x });
           for (const x of m.etiqueta) aviso('etiqueta-vs-nombre', { ...at, ...x });
