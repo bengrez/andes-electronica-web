@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Revisión automática del sitio con Playwright (desbordes, conexiones externas, CSP, errores, foco, contraste,
-   tamaños táctiles con área ampliada y excepciones de WCAG 2.5.8). Uso:
+   tamaños táctiles con área ampliada y excepciones de WCAG 2.5.8, solape del logo con el h1). Uso:
    PW=<ruta al módulo playwright> CHROMIUM=<ruta a chrome> node scripts/verificar_sitio.cjs [--paginas a,b]
      [--anchos 360x780,390x844,1440x900] [--salida dir] [--capturas]
    Levanta su propio servidor local y lo apaga al terminar. Exit 0 sin fallas duras, 1 con fallas, 2 error de uso. */
@@ -12,6 +12,19 @@ const PAGINAS_TODAS = ['index', 'productos', 'sacel', 'servicios', 'empresa', 'c
 const ANCHOS_DEF = '360x780,390x844,1440x900';
 const ANCHO_REDUCE = '390x844';
 const PORCENTAJES = [0, 25, 50, 75, 100];
+/* solape del logo de la barra con el h1 (2026-11-02: en la portada de inicio, el logo grande pisaba «Andes Electrónica»).
+   Se mide la intersección de las cajas visibles; más de 1 px² es falla dura. */
+function medirLogoTitulo() {
+  const vis = e => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e);
+    return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0 && e.offsetParent !== null; };
+  const logo = [...document.querySelectorAll('.marca img')].filter(vis)[0], h1 = [...document.querySelectorAll('h1')].filter(vis)[0];
+  if (!logo || !h1) return null;
+  const rg = document.createRange(); rg.selectNodeContents(h1);   // la caja del texto, no la del bloque de ancho completo
+  const a = logo.getBoundingClientRect(), b = rg.getBoundingClientRect();
+  const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return w > 0 && h > 0 && w * h > 1 ? { area: Math.round(w * h), logo: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)],
+    h1: [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)] } : null;
+}
 
 function args(argv) {
   const a = { paginas: PAGINAS_TODAS, anchos: ANCHOS_DEF, salida: null, capturas: false };
@@ -281,6 +294,8 @@ async function main() {
           const m = await page.evaluate(medirDOM);
           const at = { scroll: pc };
           if (m.desborde) dura('desborde-horizontal', { ...at, ...m.desborde });
+          const lt = await page.evaluate(medirLogoTitulo);
+          if (lt) dura('solape-logo-titulo', { ...at, ...lt });
           for (const x of m.tactil) aviso(x.espaciado || x.enLinea ? 'tactil-por-excepcion' : 'tactil-pequeno', { ...at, ...x });   // 2.5.8: espaciado o enlace en línea
           for (const x of m.tactilFalso) dura('tactil-area-no-responde', { ...at, ...x });
           for (const x of m.solapesAreas) aviso('solape-areas-tocables', { ...at, ...x });
@@ -304,6 +319,10 @@ async function main() {
           const m = await page.evaluate(medirDOM);
           for (const x of m.contraste) if (x.svg) aviso(x.noEvaluable ? 'contraste-no-evaluable' : 'contraste-bajo', { scroll: 'svg' + (i + 1), ...x });
         }
+        /* de vuelta arriba, con lo que se haya cargado al bajar (p. ej. el mapa 3D): el logo y el h1 siguen sin tocarse */
+        await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(1200);
+        const lt0 = await page.evaluate(medirLogoTitulo);
+        if (lt0) dura('solape-logo-titulo', { scroll: 'vuelta', ...lt0 });
         const csp = await page.evaluate(() => window.__csp || []);
         for (const x of csp) dura('violacion-csp', x);
         /* foco (sólo en la combinación sin reduce, desde el inicio de la página) */
