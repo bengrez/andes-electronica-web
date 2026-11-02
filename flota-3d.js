@@ -718,8 +718,8 @@
     cr.globalAlpha = 1;
   }
 
-  // ─── «Hardware e IoT» (Benjamin, 2026-11-02): junto a la nube, un computador del que salen pulsos hacia ella, como las
-  // tramas de los buses (mismo arco que acelera y estela). En coordenadas de la nube (cr ya trasladado y escalado) ───
+  // ─── «Hardware e IoT» (Benjamin, 2026-11-02): junto a la nube, un computador; los pulsos salen de la nube hacia él y
+  // de él hacia internet (un globo), como las tramas de los buses (mismo arco que acelera y estela). En coordenadas de la nube (cr ya trasladado y escalado) ───
   function computador(P, a) {
     cr.save(); cr.globalAlpha = a; cr.lineJoin = "round"; cr.lineCap = "round";
     var x0 = -64, y0 = -7;                                                   // pantalla: 20 × 13, con pie
@@ -727,20 +727,28 @@
     redondeado(x0, y0, 20, 13, 2); cr.fill(); cr.stroke();
     cr.fillStyle = "rgba(" + P.normal + ",.55)"; cr.fillRect(x0 + 3, y0 + 3, 14, 7);
     cr.beginPath(); cr.moveTo(x0 + 10, y0 + 13); cr.lineTo(x0 + 10, y0 + 17); cr.moveTo(x0 + 5, y0 + 17.5); cr.lineTo(x0 + 15, y0 + 17.5); cr.stroke();
-    // pulsos: uno cada 0,9 s, del computador al borde de la nube, en arco
-    var o = [x0 + 20, y0 + 4], z = [-17, -2], mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) - 16;
-    for (var n = 0; n < 2; n++) {
-      var u = ((sim.reloj / 0.9) + n * 0.5) % 1;
-      function arco(t) { t = (Math.exp(4 * t) - 1) / (Math.exp(4) - 1); var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; }
-      var fin = Math.min(1, (1 - u) / 0.15);
-      cr.lineWidth = 2.2;
-      for (var j = 0; j < 12; j++) {
-        var t1 = Math.max(0, u - j * 0.035), t0 = Math.max(0, u - (j + 1) * 0.035); if (t1 <= 0) break;
-        var p1 = arco(t1), p0 = arco(t0);
-        cr.strokeStyle = "rgba(" + P.normal + "," + (fin * (1 - j / 12)).toFixed(3) + ")";
-        cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
+    // internet: un globo a la izquierda del computador
+    var gx = x0 - 26, gy = y0 + 6.5, gr = 7;
+    cr.fillStyle = PULSO[tema].caja; cr.beginPath(); cr.arc(gx, gy, gr, 0, 7); cr.fill(); cr.stroke();
+    cr.beginPath(); cr.ellipse(gx, gy, gr * 0.45, gr, 0, 0, 7); cr.moveTo(gx - gr, gy); cr.lineTo(gx + gr, gy); cr.stroke();
+    // pulsos (Benjamin, 2026-11-02): salen de la nube hacia el computador, y del computador hacia internet
+    pulsoArco([-17, -2], [x0 + 20, y0 + 4], -16, 0);
+    pulsoArco([x0, y0 + 5], [gx + gr, gy], -10, 0.45);
+    function pulsoArco(o, z, alza, fase) {
+      var mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) + alza;
+      for (var n = 0; n < 2; n++) {
+        var u = ((sim.reloj / 0.9) + n * 0.5 + fase) % 1;
+        var arco = function (t) { t = (Math.exp(4 * t) - 1) / (Math.exp(4) - 1); var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; };
+        var fin = Math.min(1, (1 - u) / 0.15);
+        cr.lineWidth = 2.2;
+        for (var j = 0; j < 12; j++) {
+          var t1 = Math.max(0, u - j * 0.035), t0 = Math.max(0, u - (j + 1) * 0.035); if (t1 <= 0) break;
+          var p1 = arco(t1), p0 = arco(t0);
+          cr.strokeStyle = "rgba(" + P.normal + "," + (fin * (1 - j / 12)).toFixed(3) + ")";
+          cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
+        }
+        var h = arco(u); cr.fillStyle = "rgba(" + P.normal + "," + fin.toFixed(3) + ")"; cr.beginPath(); cr.arc(h[0], h[1], 2.2, 0, 7); cr.fill();
       }
-      var h = arco(u); cr.fillStyle = "rgba(" + P.normal + "," + fin.toFixed(3) + ")"; cr.beginPath(); cr.arc(h[0], h[1], 2.2, 0, 7); cr.fill();   // la cabeza
     }
     cr.restore();
   }
