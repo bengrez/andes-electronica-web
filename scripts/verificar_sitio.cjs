@@ -51,7 +51,8 @@ function medirDOM() {
   const sel = e => {
     let s = e.tagName.toLowerCase();
     if (e.id) s += '#' + e.id;
-    if (typeof e.className === 'string' && e.className.trim()) s += '.' + e.className.trim().split(/\s+/).slice(0, 2).join('.');
+    const cl = e.getAttribute('class');
+    if (cl && cl.trim()) s += '.' + cl.trim().split(/\s+/).slice(0, 2).join('.');
     return s;
   };
   const visible = e => {
@@ -132,7 +133,14 @@ function medirDOM() {
     }
   }
   /* contraste */
-  const parse = c => { const m = c.match(/[\d.]+/g); return m ? m.map(Number) : null; };
+  /* rgb()/rgba() en 0–255; color(srgb r g b / a) —lo que devuelve color-mix()— en 0–1 */
+  const parse = c => {
+    const m = c.match(/[\d.]+/g); if (!m) return null;
+    const v = m.map(Number);
+    if (/^color\(srgb\s/.test(c)) return v.length > 3 ? [v[0] * 255, v[1] * 255, v[2] * 255, v[3]] : v.map(x => x * 255);
+    if (/^color\(/.test(c)) return null;
+    return v;
+  };
   const lum = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   const tieneCanvas = !!document.querySelector('canvas');
   const vistosC = new Set();
@@ -144,8 +152,28 @@ function medirDOM() {
     if (!e || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(e.tagName) || !visible(e) || vistosC.has(e)) continue;
     vistosC.add(e);
     const cs = getComputedStyle(e);
-    const fg = parse(cs.color); if (!fg) continue;
-    let bg = null, noEval = false, a = e;
+    /* el texto SVG se pinta con fill, no con color; su fondo puede ser una figura del mismo SVG */
+    const enSvg = typeof SVGElement !== 'undefined' && e instanceof SVGElement;
+    const fg = parse(enSvg ? cs.fill : cs.color); if (!fg) continue;
+    let bg = null, noEval = false, a = e, escala = 1;
+    if (enSvg) {
+      const svg = e.ownerSVGElement, m = svg && svg.getScreenCTM();
+      if (m) escala = Math.hypot(m.a, m.b);
+      if (+cs.fillOpacity < 1 || +cs.opacity < 1) noEval = true;
+      const r = e.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      /* fuera de la ventana (o tapado por algo ajeno al SVG) no se puede saber qué hay detrás: se mide en otro punto del scroll */
+      if (cx < 0 || cy < 0 || cx >= innerWidth || cy >= innerHeight) continue;
+      const pila = document.elementsFromPoint(cx, cy);
+      const tope = pila.find(d => d !== e && !/^(text|tspan)$/i.test(d.tagName));
+      if (!tope || !(tope instanceof SVGElement) || (tope !== svg && !svg.contains(tope))) continue;
+      for (const d of pila) {
+        if (d === e || /^(text|tspan)$/i.test(d.tagName)) continue;
+        if (!(d instanceof SVGElement) || d.tagName.toLowerCase() === 'svg') break;
+        const sf = getComputedStyle(d), c = parse(sf.fill);
+        if (c && (c.length === 3 || c[3] === 1) && +sf.fillOpacity === 1 && +sf.opacity === 1) { bg = c; break; }
+      }
+      if (bg) a = null;
+    }
     while (a) {
       const s = getComputedStyle(a);
       if (s.backgroundImage && s.backgroundImage !== 'none') noEval = true;
@@ -158,9 +186,9 @@ function medirDOM() {
     const alfa = fg.length === 4 ? fg[3] : 1;
     const fgm = alfa < 1 ? fg.slice(0, 3).map((v, i) => v * alfa + bg[i] * (1 - alfa)) : fg;
     const l1 = lum(fgm), l2 = lum(bg), razon = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
-    const px = parseFloat(cs.fontSize), neg = (+cs.fontWeight >= 700);
+    const px = parseFloat(cs.fontSize) * escala, neg = (+cs.fontWeight >= 700);
     const grande = px >= 24 || (px >= 18.66 && neg);
-    if (razon < (grande ? 3 : 4.5)) out.contraste.push({ el: sel(e), razon: +razon.toFixed(2), min: grande ? 3 : 4.5, texto: n.nodeValue.trim().slice(0, 30) });
+    if (razon < (grande ? 3 : 4.5)) out.contraste.push({ el: sel(e), ...(enSvg ? { svg: true } : {}), razon: +razon.toFixed(2), min: grande ? 3 : 4.5, texto: n.nodeValue.trim().slice(0, 30) });
   }
   /* etiqueta vs nombre visible */
   for (const e of document.querySelectorAll('button, [role=button], a')) {
@@ -264,6 +292,17 @@ async function main() {
             const d = path.join(salida, 'capturas'); fs.mkdirSync(d, { recursive: true });
             await page.screenshot({ path: path.join(d, `${c.p}_${c.an.txt}_${c.tema}_${c.mov === 'reduce' ? 'reduce_' : ''}${pc}.png`) });
           }
+        }
+        /* el texto de los SVG sólo se mide con su centro en pantalla: además de los cortes de scroll, se mide con cada
+           SVG con texto visible arriba de la ventana (sólo se cuenta el contraste de ese texto, para no duplicar avisos) */
+        const topesSvg = await page.evaluate(() => [...document.querySelectorAll('svg')]
+          .filter(v => v.querySelector('text') && v.getBoundingClientRect().height > 0)
+          .map(v => Math.max(0, v.getBoundingClientRect().top + scrollY - 8)));
+        for (let i = 0; i < topesSvg.length; i++) {
+          await page.evaluate(y => window.scrollTo(0, y), topesSvg[i]);
+          await page.waitForTimeout(200);
+          const m = await page.evaluate(medirDOM);
+          for (const x of m.contraste) if (x.svg) aviso(x.noEvaluable ? 'contraste-no-evaluable' : 'contraste-bajo', { scroll: 'svg' + (i + 1), ...x });
         }
         const csp = await page.evaluate(() => window.__csp || []);
         for (const x of csp) dura('violacion-csp', x);
