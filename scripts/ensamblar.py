@@ -4,7 +4,7 @@
 
 Cada página lleva <!-- cabeza -->…<!-- /cabeza -->, <!-- barra -->…<!-- /barra --> y <!-- pie -->…<!-- /pie -->.
 Lo que queda entre las marcas se reemplaza; el resto de la página no se toca. Las partes opcionales (OPCIONALES) sólo
-se copian en las páginas que tienen su marca, p. ej. <!-- ilustracion-tacografo --> (las genera ilustrar_productos.py). La página actual de la barra se marca
+se copian en las páginas que tienen su marca, p. ej. <!-- ilustracion-tacografo --> (las genera ilustrar_productos.py) o <!-- dibujo-dashboard --> (lo genera dibujar_dashboard.py). La página actual de la barra se marca
 con aria-current="page". El resultado se guarda en el repositorio: el sitio no necesita este script para funcionar.
 """
 import base64
@@ -16,6 +16,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 PARTES = {n: (RAIZ / "partes" / f"{n}.html").read_text().strip() for n in ("cabeza", "barra", "pie")}
 OPCIONALES = {f"ilustracion-{n}": (RAIZ / f"partes/ilustracion-{n}.svg").read_text().strip()
               for n in ("tacografo", "smartcard", "display", "visor", "reportes")}
+OPCIONALES["dibujo-dashboard"] = (RAIZ / "partes/dibujo-dashboard.svg").read_text().strip()   # plano del tablero (dibujar_dashboard.py)
 
 CSP = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
        "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'")

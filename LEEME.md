@@ -40,6 +40,7 @@ El resultado de cada script ya está guardado en la carpeta. Sólo hacen falta p
 |---|---|---|
 | `scripts/ensamblar.py` | Copia la barra, la cabecera, el pie y las ilustraciones de `partes/` a las 7 páginas | Al cambiar algo de `partes/` |
 | `scripts/ilustrar_productos.py` | `partes/ilustracion-*.svg` (dibujos de los productos con curvas de nivel) | Al cambiar un dibujo |
+| `scripts/dibujar_dashboard.py` | `partes/dibujo-dashboard.svg` (plano del tablero de SACEL, estático, en dos variantes: horizontal y celular; formato de la skill dimensional-drawing) | Al cambiar el plano |
 | `scripts/preparar_h25.py` | `datos/h25.js`, `img/alturas-3d.png` y los relieves | Al cambiar la ruta o el recorte del mapa |
 | `scripts/extraer_tacografo.py` | `datos/tacografo-modelo.js`, desde la animación original | Al cambiar el modelo 3D |
 | `scripts/verificar_sitio.cjs` | revisión automática en celular y escritorio (desbordes, conexiones externas, CSP, foco, contraste, tamaños táctiles) | antes de publicar |
