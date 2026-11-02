@@ -24,14 +24,11 @@
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
     if (document.readyState === "complete") ya(); else window.addEventListener("load", ya, { once: true });
   }
-  // WebGL y las texturas, recién cuando se empieza a bajar hacia el mapa (portada cordillera, 2026-11-02): mientras sólo
-  // asoma su borde, se ve su primer cuadro fijo (base.css, --mapa-inicial) y la portada no pide nada 3D
-  if (recorrido && "IntersectionObserver" in window) {
-    var vigia = new IntersectionObserver(function (es) {
-      if (es.some(function (e) { return e.isIntersecting; })) { vigia.disconnect(); despues(empezar); }
-    }, { rootMargin: "0px 0px -40% 0px" });   // la portada mide 70 %: el mapa asoma en el 30 % de abajo sin cargar WebGL
-    vigia.observe(recorrido);
-  } else despues(empezar);
+  // WebGL y las texturas se piden apenas se pinta la página (Benjamin, 2026-11-02: «la simulación debe empezar a cargar
+  // desde el primer momento»), primero lo que se ve primero: el relieve (alturas y textura del tema) y los cóndores, que
+  // vuelan con el reloj de la simulación. Mientras carga, el borde del mapa que asoma bajo la portada es su primer
+  // cuadro fijo (base.css, --mapa-inicial). Antes (2-nov, mañana) WebGL esperaba a que se bajara hacia el mapa.
+  despues(empezar);
   function empezar() {
 
   var ACELERACION_TIEMPO = 10;                  // el reloj corre 10 veces más rápido que el real
@@ -203,7 +200,7 @@
   var bufTerreno = gl.createBuffer(), bufIdx = gl.createBuffer(), bufCamino = gl.createBuffer(), bufBus = gl.createBuffer();
   var nIdx = 0, texturas = {}, listo = 0;
   function cargar(src, alListo) {
-    var im = new Image(); im.onload = function () { alListo(im); }; im.onerror = fallar; im.src = src; return im;
+    var im = new Image(); im.fetchPriority = "high"; im.onload = function () { alListo(im); }; im.onerror = fallar; im.src = src; return im;   // lo primero que se ve
   }
   function alturaEn(x, z) {                        // m, bilineal sobre la rejilla 3D
     var u = (x - T.x0) / T.paso, v = (z - T.z0) / T.paso;
@@ -893,7 +890,7 @@
     capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr);
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
   }
-  function paso(dt) { if (dt && tenue > 0) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }   // los buses parten cuando aparecen
+  function paso(dt) { if (dt) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
 
   function aplicarTema() {
     tema = temaActual(); TM = TEMAS[tema]; sim.tema(tema);
