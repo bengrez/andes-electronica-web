@@ -18,7 +18,10 @@
   var heroe = document.querySelector(".heroe");
   // el mapa abre quieto con el panorama de Andes; en este tramo del descenso entra SACEL y parten la cámara y los buses
   // (Benjamin, 2026-11-02). Antes: [0.35, 0.65] con los párrafos de la empresa; luego [-1, 0] (SACEL desde el comienzo).
-  var SACEL_ENTRA = [0.12, 0.42];
+  // (2026-11-02, tarde) SACEL es una sola parada: al llegar, la animación corre sola (aSacel, DUR_SACEL) y el panorama
+  // sale y SACEL entra en el primer 35 %
+  var SACEL_ENTRA = [0, 0.35];
+  var DUR_SACEL = 2.5, aSacel = 0, tSacel = 0;               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -415,8 +418,9 @@
   }
 
   function dibujar() {
-    pCam = Math.min(1, pAct / FRACCION_DESCENSO);
-    pDatos = Math.max(0, (pAct - FRACCION_DESCENSO) / (1 - FRACCION_DESCENSO));
+    var e = suave(aSacel);
+    pCam = e;                                     // la cámara baja durante toda la animación
+    pDatos = Math.max(0, Math.min(1, (e - 0.55) / 0.45));   // los 4 pasos y la transparencia del mapa, al final
     window.FlotaPortada.descenso = pCam; window.FlotaPortada.datos = pDatos;
     var dist = camara(pCam);
     pintarCielo();
@@ -1041,7 +1045,16 @@
   // con las fichas de «Rastreo de flotas» a la vista, la simulación pasa a tiempo real (Benjamin, 2026-11-02: datos
   // plausibles): el ritmo baja de 1 a 1/ESCALA_SIM a medida que aparecen las fichas (RES.flota)
   var ESCALA_SIM = ACELERACION_TIEMPO * VELOCIDAD_BUSES;
-  function paso(dt) { if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * RES.flota)); if (listo === 2 && alturas) dibujar(); }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
+  function paso(dt) {
+    // la parada de SACEL (Benjamin, 2026-11-02: tres paradas en una): el scroll elige la meta y la animación va sola
+    // con reloj propio (no el dt del ciclo, que se recorta a 50 ms por cuadro): dura DUR_SACEL aunque el equipo sea lento
+    var meta = pAct >= 0.5 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
+    tSacel = ahora;
+    if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
+    else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
+    if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * RES.flota));
+    if (listo === 2 && alturas) dibujar();
+  }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
 
   function aplicarTema() {
     tema = temaActual(); TM = TEMAS[tema]; sim.tema(tema);
@@ -1059,9 +1072,9 @@
   var capaVisible = null;
   function textos() {
     if (!heroe) return;
-    var pc = Math.min(1, pAct / FRACCION_DESCENSO);
+    var pc = suave(aSacel);
     var s = quieto ? 1 : suave(Math.max(0, Math.min(1, (pc - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
-    var d = quieto ? 1 : suave(Math.max(0, Math.min(1, (pAct - FRACCION_DESCENSO) / ((1 - FRACCION_DESCENSO) / 3))));
+    var d = quieto ? 1 : suave(Math.max(0, Math.min(1, (pc - 0.5) / 0.4)));
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
     var v = quieto || s > 0.5 ? "sacel" : "empresa";

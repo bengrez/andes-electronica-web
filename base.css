@@ -168,7 +168,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (prefers-reduced-motion: reduce) { .cordillera { height: auto; min-height: 100vh; min-height: 100svh; } }
 
 /* ─── mapa de inicio: queda fijo mientras se recorre .recorrido; la cámara baja según el avance ─── */
-.recorrido { height: 900vh; }   /* descenso en la primera mitad; la segunda, con la cámara quieta. 900vh (antes 420 y 640): más pausa para leer (2026-10-30) */
+.recorrido { height: 200vh; }   /* dos paradas: el panorama y SACEL, que se anima solo al llegar (2026-11-02; antes 900vh con tres paradas) */
 .portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
 .portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }

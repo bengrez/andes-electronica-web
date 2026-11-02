@@ -191,7 +191,8 @@
     var pausa = false, visible = true, raf = 0, previo = 0;
     function cuadro(t) {
       raf = 0;
-      if (pausa || !visible || document.hidden) { previo = 0; return; }
+      if (pausa || !visible || document.hidden) { previo = 0; window.FlotaCicloAndando = false; return; }
+      window.FlotaCicloAndando = true;                 // flota-3d.js: con el ciclo detenido, las animaciones saltan a su meta
       var dt = previo ? Math.min((t - previo) / 1000, 0.05) : 0; previo = t;
       paso(dt);
       raf = requestAnimationFrame(cuadro);
@@ -199,7 +200,7 @@
     function arrancar() { if (!raf && !pausa && visible && !quieto) { previo = 0; raf = requestAnimationFrame(cuadro); } }
     if (boton) {
       if (quieto) boton.hidden = true;
-      boton.addEventListener("click", function () { pausa = !pausa; boton.setAttribute("aria-pressed", String(pausa)); arrancar(); });
+      boton.addEventListener("click", function () { pausa = !pausa; if (pausa) window.FlotaCicloAndando = false; boton.setAttribute("aria-pressed", String(pausa)); arrancar(); });
     }
     new IntersectionObserver(function (e) { visible = e[0].isIntersecting; arrancar(); }).observe(lienzo);
     document.addEventListener("visibilitychange", arrancar);
