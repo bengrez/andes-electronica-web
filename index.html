@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261103a">
+<link rel="stylesheet" href="base.css?v=20261103c">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -71,7 +71,17 @@
     <!-- panorama de Andes antes de SACEL (Benjamin, 2026-11-02), adaptado de la frase del sitio oficial; con el mapa quieto.
          Al seguir bajando parten la cámara y los buses, y entra SACEL (flota-3d.js, SACEL_ENTRA). -->
     <div class="capa capa-empresa" role="region" aria-label="Qué hace Andes Electrónica">
-      <p class="entrada panorama">Fabricamos equipos electrónicos, diseñamos y armamos circuitos, damos soporte técnico y desarrollamos sistemas de control automático, rastreo satelital de flotas e Internet de las cosas.</p>
+      <p class="entrada panorama">Diseñamos, fabricamos y mantenemos electrónica en Chile.</p>
+      <!-- etiquetas con un dibujo simple por actividad (Benjamin, 2026-11-02: «de bajo contenido cognitivo»); las
+           actividades son las de la frase del sitio oficial -->
+      <ul class="haceres">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><rect class="ac" x="6" y="9" width="7" height="5" rx="1"/><path d="M16 10h2M16 13h2"/></svg><span>Equipos electrónicos</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span>Diseño y armado de circuitos</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span>Soporte técnico</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5M19 12a7 7 0 0 1-12 5"/><path class="ac" d="M17 3v4h-4M7 21v-4h4"/></svg><span>Control automático</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/></svg><span>Rastreo satelital de flotas</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ac" cx="12" cy="12" r="2.4"/><circle cx="4.5" cy="6" r="1.8"/><circle cx="19.5" cy="6" r="1.8"/><circle cx="12" cy="20.5" r="1.8"/><path d="M6 7.2l4 3M18 7.2l-4 3M12 14.4v4.3"/></svg><span>Internet de las cosas</span></li>
+      </ul>
     </div>
     <section class="capa capa-sacel" aria-labelledby="t-sacel">
       <h2 id="t-sacel">Cada viaje llega <em>a SACEL.</em></h2>
@@ -289,14 +299,14 @@
 </footer>
 <!-- /pie -->
 
-<script src="sitio.js?v=20261103a"></script>
-<script src="avance.js?v=20261103a"></script>
-<script src="datos/h25.js?v=20261103a"></script>
-<script src="flota-sim.js?v=20261103a"></script>
-<script src="flota-mapa.js?v=20261103a"></script>
-<script src="flota-3d.js?v=20261103a"></script>
-<script src="clientes.js?v=20261103a"></script>
-<script src="productos-nube.js?v=20261103a"></script>
-<script src="etapas.js?v=20261103a"></script>
+<script src="sitio.js?v=20261103c"></script>
+<script src="avance.js?v=20261103c"></script>
+<script src="datos/h25.js?v=20261103c"></script>
+<script src="flota-sim.js?v=20261103c"></script>
+<script src="flota-mapa.js?v=20261103c"></script>
+<script src="flota-3d.js?v=20261103c"></script>
+<script src="clientes.js?v=20261103c"></script>
+<script src="productos-nube.js?v=20261103c"></script>
+<script src="etapas.js?v=20261103c"></script>
 </body>
 </html>
