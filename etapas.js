@@ -1,7 +1,8 @@
 /* Etapas por gesto (Benjamin, 2026-11-02; reemplaza a seguir.js y sus botones Seguir y Saltar).
    Las secciones que avanzan con el scroll (un contenedor alto con un hijo fijo) dicen sus etapas en data-etapas
    (avances de 0 a 1). Dentro de una de ellas:
-   - un paso discreto (una muesca de la rueda del mouse, flecha, AvPág/RePág o espacio) lleva, con animación, a la
+   - un paso discreto (una muesca de la rueda del mouse, flecha, AvPág/RePág o espacio) lleva, con animación (850 ms
+     con la rueda; 1,8 s con el teclado), a la
      etapa siguiente o a la anterior; pasada la última, a donde termina la sección; antes de la primera, a su comienzo;
    - un gesto continuo (trackpad, dedo, barra de desplazamiento) recorre libremente: no se toca.
    No se «aprende» un modo con el primer gesto (Benjamin lo descartó): cada evento se juzga solo.
@@ -40,16 +41,20 @@
     return null;
   }
 
-  // animación propia: duración fija, independiente de la distancia; un gesto del usuario la corta
+  // animación propia: duración fija, independiente de la distancia; un gesto del usuario la corta.
+  // Con el teclado (flechas, AvPág/RePág, espacio) es más lenta, para que el movimiento se lea como parte de la
+  // explicación (Benjamin, 2026-11-02: «darle mayor importancia al movimiento como recurso educativo»).
+  var DUR_RUEDA = 850, DUR_TECLADO = 1800;
   var anim = null, ultimoFin = 0;
-  function ir(y) {
-    var y0 = scrollY, t0 = performance.now(), dur = 850;
+  function ir(y, dur) {
+    var y0 = scrollY, t0 = performance.now();
+    dur = dur || DUR_RUEDA;
     if (anim) cancelAnimationFrame(anim.raf);
-    anim = { raf: 0 };
+    anim = { raf: 0, rueda: dur === DUR_RUEDA };
     (function cuadro(t) {
       var u = Math.min(1, (t - t0) / dur), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
       scrollTo(0, y0 + (y - y0) * e);
-      if (u < 1) anim.raf = requestAnimationFrame(cuadro); else { anim = null; ultimoFin = performance.now(); }
+      if (u < 1) anim.raf = requestAnimationFrame(cuadro); else { if (anim.rueda) ultimoFin = performance.now(); anim = null; }   // la pausa anti-ráfaga sólo tras la rueda
     })(t0);
   }
   function cortar() { if (anim) { cancelAnimationFrame(anim.raf); anim = null; } }
@@ -71,7 +76,7 @@
     if (seguido) return;                          // ráfaga muy rápida de deltas grandes: un trackpad con inercia, libre
     var y = destino(dir);
     if (y === null) return;
-    e.preventDefault(); ir(y);
+    e.preventDefault(); ir(y, DUR_RUEDA);
   }, { passive: false });
 
   addEventListener("keydown", function (e) {
@@ -85,7 +90,7 @@
     if (e.key === " " && (tag === "BUTTON" || tag === "A")) return;   // el espacio activa el control enfocado
     var y = destino(dir);
     if (y === null) return;
-    e.preventDefault(); ir(y);
+    e.preventDefault(); ir(y, DUR_TECLADO);
   });
   ["touchstart", "mousedown"].forEach(function (n) { addEventListener(n, cortar, { passive: true }); });
 })();
