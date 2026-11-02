@@ -88,6 +88,456 @@
     </ul>
   </section>
 
+  <section class="seccion seccion-sigue" aria-labelledby="t-plano">
+    <div class="cabeza">
+      <div><p class="sello">Plataforma</p><h2 id="t-plano">El tablero, <em>pieza por pieza.</em></h2></div>
+      <p>Del tacógrafo al tablero: los datos viajan por la red 4G-LTE a la plataforma y se ordenan en las funciones de la aplicación web. Es un plano esquemático, sin datos reales.</p>
+    </div>
+    <figure class="dibujo">
+<!-- dibujo-dashboard -->
+<svg class="dib dib-h" viewBox="0 0 900 906.8" role="img" aria-labelledby="dib-h-t dib-h-d">
+  <title id="dib-h-t">Plano del tablero de SACEL</title>
+  <desc id="dib-h-d">Plano esquemático, sin datos reales ni escala. Los datos del tacógrafo viajan por la red 4G-LTE a la plataforma y llegan al tablero. El tablero, en producción, tiene cinco ranuras: mapa de la flota con la posición en tiempo real, reportes por trabajador y vehículo, monitoreo de flota, infracciones laborales y mantenciones. Dos módulos marcados «en desarrollo», con trazo a trazos, aún no tienen lugar definido: diagnóstico de fallas con IA y seguridad en ruta. Las medidas están por definir ([TBD]).</desc>
+  <defs><marker id="dib-h-flecha" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="dib-punta" d="M0 1.7L10 5 0 8.3z"/></marker><pattern id="dib-h-rayas" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="dib-raya" x1="0" y1="0" x2="0" y2="6"/></pattern></defs>
+  <rect class="dib-borde" x="4" y="4" width="892" height="898.8" rx="14"/>
+  <text class="dib-vt" x="74" y="30">Entrada de datos</text>
+  <rect class="dib-caja" x="74" y="44" width="123.5" height="48" rx="2"/>
+  <text class="dib-s" x="135.8" y="72.4" text-anchor="middle">Tacógrafo</text>
+  <line class="dib-cota" x1="197.5" y1="68" x2="218.5" y2="68" marker-end="url(#dib-h-flecha)"/>
+  <rect class="dib-caja" x="219.5" y="44" width="123.5" height="48" rx="2"/>
+  <text class="dib-s" x="281.2" y="72.4" text-anchor="middle">Trama 4G-LTE</text>
+  <line class="dib-cota" x1="343" y1="68" x2="364" y2="68" marker-end="url(#dib-h-flecha)"/>
+  <rect class="dib-caja" x="365" y="44" width="123.5" height="48" rx="2"/>
+  <text class="dib-s" x="426.8" y="72.4" text-anchor="middle">Plataforma</text>
+  <line class="dib-cota" x1="488.5" y1="68" x2="509.5" y2="68" marker-end="url(#dib-h-flecha)"/>
+  <rect class="dib-obj" x="510.5" y="44" width="123.5" height="48" rx="2"/>
+  <text class="dib-s" x="572.2" y="72.4" text-anchor="middle">Tablero</text>
+  <line class="dib-cota" x1="572.2" y1="92" x2="572.2" y2="150" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-vt" x="74" y="144">Tablero · en producción</text>
+  <rect class="dib-obj" x="74" y="152" width="560" height="380" rx="4"/>
+  <rect class="dib-ranura" x="88" y="166" width="300" height="220" rx="2"/>
+  <path class="dib-cruz" d="M88 166L388 386M388 166L88 386"/>
+  <text class="dib-s" x="238" y="272.2" text-anchor="middle">Mapa de la flota</text>
+  <text class="dib-s" x="238" y="288.5" text-anchor="middle">Posición en tiempo real</text>
+  <rect class="dib-ranura" x="402" y="166" width="218" height="103" rx="2"/>
+  <text class="dib-s" x="511" y="221.9" text-anchor="middle">Monitoreo de flota</text>
+  <rect class="dib-ranura" x="402" y="283" width="218" height="103" rx="2"/>
+  <text class="dib-s" x="511" y="338.9" text-anchor="middle">Infracciones laborales</text>
+  <rect class="dib-ranura" x="88" y="400" width="300" height="118" rx="2"/>
+  <text class="dib-s" x="238" y="455.2" text-anchor="middle">Reportes por trabajador</text>
+  <text class="dib-s" x="238" y="471.5" text-anchor="middle">y vehículo</text>
+  <rect class="dib-ranura" x="402" y="400" width="218" height="118" rx="2"/>
+  <text class="dib-s" x="511" y="463.4" text-anchor="middle">Mantenciones</text>
+  <line class="dib-ext" x1="74" y1="535" x2="74" y2="563"/>
+  <line class="dib-ext" x1="88" y1="535" x2="88" y2="563"/>
+  <line class="dib-cota" x1="61" y1="558" x2="74" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="101" y1="558" x2="88" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="74" y1="558" x2="88" y2="558"/>
+  <text class="dib-t" x="72" y="571.5" text-anchor="middle">S1</text>
+  <line class="dib-ext" x1="88" y1="535" x2="88" y2="563"/>
+  <line class="dib-ext" x1="388" y1="535" x2="388" y2="563"/>
+  <line class="dib-cota" x1="88" y1="558" x2="388" y2="558" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="238" y="571.5" text-anchor="middle">W1</text>
+  <line class="dib-ext" x1="388" y1="535" x2="388" y2="563"/>
+  <line class="dib-ext" x1="402" y1="535" x2="402" y2="563"/>
+  <line class="dib-cota" x1="375" y1="558" x2="388" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="415" y1="558" x2="402" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="388" y1="558" x2="402" y2="558"/>
+  <text class="dib-t" x="395" y="571.5" text-anchor="middle">S2</text>
+  <line class="dib-ext" x1="402" y1="535" x2="402" y2="563"/>
+  <line class="dib-ext" x1="620" y1="535" x2="620" y2="563"/>
+  <line class="dib-cota" x1="402" y1="558" x2="620" y2="558" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="511" y="571.5" text-anchor="middle">W2</text>
+  <line class="dib-ext" x1="620" y1="535" x2="620" y2="563"/>
+  <line class="dib-ext" x1="634" y1="535" x2="634" y2="563"/>
+  <line class="dib-cota" x1="607" y1="558" x2="620" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="647" y1="558" x2="634" y2="558" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="620" y1="558" x2="634" y2="558"/>
+  <text class="dib-t" x="636" y="571.5" text-anchor="middle">S1</text>
+  <line class="dib-ext" x1="74" y1="561" x2="74" y2="607"/>
+  <line class="dib-ext" x1="634" y1="561" x2="634" y2="607"/>
+  <line class="dib-cota" x1="74" y1="602" x2="634" y2="602" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="354" y="598" text-anchor="middle">W</text>
+  <line class="dib-ext" x1="71" y1="152" x2="51" y2="152"/>
+  <line class="dib-ext" x1="71" y1="166" x2="51" y2="166"/>
+  <line class="dib-cota" x1="56" y1="139" x2="56" y2="152" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="179" x2="56" y2="166" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="152" x2="56" y2="166"/>
+  <text class="dib-t" x="51" y="150" text-anchor="middle" transform="rotate(-90 51 150)">S1</text>
+  <line class="dib-ext" x1="71" y1="166" x2="51" y2="166"/>
+  <line class="dib-ext" x1="71" y1="386" x2="51" y2="386"/>
+  <line class="dib-cota" x1="56" y1="166" x2="56" y2="386" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="51" y="276" text-anchor="middle" transform="rotate(-90 51 276)">H1</text>
+  <line class="dib-ext" x1="71" y1="386" x2="51" y2="386"/>
+  <line class="dib-ext" x1="71" y1="400" x2="51" y2="400"/>
+  <line class="dib-cota" x1="56" y1="373" x2="56" y2="386" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="413" x2="56" y2="400" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="386" x2="56" y2="400"/>
+  <text class="dib-t" x="51" y="393" text-anchor="middle" transform="rotate(-90 51 393)">S2</text>
+  <line class="dib-ext" x1="71" y1="400" x2="51" y2="400"/>
+  <line class="dib-ext" x1="71" y1="518" x2="51" y2="518"/>
+  <line class="dib-cota" x1="56" y1="400" x2="56" y2="518" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="51" y="459" text-anchor="middle" transform="rotate(-90 51 459)">H2</text>
+  <line class="dib-ext" x1="71" y1="518" x2="51" y2="518"/>
+  <line class="dib-ext" x1="71" y1="532" x2="51" y2="532"/>
+  <line class="dib-cota" x1="56" y1="505" x2="56" y2="518" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="545" x2="56" y2="532" marker-end="url(#dib-h-flecha)"/>
+  <line class="dib-cota" x1="56" y1="518" x2="56" y2="532"/>
+  <text class="dib-t" x="51" y="534" text-anchor="middle" transform="rotate(-90 51 534)">S1</text>
+  <line class="dib-ext" x1="53" y1="152" x2="27" y2="152"/>
+  <line class="dib-ext" x1="53" y1="532" x2="27" y2="532"/>
+  <line class="dib-cota" x1="32" y1="152" x2="32" y2="532" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="27" y="342" text-anchor="middle" transform="rotate(-90 27 342)">H</text>
+  <rect class="dib-dev" x="684" y="152" width="184" height="180" rx="2" fill="url(#dib-h-rayas)"/>
+  <rect class="dib-sello" x="694" y="162" width="122" height="23.8" rx="0"/>
+  <text class="dib-sello-t" x="755" y="178.2" text-anchor="middle">En desarrollo</text>
+  <rect class="dib-placa" x="694" y="234.9" width="164" height="50" rx="0"/>
+  <text class="dib-s" x="776" y="256.1" text-anchor="middle">Diagnóstico de</text>
+  <text class="dib-s" x="776" y="272.4" text-anchor="middle">fallas con IA</text>
+  <line class="dib-fantasma" x1="636" y1="242" x2="682" y2="242"/>
+  <text class="dib-t" x="659" y="237" text-anchor="middle">[TBD]</text>
+  <rect class="dib-dev" x="684" y="352" width="184" height="180" rx="2" fill="url(#dib-h-rayas)"/>
+  <rect class="dib-sello" x="694" y="362" width="122" height="23.8" rx="0"/>
+  <text class="dib-sello-t" x="755" y="378.2" text-anchor="middle">En desarrollo</text>
+  <rect class="dib-placa" x="694" y="434.9" width="164" height="50" rx="0"/>
+  <text class="dib-s" x="776" y="456.1" text-anchor="middle">Seguridad</text>
+  <text class="dib-s" x="776" y="472.4" text-anchor="middle">en ruta</text>
+  <line class="dib-fantasma" x1="636" y1="442" x2="682" y2="442"/>
+  <text class="dib-t" x="659" y="437" text-anchor="middle">[TBD]</text>
+  <line class="dib-ext" x1="684" y1="149" x2="684" y2="129"/>
+  <line class="dib-ext" x1="868" y1="149" x2="868" y2="129"/>
+  <line class="dib-cota" x1="684" y1="134" x2="868" y2="134" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="776" y="130" text-anchor="middle">W3</text>
+  <line class="dib-ext" x1="871" y1="152" x2="891" y2="152"/>
+  <line class="dib-ext" x1="871" y1="332" x2="891" y2="332"/>
+  <line class="dib-cota" x1="886" y1="152" x2="886" y2="332" marker-start="url(#dib-h-flecha)" marker-end="url(#dib-h-flecha)"/>
+  <text class="dib-t" x="881" y="242" text-anchor="middle" transform="rotate(-90 881 242)">H3</text>
+  <rect class="dib-obj" x="684" y="47" width="26" height="14" rx="0"/>
+  <text class="dib-n" x="718" y="58.4">En producción</text>
+  <rect class="dib-dev" x="684" y="71" width="26" height="14" rx="0" fill="url(#dib-h-rayas)"/>
+  <text class="dib-n" x="718" y="82.4">En desarrollo</text>
+  <rect class="dib-ranura" x="684" y="95" width="26" height="14" rx="0"/>
+  <text class="dib-n" x="718" y="106.4">Ranura de contenido</text>
+  <text class="dib-vt" x="74" y="646">Códigos</text>
+  <rect class="dib-fino" x="74" y="656" width="58" height="18" rx="0"/>
+  <text class="dib-th" x="80" y="669.4">Código</text>
+  <rect class="dib-fino" x="132" y="656" width="120" height="18" rx="0"/>
+  <text class="dib-th" x="138" y="669.4">Variable</text>
+  <rect class="dib-fino" x="252" y="656" width="146" height="18" rx="0"/>
+  <text class="dib-th" x="258" y="669.4">Valor</text>
+  <rect class="dib-fino" x="74" y="674" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="687.4">W</text>
+  <rect class="dib-fino" x="132" y="674" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="687.4">ancho-tablero</text>
+  <rect class="dib-fino" x="252" y="674" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="687.4">2·S1+W1+S2+W2</text>
+  <rect class="dib-fino" x="74" y="692" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="705.4">H</text>
+  <rect class="dib-fino" x="132" y="692" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="705.4">alto-tablero</text>
+  <rect class="dib-fino" x="252" y="692" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="705.4">2·S1+H1+S2+H2</text>
+  <rect class="dib-fino" x="74" y="710" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="723.4">S1</text>
+  <rect class="dib-fino" x="132" y="710" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="723.4">margen</text>
+  <rect class="dib-fino" x="252" y="710" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="723.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="728" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="741.4">S2</text>
+  <rect class="dib-fino" x="132" y="728" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="741.4">separación</text>
+  <rect class="dib-fino" x="252" y="728" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="741.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="746" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="759.4">W1</text>
+  <rect class="dib-fino" x="132" y="746" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="759.4">col-mapa</text>
+  <rect class="dib-fino" x="252" y="746" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="759.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="764" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="777.4">W2</text>
+  <rect class="dib-fino" x="132" y="764" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="777.4">col-lateral</text>
+  <rect class="dib-fino" x="252" y="764" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="777.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="782" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="795.4">H1</text>
+  <rect class="dib-fino" x="132" y="782" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="795.4">fila-superior</text>
+  <rect class="dib-fino" x="252" y="782" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="795.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="800" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="813.4">H2</text>
+  <rect class="dib-fino" x="132" y="800" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="813.4">fila-inferior</text>
+  <rect class="dib-fino" x="252" y="800" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="813.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="818" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="831.4">W3</text>
+  <rect class="dib-fino" x="132" y="818" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="831.4">ancho-módulo</text>
+  <rect class="dib-fino" x="252" y="818" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="831.4">[TBD]</text>
+  <rect class="dib-fino" x="74" y="836" width="58" height="18" rx="0"/>
+  <text class="dib-tc" x="80" y="849.4">H3</text>
+  <rect class="dib-fino" x="132" y="836" width="120" height="18" rx="0"/>
+  <text class="dib-tc" x="138" y="849.4">alto-módulo</text>
+  <rect class="dib-fino" x="252" y="836" width="146" height="18" rx="0"/>
+  <text class="dib-tc" x="258" y="849.4">[TBD]</text>
+  <text class="dib-vt" x="414" y="646">Notas:</text>
+  <rect class="dib-nb" x="420.1" y="658.4" width="15.8" height="15.8" rx="0"/>
+  <text class="dib-nn" x="428" y="670.5" text-anchor="middle">1</text>
+  <text class="dib-n" x="444.2" y="670">Arquitectura, no contenido: el plano no lleva datos</text>
+  <text class="dib-n" x="444.2" y="687.5">reales.</text>
+  <rect class="dib-nb" x="420.1" y="707.6" width="15.8" height="15.8" rx="0"/>
+  <text class="dib-nn" x="428" y="719.8" text-anchor="middle">2</text>
+  <text class="dib-n" x="444.2" y="719.2">Plano esquemático, sin escala: las proporciones no</text>
+  <text class="dib-n" x="444.2" y="736.8">son medidas.</text>
+  <rect class="dib-nb" x="420.1" y="756.9" width="15.8" height="15.8" rx="0"/>
+  <text class="dib-nn" x="428" y="769" text-anchor="middle">3</text>
+  <text class="dib-n" x="444.2" y="768.5">Cada cota es un código; sus valores y fórmulas están</text>
+  <text class="dib-n" x="444.2" y="786">en la tabla.</text>
+  <rect class="dib-nb" x="420.1" y="806.1" width="15.8" height="15.8" rx="0"/>
+  <text class="dib-nn" x="428" y="818.2" text-anchor="middle">4</text>
+  <text class="dib-n" x="444.2" y="817.8">[TBD] = por definir. No se inventan valores.</text>
+  <rect class="dib-nb" x="420.1" y="837.9" width="15.8" height="15.8" rx="0"/>
+  <text class="dib-nn" x="428" y="850" text-anchor="middle">5</text>
+  <text class="dib-n" x="444.2" y="849.5">Los módulos rayados siguen en desarrollo; su lugar</text>
+  <text class="dib-n" x="444.2" y="867">en el tablero es [TBD].</text>
+</svg>
+<svg class="dib dib-v" viewBox="0 0 340 1354.9" role="img" aria-labelledby="dib-v-t dib-v-d">
+  <title id="dib-v-t">Plano del tablero de SACEL</title>
+  <desc id="dib-v-d">Plano esquemático, sin datos reales ni escala. Los datos del tacógrafo viajan por la red 4G-LTE a la plataforma y llegan al tablero. El tablero, en producción, tiene cinco ranuras: mapa de la flota con la posición en tiempo real, reportes por trabajador y vehículo, monitoreo de flota, infracciones laborales y mantenciones. Dos módulos marcados «en desarrollo», con trazo a trazos, aún no tienen lugar definido: diagnóstico de fallas con IA y seguridad en ruta. Las medidas están por definir ([TBD]).</desc>
+  <defs><marker id="dib-v-flecha" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path class="dib-punta" d="M0 1.7L10 5 0 8.3z"/></marker><pattern id="dib-v-rayas" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="dib-raya" x1="0" y1="0" x2="0" y2="6"/></pattern></defs>
+  <rect class="dib-borde" x="4" y="4" width="332" height="1346.9" rx="14"/>
+  <text class="dib-vt" x="52" y="30">Entrada de datos</text>
+  <rect class="dib-caja" x="52" y="42" width="276" height="28" rx="2"/>
+  <text class="dib-s" x="190" y="59.9" text-anchor="middle">Tacógrafo</text>
+  <line class="dib-cota" x1="190" y1="70" x2="190" y2="85" marker-end="url(#dib-v-flecha)"/>
+  <rect class="dib-caja" x="52" y="86" width="276" height="28" rx="2"/>
+  <text class="dib-s" x="190" y="103.8" text-anchor="middle">Trama 4G-LTE</text>
+  <line class="dib-cota" x1="190" y1="114" x2="190" y2="129" marker-end="url(#dib-v-flecha)"/>
+  <rect class="dib-caja" x="52" y="130" width="276" height="28" rx="2"/>
+  <text class="dib-s" x="190" y="147.8" text-anchor="middle">Plataforma</text>
+  <line class="dib-cota" x1="190" y1="158" x2="190" y2="173" marker-end="url(#dib-v-flecha)"/>
+  <rect class="dib-obj" x="52" y="174" width="276" height="28" rx="2"/>
+  <text class="dib-s" x="190" y="191.8" text-anchor="middle">Tablero</text>
+  <line class="dib-cota" x1="190" y1="202" x2="190" y2="240" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-vt" x="52" y="234">Tablero · en producción</text>
+  <rect class="dib-obj" x="52" y="242" width="276" height="246" rx="4"/>
+  <rect class="dib-ranura" x="62" y="252" width="138" height="140" rx="2"/>
+  <path class="dib-cruz" d="M62 252L200 392M200 252L62 392"/>
+  <text class="dib-s" x="131" y="311.6" text-anchor="middle">Mapa de la flota</text>
+  <text class="dib-s" x="131" y="325.9" text-anchor="middle">Posición en</text>
+  <text class="dib-s" x="131" y="340.2" text-anchor="middle">tiempo real</text>
+  <rect class="dib-ranura" x="210" y="252" width="108" height="65" rx="2"/>
+  <text class="dib-s" x="264" y="281.2" text-anchor="middle">Monitoreo</text>
+  <text class="dib-s" x="264" y="295.5" text-anchor="middle">de flota</text>
+  <rect class="dib-ranura" x="210" y="327" width="108" height="65" rx="2"/>
+  <text class="dib-s" x="264" y="356.2" text-anchor="middle">Infracciones</text>
+  <text class="dib-s" x="264" y="370.5" text-anchor="middle">laborales</text>
+  <rect class="dib-ranura" x="62" y="402" width="138" height="76" rx="2"/>
+  <text class="dib-s" x="131" y="429.6" text-anchor="middle">Reportes por</text>
+  <text class="dib-s" x="131" y="443.9" text-anchor="middle">trabajador</text>
+  <text class="dib-s" x="131" y="458.2" text-anchor="middle">y vehículo</text>
+  <rect class="dib-ranura" x="210" y="402" width="108" height="76" rx="2"/>
+  <text class="dib-s" x="264" y="443.9" text-anchor="middle">Mantenciones</text>
+  <line class="dib-ext" x1="52" y1="491" x2="52" y2="517"/>
+  <line class="dib-ext" x1="62" y1="491" x2="62" y2="517"/>
+  <line class="dib-cota" x1="39" y1="512" x2="52" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="75" y1="512" x2="62" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="52" y1="512" x2="62" y2="512"/>
+  <text class="dib-t" x="52" y="524" text-anchor="middle">S1</text>
+  <line class="dib-ext" x1="62" y1="491" x2="62" y2="517"/>
+  <line class="dib-ext" x1="200" y1="491" x2="200" y2="517"/>
+  <line class="dib-cota" x1="62" y1="512" x2="200" y2="512" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="131" y="524" text-anchor="middle">W1</text>
+  <line class="dib-ext" x1="200" y1="491" x2="200" y2="517"/>
+  <line class="dib-ext" x1="210" y1="491" x2="210" y2="517"/>
+  <line class="dib-cota" x1="187" y1="512" x2="200" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="223" y1="512" x2="210" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="200" y1="512" x2="210" y2="512"/>
+  <text class="dib-t" x="205" y="524" text-anchor="middle">S2</text>
+  <line class="dib-ext" x1="210" y1="491" x2="210" y2="517"/>
+  <line class="dib-ext" x1="318" y1="491" x2="318" y2="517"/>
+  <line class="dib-cota" x1="210" y1="512" x2="318" y2="512" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="264" y="524" text-anchor="middle">W2</text>
+  <line class="dib-ext" x1="318" y1="491" x2="318" y2="517"/>
+  <line class="dib-ext" x1="328" y1="491" x2="328" y2="517"/>
+  <line class="dib-cota" x1="305" y1="512" x2="318" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="341" y1="512" x2="328" y2="512" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="318" y1="512" x2="328" y2="512"/>
+  <text class="dib-t" x="328" y="524" text-anchor="middle">S1</text>
+  <line class="dib-ext" x1="52" y1="515" x2="52" y2="549"/>
+  <line class="dib-ext" x1="328" y1="515" x2="328" y2="549"/>
+  <line class="dib-cota" x1="52" y1="544" x2="328" y2="544" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="190" y="540" text-anchor="middle">W</text>
+  <line class="dib-ext" x1="49" y1="242" x2="33" y2="242"/>
+  <line class="dib-ext" x1="49" y1="252" x2="33" y2="252"/>
+  <line class="dib-cota" x1="38" y1="229" x2="38" y2="242" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="265" x2="38" y2="252" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="242" x2="38" y2="252"/>
+  <text class="dib-t" x="33" y="242" text-anchor="middle" transform="rotate(-90 33 242)">S1</text>
+  <line class="dib-ext" x1="49" y1="252" x2="33" y2="252"/>
+  <line class="dib-ext" x1="49" y1="392" x2="33" y2="392"/>
+  <line class="dib-cota" x1="38" y1="252" x2="38" y2="392" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="33" y="322" text-anchor="middle" transform="rotate(-90 33 322)">H1</text>
+  <line class="dib-ext" x1="49" y1="392" x2="33" y2="392"/>
+  <line class="dib-ext" x1="49" y1="402" x2="33" y2="402"/>
+  <line class="dib-cota" x1="38" y1="379" x2="38" y2="392" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="415" x2="38" y2="402" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="392" x2="38" y2="402"/>
+  <text class="dib-t" x="33" y="397" text-anchor="middle" transform="rotate(-90 33 397)">S2</text>
+  <line class="dib-ext" x1="49" y1="402" x2="33" y2="402"/>
+  <line class="dib-ext" x1="49" y1="478" x2="33" y2="478"/>
+  <line class="dib-cota" x1="38" y1="402" x2="38" y2="478" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="33" y="440" text-anchor="middle" transform="rotate(-90 33 440)">H2</text>
+  <line class="dib-ext" x1="49" y1="478" x2="33" y2="478"/>
+  <line class="dib-ext" x1="49" y1="488" x2="33" y2="488"/>
+  <line class="dib-cota" x1="38" y1="465" x2="38" y2="478" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="501" x2="38" y2="488" marker-end="url(#dib-v-flecha)"/>
+  <line class="dib-cota" x1="38" y1="478" x2="38" y2="488"/>
+  <text class="dib-t" x="33" y="488" text-anchor="middle" transform="rotate(-90 33 488)">S1</text>
+  <line class="dib-ext" x1="35" y1="242" x2="17" y2="242"/>
+  <line class="dib-ext" x1="35" y1="488" x2="17" y2="488"/>
+  <line class="dib-cota" x1="22" y1="242" x2="22" y2="488" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="17" y="365" text-anchor="middle" transform="rotate(-90 17 365)">H</text>
+  <text class="dib-vt" x="52" y="580">Módulos en desarrollo</text>
+  <rect class="dib-dev" x="52" y="592" width="132" height="118" rx="2" fill="url(#dib-v-rayas)"/>
+  <rect class="dib-sello" x="62" y="602" width="108" height="20.9" rx="0"/>
+  <text class="dib-sello-t" x="116" y="616.3" text-anchor="middle">En desarrollo</text>
+  <rect class="dib-placa" x="62" y="645.5" width="112" height="44" rx="0"/>
+  <text class="dib-s" x="118" y="664.2" text-anchor="middle">Diagnóstico de</text>
+  <text class="dib-s" x="118" y="678.5" text-anchor="middle">fallas con IA</text>
+  <rect class="dib-dev" x="196" y="592" width="132" height="118" rx="2" fill="url(#dib-v-rayas)"/>
+  <rect class="dib-sello" x="206" y="602" width="108" height="20.9" rx="0"/>
+  <text class="dib-sello-t" x="260" y="616.3" text-anchor="middle">En desarrollo</text>
+  <rect class="dib-placa" x="206" y="645.5" width="112" height="44" rx="0"/>
+  <text class="dib-s" x="262" y="664.2" text-anchor="middle">Seguridad</text>
+  <text class="dib-s" x="262" y="678.5" text-anchor="middle">en ruta</text>
+  <line class="dib-ext" x1="52" y1="713" x2="52" y2="737"/>
+  <line class="dib-ext" x1="184" y1="713" x2="184" y2="737"/>
+  <line class="dib-cota" x1="52" y1="732" x2="184" y2="732" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="118" y="728" text-anchor="middle">W3</text>
+  <line class="dib-ext" x1="49" y1="592" x2="33" y2="592"/>
+  <line class="dib-ext" x1="49" y1="710" x2="33" y2="710"/>
+  <line class="dib-cota" x1="38" y1="592" x2="38" y2="710" marker-start="url(#dib-v-flecha)" marker-end="url(#dib-v-flecha)"/>
+  <text class="dib-t" x="33" y="651" text-anchor="middle" transform="rotate(-90 33 651)">H3</text>
+  <rect class="dib-obj" x="52" y="773" width="26" height="14" rx="0"/>
+  <text class="dib-n" x="86" y="783.9">En producción</text>
+  <rect class="dib-dev" x="52" y="795" width="26" height="14" rx="0" fill="url(#dib-v-rayas)"/>
+  <text class="dib-n" x="86" y="805.9">En desarrollo</text>
+  <rect class="dib-ranura" x="52" y="817" width="26" height="14" rx="0"/>
+  <text class="dib-n" x="86" y="827.9">Ranura de contenido</text>
+  <text class="dib-vt" x="52" y="866">Códigos</text>
+  <rect class="dib-fino" x="52" y="876" width="50" height="18" rx="0"/>
+  <text class="dib-th" x="58" y="888.9">Código</text>
+  <rect class="dib-fino" x="102" y="876" width="104" height="18" rx="0"/>
+  <text class="dib-th" x="108" y="888.9">Variable</text>
+  <rect class="dib-fino" x="206" y="876" width="122" height="18" rx="0"/>
+  <text class="dib-th" x="212" y="888.9">Valor</text>
+  <rect class="dib-fino" x="52" y="894" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="906.9">W</text>
+  <rect class="dib-fino" x="102" y="894" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="906.9">ancho-tablero</text>
+  <rect class="dib-fino" x="206" y="894" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="906.9">2·S1+W1+S2+W2</text>
+  <rect class="dib-fino" x="52" y="912" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="924.9">H</text>
+  <rect class="dib-fino" x="102" y="912" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="924.9">alto-tablero</text>
+  <rect class="dib-fino" x="206" y="912" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="924.9">2·S1+H1+S2+H2</text>
+  <rect class="dib-fino" x="52" y="930" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="942.9">S1</text>
+  <rect class="dib-fino" x="102" y="930" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="942.9">margen</text>
+  <rect class="dib-fino" x="206" y="930" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="942.9">[TBD]</text>
+  <rect class="dib-fino" x="52" y="948" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="960.9">S2</text>
+  <rect class="dib-fino" x="102" y="948" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="960.9">separación</text>
+  <rect class="dib-fino" x="206" y="948" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="960.9">[TBD]</text>
+  <rect class="dib-fino" x="52" y="966" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="978.9">W1</text>
+  <rect class="dib-fino" x="102" y="966" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="978.9">col-mapa</text>
+  <rect class="dib-fino" x="206" y="966" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="978.9">[TBD]</text>
+  <rect class="dib-fino" x="52" y="984" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="996.9">W2</text>
+  <rect class="dib-fino" x="102" y="984" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="996.9">col-lateral</text>
+  <rect class="dib-fino" x="206" y="984" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="996.9">[TBD]</text>
+  <rect class="dib-fino" x="52" y="1002" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="1014.9">H1</text>
+  <rect class="dib-fino" x="102" y="1002" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="1014.9">fila-superior</text>
+  <rect class="dib-fino" x="206" y="1002" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="1014.9">[TBD]</text>
+  <rect class="dib-fino" x="52" y="1020" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="1032.8">H2</text>
+  <rect class="dib-fino" x="102" y="1020" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="1032.8">fila-inferior</text>
+  <rect class="dib-fino" x="206" y="1020" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="1032.8">[TBD]</text>
+  <rect class="dib-fino" x="52" y="1038" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="1050.8">W3</text>
+  <rect class="dib-fino" x="102" y="1038" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="1050.8">ancho-módulo</text>
+  <rect class="dib-fino" x="206" y="1038" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="1050.8">[TBD]</text>
+  <rect class="dib-fino" x="52" y="1056" width="50" height="18" rx="0"/>
+  <text class="dib-tc" x="58" y="1068.8">H3</text>
+  <rect class="dib-fino" x="102" y="1056" width="104" height="18" rx="0"/>
+  <text class="dib-tc" x="108" y="1068.8">alto-módulo</text>
+  <rect class="dib-fino" x="206" y="1056" width="122" height="18" rx="0"/>
+  <text class="dib-tc" x="212" y="1068.8">[TBD]</text>
+  <text class="dib-vt" x="52" y="1100">Notas:</text>
+  <rect class="dib-nb" x="53" y="1109.7" width="14.1" height="14.1" rx="0"/>
+  <text class="dib-nn" x="60" y="1120.4" text-anchor="middle">1</text>
+  <text class="dib-n" x="74.3" y="1120">Arquitectura, no contenido: el plano</text>
+  <text class="dib-n" x="74.3" y="1135.4">no lleva datos reales.</text>
+  <rect class="dib-nb" x="53" y="1152" width="14.1" height="14.1" rx="0"/>
+  <text class="dib-nn" x="60" y="1162.7" text-anchor="middle">2</text>
+  <text class="dib-n" x="74.3" y="1162.3">Plano esquemático, sin escala: las</text>
+  <text class="dib-n" x="74.3" y="1177.7">proporciones no son medidas.</text>
+  <rect class="dib-nb" x="53" y="1194.2" width="14.1" height="14.1" rx="0"/>
+  <text class="dib-nn" x="60" y="1205" text-anchor="middle">3</text>
+  <text class="dib-n" x="74.3" y="1204.6">Cada cota es un código; sus valores</text>
+  <text class="dib-n" x="74.3" y="1220">y fórmulas están en la tabla.</text>
+  <rect class="dib-nb" x="53" y="1236.5" width="14.1" height="14.1" rx="0"/>
+  <text class="dib-nn" x="60" y="1247.3" text-anchor="middle">4</text>
+  <text class="dib-n" x="74.3" y="1246.9">[TBD] = por definir. No se inventan</text>
+  <text class="dib-n" x="74.3" y="1262.3">valores.</text>
+  <rect class="dib-nb" x="53" y="1278.8" width="14.1" height="14.1" rx="0"/>
+  <text class="dib-nn" x="60" y="1289.6" text-anchor="middle">5</text>
+  <text class="dib-n" x="74.3" y="1289.2">Los módulos rayados siguen en</text>
+  <text class="dib-n" x="74.3" y="1304.6">desarrollo; su lugar en el tablero</text>
+  <text class="dib-n" x="74.3" y="1320">es [TBD].</text>
+</svg>
+<!-- /dibujo-dashboard -->
+      <figcaption>
+        <p>Equivalente en texto</p>
+        <ul>
+          <li>Entrada de datos: el tacógrafo transmite por la red 4G-LTE a la plataforma, y de ahí al tablero.</li>
+          <li>Mapa de la flota: posición de los vehículos en tiempo real.</li>
+          <li>Reportes por trabajador y vehículo.</li>
+          <li>Monitoreo de flota.</li>
+          <li>Infracciones laborales: detección y registro.</li>
+          <li>Mantenciones: registro, planificación y alertas.</li>
+          <li>En desarrollo: diagnóstico de fallas con IA.</li>
+          <li>En desarrollo: seguridad en ruta.</li>
+        </ul>
+        <p class="nota">Plano esquemático, sin escala. Las medidas están por definir [TBD].</p>
+      </figcaption>
+    </figure>
+  </section>
+
   <div class="banda">
     <section class="seccion" aria-labelledby="t-mant">
       <div class="cabeza"><div><p class="sello">Mantenciones</p><h2 id="t-mant">Cada vehículo, <em>a tiempo en el taller.</em></h2></div></div>

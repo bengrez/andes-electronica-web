@@ -376,6 +376,45 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 @keyframes ilus-baja { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 85% { opacity: .9; } 100% { transform: translateY(46px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ilus-onda, .ilus-sube, .ilus-baja { animation: none; } .ilus-sube { transform: translateY(-38px); } .ilus-baja { transform: translateY(14px); } .ilus-onda { opacity: .5; transform: scale(2); } }
 
+/* ─── plano del tablero (partes/dibujo-dashboard.svg, generado por scripts/dibujar_dashboard.py) ───
+   Dibujo dimensional estático: dos variantes del mismo plano, la horizontal y la vertical (celular). Sin animación.
+   Colores sólo con las variables del tema, así sirve en claro y oscuro. */
+.seccion-sigue { padding-top: 0; }   /* sección que continúa a la anterior sobre el mismo fondo */
+.dibujo { margin: 0; }
+.dibujo .dib { display: block; width: 100%; height: auto; max-width: 56rem; margin-inline: auto; --dib-ranura: color-mix(in srgb, var(--tinta) 6%, var(--pagina)); }
+.dibujo .dib-v { display: none; max-width: 24rem; }
+@media (max-width: 47.5rem) { .dibujo .dib-h { display: none; } .dibujo .dib-v { display: block; } }
+.dib text { font-family: "Plex Mono", monospace; text-transform: uppercase; letter-spacing: .03em; fill: var(--tinta); paint-order: stroke; stroke: var(--pagina); stroke-width: 4px; stroke-linejoin: round; }
+.dib-h { --dz: 12.5px; }
+.dib-v { --dz: 11px; }
+.dib-borde { fill: none; stroke: var(--linea); stroke-width: 1.2; }
+.dib-obj { fill: var(--pagina); stroke: var(--tinta); stroke-width: 1.6; stroke-linejoin: round; }
+.dib-caja { fill: var(--dib-ranura); stroke: var(--tinta); stroke-width: 1; }
+.dib-ranura { fill: var(--dib-ranura); stroke: var(--tinta-2); stroke-width: .9; stroke-dasharray: 4 3; }
+.dib-cruz { fill: none; stroke: var(--tinta-3); stroke-width: .7; opacity: .6; }
+.dib-dev { stroke: var(--tinta); stroke-width: 1.5; stroke-dasharray: 10 5; }
+.dib-raya { stroke: var(--tinta-3); stroke-width: .8; }
+.dib-placa { fill: var(--pagina); stroke: var(--tinta); stroke-width: 1; }
+.dib-sello { fill: var(--tinta); stroke: none; }
+.dib-fino { fill: none; stroke: var(--tinta); stroke-width: .8; }
+.dib-fantasma { fill: none; stroke: var(--tinta-3); stroke-width: .9; stroke-dasharray: 14 3 3 3; }
+.dib-cota { fill: none; stroke: var(--tinta); stroke-width: .7; }
+.dib-ext { stroke: var(--tinta); stroke-width: .55; fill: none; }
+.dib-punta { fill: var(--tinta); }
+.dib-nb { fill: var(--pagina); stroke: var(--tinta); stroke-width: .9; }
+.dib text.dib-t, .dib text.dib-tc, .dib text.dib-th { font-size: var(--dz); }
+.dib text.dib-s { font-size: var(--dz); fill: var(--tinta-2); stroke: var(--dib-ranura); letter-spacing: .04em; }
+.dib text.dib-n { font-size: var(--dz); fill: var(--tinta); }
+.dib text.dib-nn { font-size: var(--dz); stroke: none; }
+.dib text.dib-vt { font-size: var(--dz); letter-spacing: .1em; font-weight: 500; }
+.dib text.dib-th { fill: var(--tinta-2); stroke: none; }
+.dib text.dib-tc { stroke: none; }
+.dib text.dib-sello-t { font-size: var(--dz); font-weight: 500; fill: var(--pagina); stroke: none; }
+.dibujo figcaption { margin: 1.75rem auto 0; max-width: 56rem; color: var(--tinta-2); font-size: .95rem; }
+.dibujo figcaption p { color: var(--tinta); font-weight: 600; margin-bottom: .6rem; }
+.dibujo figcaption ul { display: grid; gap: .35rem; padding-left: 1.1rem; list-style: disc; }
+.dibujo figcaption .nota { margin-top: .8rem; font: 400 .8rem/1.5 "Plex Mono", monospace; color: var(--tinta-3); }
+
 /* sellos de normativa (empresa): dibujo de línea con el dato, número y organismo; no imita un timbre oficial */
 .sellos { display: grid; gap: 2rem 2.5rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
 .sellos li { display: grid; place-items: center; text-align: center; }
