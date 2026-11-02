@@ -42,6 +42,9 @@ El resultado de cada script ya está guardado en la carpeta. Sólo hacen falta p
 | `scripts/ilustrar_productos.py` | `partes/ilustracion-*.svg` (dibujos de los productos con curvas de nivel) | Al cambiar un dibujo |
 | `scripts/preparar_h25.py` | `datos/h25.js`, `img/alturas-3d.png` y los relieves | Al cambiar la ruta o el recorte del mapa |
 | `scripts/extraer_tacografo.py` | `datos/tacografo-modelo.js`, desde la animación original | Al cambiar el modelo 3D |
+| `scripts/verificar_sitio.cjs` | revisión automática en celular y escritorio (desbordes, conexiones externas, CSP, foco, contraste, tamaños táctiles) | antes de publicar |
+
+Uso de `verificar_sitio.cjs`: `PW=<ruta al módulo playwright> CHROMIUM=<ruta a chrome> node scripts/verificar_sitio.cjs --capturas`
 
 ## Seguridad
 
