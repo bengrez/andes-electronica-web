@@ -4,42 +4,72 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Muestra: portada cordillera | Andes Electrónica</title>
-<!-- Muestra para Benjamin (2026-11-02, handoff 017): el render fijo de las cumbres (mismo modelo 3D de la H-25, desde
-     el valle hacia el este) con el título y la bajada encima, en noche y día. Sin JS. No es la portada integrada. -->
+<!-- Muestra v2 para Benjamin (2026-11-02, handoff 017), según su referencia: «que el mapa sobresalga en el landing page».
+     Las cumbres de abajo a la derecha NO son una ilustración aparte: son el borde superior del primer cuadro del mapa
+     de la sección siguiente (flota-3d.js en su pose inicial, renderizado fijo con scripts/renderizar_cumbres.cjs). La
+     portada mide 78 % de la pantalla, así que el mapa asoma por debajo; al bajar, ese mismo relieve sube y es la sección.
+     En la integración real, esta imagen es el fondo del lienzo del mapa y el WebGL la reemplaza al cargar (mismo cuadro).
+     Sin JS, sin WebGL: noche arriba, día abajo. -->
 <style>
-@font-face { font-family: "Source Serif"; src: url("../fuentes/source-serif-4.woff2") format("woff2"); font-weight: 400 600; }
+@font-face { font-family: "Archivo"; src: url("../fuentes/archivo.woff2") format("woff2"); font-weight: 400 700; }
 @font-face { font-family: "DM Sans"; src: url("../fuentes/dm-sans.woff2") format("woff2"); font-weight: 400 700; }
 @font-face { font-family: "Plex Mono"; src: url("../fuentes/ibm-plex-mono-500.woff2") format("woff2"); font-weight: 500; }
-html { background: #0b0f1e; font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; }
+html { font: 400 1.0625rem/1.6 "DM Sans", system-ui, sans-serif; background: #01030f; }
 body { margin: 0; }
-.portada { position: relative; min-height: 100svh; background: center bottom / cover no-repeat; display: flex; flex-direction: column; }
-.noche { background-image: url("cumbres-render-oscuro.webp"); background-color: #01030f; color: #f2ede3; }
-.dia { background-image: url("cumbres-render-claro.webp"); background-color: #ebeeec; color: #00104f; }
-.texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding-top: clamp(5rem, 18vh, 12rem); }
-.rotulo { font: 500 .78rem/1 "Plex Mono", monospace; letter-spacing: .02em; opacity: .75; }
-h1 { margin: 1.25rem 0 0; font: 400 clamp(2.7rem, 7vw, 6rem)/1 "Source Serif", Georgia, serif; letter-spacing: -.025em; }
-p.bajada { margin: 1.5rem 0 0; font-size: clamp(1.1rem, 1.7vw, 1.4rem); max-width: 34rem; opacity: .85; }
-.chevron { margin: auto auto 1.5rem; width: 1.6rem; height: 1.6rem; opacity: .7; }
-.chevron path { fill: none; stroke: currentColor; stroke-width: 1.5; }
-.dia .chevron { color: #f8f8f4; }
+p, h1 { margin: 0; }
+.noche { --pagina: #000004; --tinta: #f2ede3; --tinta-2: rgba(242,237,227,.74); --acento: #d99a55;
+  --cielo: url("cielo-noche.webp") center top / cover; --mapa: url("mapa-inicio-noche.webp"); }
+.dia { --pagina: #ebeeec; --tinta: #00104f; --tinta-2: #3d4466; --acento: #8f5213;
+  --cielo: none; --mapa: url("mapa-inicio-dia.webp"); }
+@media (max-width: 47.5rem) {
+  .noche { --cielo: url("cielo-noche-movil.webp") center top / cover; --mapa: url("mapa-inicio-noche-movil.webp"); }
+  .dia { --pagina: #eef0ee; --mapa: url("mapa-inicio-dia-movil.webp"); }   /* el borde de arriba del cuadro móvil (velo) */
+  .noche { --pagina: #00010b; }
+}
+.tema { background: var(--pagina); color: var(--tinta); }
+.columna { width: min(100% - 2.5rem, 80rem); margin: 0 auto; }
+/* portada: 78 % de la pantalla, sólo cielo, título y bajada */
+.portada { height: 78vh; height: 78svh; background: var(--cielo), var(--pagina); position: relative; }
+.portada .columna { padding-top: clamp(1.5rem, 4vh, 2.5rem); }
+.rotulo { font: 500 .78rem/1 "Plex Mono", monospace; color: var(--acento); }
+.portada img { display: block; width: clamp(5rem, 11vw, 9rem); height: auto; margin-top: 1.25rem; }
+h1 { margin-top: clamp(1.5rem, 6vh, 4rem); font: 600 clamp(2.6rem, 6.4vw, 5.6rem)/1 "Archivo", "DM Sans", sans-serif; letter-spacing: -.03em; }
+.bajada { margin-top: 1.4rem; font-size: clamp(1.1rem, 1.6vw, 1.35rem); max-width: 32rem; color: var(--tinta-2); }
+/* sección del mapa: su cuadro inicial, pegado arriba a la derecha (como el lienzo), con los dos párrafos al comienzo */
+.mapa { height: 100vh; height: 100svh; background: var(--mapa) right top / cover no-repeat, var(--pagina); }
+.mapa .columna { padding-top: clamp(8rem, 24vh, 14rem); }
+.mapa p { max-width: 31rem; font-size: clamp(1.05rem, 1.4vw, 1.2rem); color: var(--tinta-2); }
+.mapa p + p { margin-top: 1rem; }
+.mapa strong { color: var(--acento); }
+@media (max-width: 47.5rem) { .mapa .columna { padding-top: 4rem; } }
+.logo-dia, .noche .logo-dia, .dia .logo-noche { display: none; }
+.dia .logo-dia { display: block; }
 </style>
 </head>
 <body>
-<section class="portada noche" aria-label="Versión noche">
-  <div class="texto">
-    <p class="rotulo">Muestra · tema oscuro</p>
+<section class="tema noche" aria-label="Versión noche">
+  <div class="portada"><div class="columna">
+    <p class="rotulo">Muestra v2 · tema oscuro · las cumbres son el mapa que asoma</p>
+    <img class="logo-noche" src="../img/logo-andes-oscuro.svg" alt="" width="38" height="34">
     <h1>Andes Electrónica</h1>
     <p class="bajada">Desde 1991 desarrollando servicios y productos electrónicos de la más alta calidad.</p>
-  </div>
-  <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+  </div></div>
+  <div class="mapa"><div class="columna">
+    <p>Somos una empresa chilena de electrónica: diseñamos, fabricamos y mantenemos tacógrafos para buses y camiones, y <strong>SACEL</strong>, nuestro sistema en línea para gestionar la flota.</p>
+    <p>Investigamos y desarrollamos en casa: cada versión del tacógrafo nace de lo que aprendemos en ruta. Esa misma ingeniería la ponemos al servicio de proyectos a medida, en Santiago desde 1991.</p>
+  </div></div>
 </section>
-<section class="portada dia" aria-label="Versión día">
-  <div class="texto">
-    <p class="rotulo">Muestra · tema claro</p>
+<section class="tema dia" aria-label="Versión día">
+  <div class="portada"><div class="columna">
+    <p class="rotulo">Muestra v2 · tema claro · las cumbres son el mapa que asoma</p>
+    <img class="logo-dia" src="../img/logo-andes.svg" alt="" width="38" height="34">
     <h1>Andes Electrónica</h1>
     <p class="bajada">Desde 1991 desarrollando servicios y productos electrónicos de la más alta calidad.</p>
-  </div>
-  <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>
+  </div></div>
+  <div class="mapa"><div class="columna">
+    <p>Somos una empresa chilena de electrónica: diseñamos, fabricamos y mantenemos tacógrafos para buses y camiones, y <strong>SACEL</strong>, nuestro sistema en línea para gestionar la flota.</p>
+    <p>Investigamos y desarrollamos en casa: cada versión del tacógrafo nace de lo que aprendemos en ruta. Esa misma ingeniería la ponemos al servicio de proyectos a medida, en Santiago desde 1991.</p>
+  </div></div>
 </section>
 </body>
 </html>
