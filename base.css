@@ -133,12 +133,12 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
     --linea-barra: color-mix(in srgb, var(--linea) calc(clamp(0, (var(--k, 0) * 6 - .999) * 1000, 1) * 100%), transparent);   /* la línea, sólo con el fondo ya entero (si no, se suman dos tonos) */
     background: var(--fondo-barra); box-shadow: 0 0 0 100vmax var(--fondo-barra), 0 1px 0 100vmax var(--linea-barra); }
 }
-.cordillera { position: relative; height: 70vh; height: 70svh; min-height: 30rem; display: flex; flex-direction: column; background: var(--cordillera-cielo); }
+.cordillera { position: relative; min-height: 70vh; min-height: 70svh;   /* mínimo: crece si el texto no cabe */ display: flex; flex-direction: column; background: var(--cordillera-cielo); }
 .cordillera-texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(8rem, 24vh, 15rem) 0 2rem; }
-.cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, 7vw, 6rem); }
-.cordillera .entrada { margin-top: 1.5rem; font-size: clamp(1.1rem, 1.7vw, 1.4rem); max-width: 34rem; }
+.cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, min(7vw, 11vh), 6rem); }
+.cordillera .entrada { margin-top: 1.5rem; font-size: clamp(1.25rem, 2vw, 1.65rem); max-width: 40rem; }   /* +18 % (Benjamin, 2026-11-02) */
 /* segunda línea (Benjamin, 2026-11-02): subordinada a la bajada, más chica y en la tinta secundaria */
-.cordillera .alcance { margin-top: .9rem; max-width: 34rem; font-size: clamp(.98rem, 1.15vw, 1.08rem); line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
+.cordillera .alcance { margin-top: 1rem; max-width: 40rem; font-size: clamp(1.1rem, 1.4vw, 1.28rem); line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
 .bajar { position: absolute; left: 50%; bottom: .75rem; transform: translateX(-50%); display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; color: var(--tinta-3); }
 .bajar svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .bajar:hover { color: var(--tinta); }
@@ -148,10 +148,10 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
    pantalla (--logo-ancho) y el texto parte bajo su alto (34/38 del ancho). Antes, flota-3d.js agrandaba el logo y el
    título se calculaba aparte; con una versión vieja en caché se montaban. verificar_sitio.cjs revisa el solape. */
 @media (min-width: 47.51rem) {
-  body:has(.cordillera) { --logo-ancho: clamp(8rem, 13vw, 13.5rem); }
+  body:has(.cordillera) { --logo-ancho: clamp(7rem, min(13vw, 22vh), 13.5rem); }   /* también según el alto (pantallas bajas) */
   body:has(.cordillera) > .barra { align-items: flex-start; }
   body:has(.cordillera) > .barra .marca img { width: calc(var(--logo-ancho) - (var(--logo-ancho) - 4.08rem) * var(--k, 0)); }   /* grande → 4,08 rem (el de las demás páginas) */
-  .cordillera-texto { padding-top: calc(1.25rem + var(--logo-ancho) * 34 / 38 + clamp(2.5rem, 10vh, 6.5rem)); }   /* texto más abajo (Benjamin, 2-nov) */
+  .cordillera-texto { padding-top: calc(1.25rem + var(--logo-ancho) * 34 / 38 + clamp(1.75rem, 8vh, 6.5rem)); }   /* texto más abajo (Benjamin, 2-nov) */
 }
 /* antes de que cargue WebGL, el lienzo del mapa muestra su primer cuadro fijo (el mismo que dibuja después) */
 @media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
@@ -183,7 +183,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 /* dos textos en la misma columna: la empresa arriba y SACEL desde la mitad del descenso (--sacel, flota-3d.js);
    los 4 pasos de SACEL, en el tramo quieto (--datos). Todo está en el HTML desde el principio. Sin el mapa
    animado (sin JS, sin WebGL o con movimiento reducido) los textos van uno debajo del otro. */
-.heroe .capa { max-width: 30rem; }
+.heroe .capa { max-width: 36rem; }   /* antes 30 rem; textos más grandes (2026-11-02) */
 .capa-sacel { margin-top: 4rem; }
 .mapa-marca { font: 600 clamp(1.3rem, 2vw, 1.75rem)/1 var(--titulos); letter-spacing: -.03em; color: var(--tinta); margin-bottom: .9rem; }
 /* el h1 de la portada viaja hasta .mapa-marca (sitio.js): arriba se ve el h1; durante el viaje, una copia fija; con el
@@ -199,13 +199,15 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 .capa-empresa h1 { max-width: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
 .capa-empresa .lugar { margin-top: 2rem; font: 500 .85rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); letter-spacing: .02em; }
-.capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.2rem, 4.2vw, 3.6rem); }
+.capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.5rem, 4.8vw, 4.1rem); }
+.capa-sacel .entrada { font-size: clamp(1.2rem, 1.75vw, 1.45rem); }
+.sacel-datos .pasos h3 { font-size: 1.12rem; }
 .capa-sacel .acciones { margin-top: 1.75rem; }
 .sacel-datos { margin-top: 2.25rem; }
 .sacel-datos .pasos { grid-template-columns: 1fr 1fr; gap: 1.1rem 2rem; }
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
-.sacel-datos .pasos p { font-size: .92rem; margin-top: .3rem; }
+.sacel-datos .pasos p { font-size: 1.02rem; margin-top: .3rem; }
 @media (prefers-reduced-motion: no-preference) {
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
@@ -218,14 +220,13 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 /* mapa (2026-11-02): «Andes Electrónica» arriba (fila 1, bajo la barra fija) y, debajo, el panorama y SACEL en la misma
    celda, turnándose con --sacel */
-.panorama { font-size: clamp(1.2rem, 1.85vw, 1.55rem); line-height: 1.45; color: var(--tinta); max-width: 34rem; margin-top: 0; }
+.panorama { font-size: clamp(1.35rem, 2.15vw, 1.85rem); line-height: 1.42; color: var(--tinta); max-width: 38rem; margin-top: 0; }
 @media (prefers-reduced-motion: no-preference) {
   .con-mapa:not(.sin-3d) .heroe .mapa-marca { grid-area: 1 / 1; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 2 / 1; padding-top: 0; }
 }
 @media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
-}
-@media (max-height: 50rem) and (min-width: 47.5rem) {   /* pantallas bajas (1366 × 768): los pasos sólo con su título */
+@media (max-height: 62rem) and (min-width: 47.5rem) {   /* pantallas bajas (hasta ~990 px de alto; antes 50 rem): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
   .sacel-datos .pasos p { display: none; }
 }

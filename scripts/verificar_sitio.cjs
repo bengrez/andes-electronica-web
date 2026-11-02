@@ -360,6 +360,13 @@ async function main() {
     apagar();
   }
 
+  /* CSS: llaves balanceadas (2026-11-02: una llave de más en base.css anuló en silencio la regla siguiente) */
+  {
+    const css = fs.readFileSync(path.join(raiz, 'base.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    let d = 0, linea = 0, mala = 0;
+    for (const l of css.split('\n')) { linea++; for (const ch of l) { if (ch === '{') d++; else if (ch === '}') d--; if (d < 0 && !mala) mala = linea; } }
+    if (mala || d !== 0) informe.resultados.push({ pagina: 'base.css', ancho: '-', tema: '-', movimiento: '-', duras: [{ tipo: 'css-llaves', linea: mala || null, saldo: d }], avisos: [] });
+  }
   fs.writeFileSync(path.join(salida, 'informe.json'), JSON.stringify(informe, null, 2));
   const duras = [], cont = {}, porPag = {};
   for (const R of informe.resultados) {
