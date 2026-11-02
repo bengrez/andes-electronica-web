@@ -30,7 +30,7 @@ const W = cfg.w || 1600, H = cfg.h || 900, DPR = cfg.dpr || 2;
       rep('function centroMapa() {', 'function centroMapa() { if (window.__R && window.__R.solo) return 0;');
       rep('TM.velo && W >= 760 ? 1 : 0', '!(window.__R && window.__R.solo) && TM.velo && W >= 760 ? 1 : 0');
       rep('if (quieto || !recorrido) return 1;', 'if (window.__R) return window.__R.p; if (quieto || !recorrido) return 1;');
-      rep('var niebla = [dist * 1.15, dist * 3.4];', 'var niebla = window.__R && window.__R.niebla ? window.__R.niebla : [dist * 1.15, dist * 3.4];');
+      rep('var niebla = [dist * 2.2, dist * 6];', 'var niebla = window.__R && window.__R.niebla ? window.__R.niebla : [dist * 2.2, dist * 6];');
       rep('TM.lavado * suave(pCam)', '(window.__R && window.__R.lavado != null ? window.__R.lavado : TM.lavado * suave(pCam))');
       b = s;
     }

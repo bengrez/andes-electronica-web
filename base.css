@@ -92,6 +92,13 @@ a { color: inherit; }
 .nav a:hover { color: var(--tinta); }
 .nav a[aria-current="page"] { color: var(--tinta); border-bottom-color: var(--acento); }
 /* tema: botón redondo con un símbolo, junto a Contacto (2026-10-30) */
+/* idioma (2026-11-02): ES actual; EN lleva a en/index.html, en blanco hasta la traducción */
+.idioma { display: flex; align-items: center; gap: .1rem; font: 600 .78rem/1 "DM Sans", sans-serif; letter-spacing: .04em; }
+.idioma span, .idioma a { display: grid; place-items: center; min-width: 1.9rem; height: 1.9rem; border-radius: 999px; padding: 0 .35rem; }
+.idioma span { color: var(--tinta); box-shadow: inset 0 0 0 1px var(--linea); }
+.idioma a { color: var(--tinta-2); text-decoration: none; }
+.idioma a:hover { color: var(--tinta); }
+@media (min-width: 47.5rem) { .idioma { margin-left: -.5rem; padding-left: 1.25rem; border-left: 1px solid var(--linea); } }   /* al extremo derecho, separado del tema */
 .tema { width: 2.1rem; height: 2.1rem; padding: 0; display: grid; place-items: center; color: var(--tinta-2); background: none; border: 1px solid var(--linea); border-radius: 50%; cursor: pointer; }
 .tema svg { width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .tema:hover { color: var(--tinta); border-color: var(--tinta-2); }
@@ -116,7 +123,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   body:has(.cordillera) > .barra { position: fixed; padding-block: 1.25rem calc(1.25rem - .5rem * var(--k, 0));
     --a-barra: min(1, calc(var(--k, 0) * 6));
     --fondo-barra: color-mix(in srgb, var(--pagina) calc(var(--a-barra) * 100%), transparent);
-    --linea-barra: color-mix(in srgb, var(--linea) calc(var(--a-barra) * 100%), transparent);
+    --linea-barra: color-mix(in srgb, var(--linea) calc(clamp(0, (var(--k, 0) * 6 - .999) * 1000, 1) * 100%), transparent);   /* la línea, sólo con el fondo ya entero (si no, se suman dos tonos) */
     background: var(--fondo-barra); box-shadow: 0 0 0 100vmax var(--fondo-barra), 0 1px 0 100vmax var(--linea-barra); }
 }
 .cordillera { position: relative; height: 70vh; height: 70svh; min-height: 30rem; display: flex; flex-direction: column; background: var(--cordillera-cielo); }
@@ -171,7 +178,15 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
    animado (sin JS, sin WebGL o con movimiento reducido) los textos van uno debajo del otro. */
 .heroe .capa { max-width: 30rem; }
 .capa-sacel { margin-top: 4rem; }
-.mapa-marca { font: 600 clamp(1.3rem, 2vw, 1.75rem)/1.1 var(--titulos); letter-spacing: -.02em; color: var(--tinta); margin-bottom: .9rem; }
+.mapa-marca { font: 600 clamp(1.3rem, 2vw, 1.75rem)/1 var(--titulos); letter-spacing: -.03em; color: var(--tinta); margin-bottom: .9rem; }
+/* el h1 de la portada viaja hasta .mapa-marca (sitio.js): arriba se ve el h1; durante el viaje, una copia fija; con el
+   mapa arriba, el texto del mapa (que va fijo con él, sin JS, así no salta con la rueda) */
+.h1-viajero { position: fixed; left: 0; top: 0; z-index: 11; margin: 0; pointer-events: none; transform-origin: 0 0; will-change: transform;
+  font: 600 1em/1 var(--titulos); letter-spacing: -.03em; color: var(--tinta); white-space: nowrap; visibility: hidden; }
+.h1-en-viaje .h1-viajero { visibility: visible; }
+.h1-viaja.h1-en-viaje .cordillera h1, .h1-viaja.h1-en-mapa .cordillera h1 { visibility: hidden; }
+.h1-viaja:not(.h1-en-mapa) .mapa-marca { visibility: hidden; }
+.h1-viaja .cordillera .entrada, .h1-viaja .cordillera .alcance, .h1-viaja .bajar { opacity: max(0, calc(1 - var(--k, 0) * 8)); }   /* se van en el primer 1/8 del recorrido, antes de que el título las alcance */
 @media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
   .con-mapa:not(.sin-3d) .recorrido .heroe { opacity: var(--k, 1); }   /* lo que asoma son sólo cumbres; el texto entra con el mapa */
 }
@@ -194,8 +209,14 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   .con-mapa:not(.sin-3d) .sacel-datos { opacity: var(--datos, 0); transform: translateY(calc((1 - var(--datos, 0)) * 1rem)); }
   .con-mapa:not(.sin-3d) .capa-empresa { padding-top: clamp(3rem, 14vh, 9rem); }
 }
-/* SACEL abre el mapa (2026-11-02): bajo la barra fija */
-@media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .capa-sacel { padding-top: clamp(3.5rem, 10vh, 6.5rem); } }
+/* mapa (2026-11-02): «Andes Electrónica» arriba (fila 1, bajo la barra fija) y, debajo, el panorama y SACEL en la misma
+   celda, turnándose con --sacel */
+.panorama { font-size: clamp(1.2rem, 1.85vw, 1.55rem); line-height: 1.45; color: var(--tinta); max-width: 34rem; margin-top: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .con-mapa:not(.sin-3d) .heroe .mapa-marca { grid-area: 1 / 1; }
+  .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 2 / 1; padding-top: 0; }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
 }
 @media (max-height: 50rem) and (min-width: 47.5rem) {   /* pantallas bajas (1366 × 768): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }

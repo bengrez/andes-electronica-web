@@ -32,9 +32,52 @@
     var k = Math.min(1, Math.max(0, scrollY / Math.max(1, portada.offsetHeight)));
     k = Math.round(k * 1000) / 1000;
     if (k !== ultimo) { ultimo = k; d.style.setProperty("--k", String(k)); }
+    mudar(k);
+  }
+  /* «Andes Electrónica» es el mismo título de la portada, que viaja y se achica hasta su lugar en el mapa (Benjamin,
+     2026-11-02: «es el mismo, sólo que mutó»). Para que no salte con la rueda del mouse (el scroll pinta antes que este
+     código), el viaje lo hace una copia fija (.h1-viajero), que sólo existe entre k = 0 y k = 1:
+     - arriba de todo (k = 0) se ve el h1 real;
+     - durante el viaje, la copia fija (aria-hidden), interpolada entre el lugar del h1 y el del mapa;
+     - con el mapa arriba (k = 1), el texto del mapa (.mapa-marca), que va fijo con el mapa sin depender de JS.
+     Sólo en escritorio y sin movimiento reducido. */
+  var h1 = portada.querySelector("h1"), lugar = document.querySelector(".mapa-marca");
+  var activo = h1 && lugar && matchMedia("(min-width: 47.51rem) and (prefers-reduced-motion: no-preference)");
+  var base = null, copia = null, fase = "";
+  function medirBase() {                          // lugar y tamaño del h1 en el documento
+    if (!activo || !activo.matches) { base = null; fijarFase(""); d.classList.remove("h1-viaja"); return; }
+    var r = h1.getBoundingClientRect();
+    base = { x: r.left, y: r.top + scrollY, fs: parseFloat(getComputedStyle(h1).fontSize) };
+    if (!copia) {
+      copia = document.createElement("div"); copia.className = "h1-viajero"; copia.setAttribute("aria-hidden", "true");
+      copia.textContent = h1.textContent; document.body.appendChild(copia);
+    }
+    copia.style.fontSize = base.fs + "px";
+    d.classList.add("h1-viaja");
+  }
+  function fijarFase(f) {                        // "arriba" | "viaje" | "mapa"
+    if (f === fase) return; fase = f;
+    d.classList.toggle("h1-en-viaje", f === "viaje");
+    d.classList.toggle("h1-en-mapa", f === "mapa");
+  }
+  function mudar(k) {
+    if (!base) return;
+    if (k <= 0) { fijarFase("arriba"); return; }
+    if (k >= 1) { fijarFase("mapa"); return; }
+    fijarFase("viaje");
+    var L = lugar.getBoundingClientRect(), esc = parseFloat(getComputedStyle(lugar).fontSize) / base.fs;
+    var x = base.x + (L.left - base.x) * k, y = (base.y - scrollY) + (L.top - (base.y - scrollY)) * k, s = 1 + (esc - 1) * k;
+    copia.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + s.toFixed(4) + ")";
+  }
+  if (activo) {
+    var rehacer = function () { medirBase(); ultimo = -1; poner(); };
+    if (activo.addEventListener) activo.addEventListener("change", rehacer);
+    addEventListener("load", rehacer);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(rehacer);
+    medirBase();
   }
   addEventListener("scroll", function () { if (!pedido) { pedido = true; requestAnimationFrame(poner); } }, { passive: true });
-  addEventListener("resize", poner);
+  addEventListener("resize", function () { if (activo) medirBase(); ultimo = -1; poner(); });
   poner();
 })();
 

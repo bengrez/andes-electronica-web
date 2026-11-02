@@ -16,7 +16,9 @@
   var recorrido = document.querySelector(".recorrido");
   if (!D || !window.FlotaSim || !lienzo || !capa) return;
   var heroe = document.querySelector(".heroe");
-  var SACEL_ENTRA = [-1, 0];                    // SACEL desde el comienzo: los párrafos de la empresa salieron del mapa (Benjamin, 2026-11-02); antes [0.35, 0.65]
+  // el mapa abre quieto con el panorama de Andes; en este tramo del descenso entra SACEL y parten la cámara y los buses
+  // (Benjamin, 2026-11-02). Antes: [0.35, 0.65] con los párrafos de la empresa; luego [-1, 0] (SACEL desde el comienzo).
+  var SACEL_ENTRA = [0.12, 0.42];
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -27,7 +29,7 @@
   if (recorrido && "IntersectionObserver" in window) {
     var vigia = new IntersectionObserver(function (es) {
       if (es.some(function (e) { return e.isIntersecting; })) { vigia.disconnect(); despues(empezar); }
-    }, { rootMargin: "0px 0px -30% 0px" });
+    }, { rootMargin: "0px 0px -40% 0px" });   // la portada mide 70 %: el mapa asoma en el 30 % de abajo sin cargar WebGL
     vigia.observe(recorrido);
   } else despues(empezar);
   function empezar() {
@@ -40,7 +42,6 @@
                                                 // (reservada para la animación de los datos: window.FlotaPortada.datos)
   var opacMapa = 1, opacVida = 1, nieblaAct = [1, 2];
   var MAPA_FINAL = 0.4;                         // cuánto se transparenta el relieve al final del scroll
-  var RUTA_TENUE = 0.45;                        // opacidad de la ruta y los buses arriba de todo
   var tenue = 1;
   var ESCALA = 0.5;                             // camino y buses en pantalla respecto del 29-oct (Benjamin, 2026-10-30: el doble de chicos)
   // la nube de SACEL que recibe las tramas (antes un switch): un punto del valle al norte de la ruta, dibujada unos px más arriba con su mástil
@@ -64,7 +65,8 @@
   // Siempre se mira al centro de la H-25 (Benjamin, 2026-10-29: la animación centrada en la ruta y más alejada); el
   // corrimiento de lente de camara() deja ese centro en el medio del espacio del mapa, a la derecha del texto.
   var CENTRO = [16700, 1800, 9500];                    // centro del cuadro de la ruta, a media altura (exagerada)
-  var ALEJAR = 1.25;                                   // zoom out respecto de las poses del 28-oct
+  var ALEJAR = 1.85;                                   // zoom out respecto de las poses del 28-oct (1,25 hasta el 2-nov; Benjamin: el mapa completo, cumbres incluidas)
+  var BAJAR = 0.08;                                    // corrimiento vertical de lente (fracción de media pantalla), escritorio
   function desde(v) { return [CENTRO[0] + v[0] * ALEJAR, CENTRO[1] + v[1] * ALEJAR, CENTRO[2] + v[2] * ALEJAR]; }
   var POSES = [
     [0.00, desde([-8500, 15000, 20500]), CENTRO],       // inclinada desde el sur (Benjamin, 2026-10-29: el tilt inicial)
@@ -127,7 +129,9 @@
   // papel hacia la columna de texto y hacia arriba, pero las crestas aguantan más que los valles: el borde sigue el
   // contorno de la cordillera y cambia con la inclinación de la cámara. uVelo = (x del papel sólido, ancho del
   // fundido, alto del fundido superior, alto del lienzo) en px del lienzo; uVeloAlt = altura mínima y máxima.
-  var VELO = "uniform vec4 uVelo; uniform vec2 uVeloAlt; uniform float uVeloOn, uVeloAsp;" +
+  var VELO = "uniform vec4 uVelo; uniform vec2 uVeloAlt; uniform float uVeloOn, uVeloAsp, uPicos;" +
+    // cuánto de «cumbre alta» tiene el punto (0 a 1): esas no se funden con nada (Benjamin, 2026-11-02)
+    "float picos(float y){ return uPicos * smoothstep(0.32, 0.55, clamp((y - uVeloAlt.x) / (uVeloAlt.y - uVeloAlt.x), 0.0, 1.0)); }" +
     "float azar(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }" +
     "float ruido(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);" +
     " return mix(mix(azar(i), azar(i + vec2(1.0, 0.0)), f.x), mix(azar(i + vec2(0.0, 1.0)), azar(i + vec2(1.0, 1.0)), f.x), f.y); }" +
@@ -138,8 +142,10 @@
     // abajo, bajo los textos, el mapa avanza hacia la izquierda para que se vea el inicio de la H-25
     " float tx = (gl_FragCoord.x - uVelo.x) / uVelo.y + 0.75 * smoothstep(0.68, 1.0, bajo) + extra, ty = (uVelo.w - gl_FragCoord.y) / uVelo.z + 0.2 + extra;" +
     " float td = (uVelo.w * uVeloAsp - gl_FragCoord.x) / uVelo.z + 0.45, tb = gl_FragCoord.y / uVelo.z + 0.4;" +
-    " return smoothstep(0.0, 0.85, tx + k * 1.1) * smoothstep(0.0, 0.85, ty + k * 1.1)" +
-    " * smoothstep(0.0, 0.85, td + k * 1.1) * smoothstep(0.0, 0.85, tb + k * 1.1); }";
+    " float v = smoothstep(0.0, 0.85, tx + k * 1.1) * smoothstep(0.0, 0.85, ty + k * 1.1)" +
+    " * smoothstep(0.0, 0.85, td + k * 1.1) * smoothstep(0.0, 0.85, tb + k * 1.1);" +
+    // las cumbres altas no se funden: borde nítido contra el cielo (Benjamin, 2026-11-02: «darle más importancia a la altura de la cordillera»)
+    " return mix(v, 1.0, picos(y)); }";
   var pTerreno, pCamino, pBus;
   try {
     pTerreno = programa(
@@ -165,6 +171,8 @@
       " float f = smoothstep(uNiebla.x, uNiebla.y, distance(vPos, uOjo));" +
       " c = mix(c, uBruma, smoothstep(0.0, 1.0, distance(vPos, uOjo) / uNiebla.y) * 0.35 * uVerde);" +
       " float b = smoothstep(0.0, 0.07, vUV.x) * smoothstep(0.0, 0.07, vUV.y) * smoothstep(0.0, 0.07, 1.0 - vUV.x) * smoothstep(0.0, 0.07, 1.0 - vUV.y);" +
+      // las cumbres más altas están en el borde este del modelo: ahí no se aplican el fundido del borde ni la neblina
+      " float pk = picos(vPos.y); b = mix(b, 1.0, pk); f *= 1.0 - pk;" +
       " float a = b * (1.0 - 0.75 * f) * velo(vPos.y, vPos.xz, 0.0) * uOpac; c = mix(c, cNiebla, f * 0.7);" +
       " gl_FragColor = vec4(c * a, a); }");
     pCamino = programa(
@@ -247,6 +255,8 @@
   function suave(t) { return t * t * (3 - 2 * t); }
   function lerp(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
   function pose(p) {
+    // la cámara espera quieta mientras se lee el panorama y parte cuando empieza a entrar SACEL
+    p = Math.max(0, (p - SACEL_ENTRA[0]) / (1 - SACEL_ENTRA[0]));
     for (var k = 1; k < POSES.length && POSES[k][0] < p; k++);
     k = Math.min(k, POSES.length - 1);
     var A = POSES[k - 1], B = POSES[k], t = suave(Math.max(0, Math.min(1, (p - A[0]) / (B[0] - A[0]))));
@@ -265,6 +275,7 @@
     var dist = Math.hypot(q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]);
     var P = perspectiva(FOV * Math.PI / 180, W / H, Math.max(30, dist * 0.004), dist * 6);
     P[8] = -centroMapa();                          // corrimiento de lente: el objetivo queda en el medio del espacio del mapa
+    if (W >= 760) P[9] = BAJAR;                    // y un poco más abajo, para que las cumbres no queden bajo la barra fija
     VP = mult(P, mirar(q.ojo, q.obj, q.arriba));
     return dist;
   }
@@ -394,6 +405,7 @@
     gl.uniform2fv(gl.getUniformLocation(p, "uVeloAlt"), [altMin * EXAG, altMax * EXAG]);
     gl.uniform1f(gl.getUniformLocation(p, "uVeloOn"), TM.velo && W >= 760 ? 1 : 0);
     gl.uniform1f(gl.getUniformLocation(p, "uVeloAsp"), W / H);
+    gl.uniform1f(gl.getUniformLocation(p, "uPicos"), 1);
   }
   function veloEn(x, y, e) {                     // el mismo velo, para la capa plana (sin el ruido)
     if (!TM.velo || W < 760) return 1;
@@ -415,10 +427,11 @@
     gl.viewport(0, 0, lienzo.width, lienzo.height);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    var niebla = [dist * 1.15, dist * 3.4]; nieblaAct = niebla;
+    var niebla = [dist * 2.2, dist * 6]; nieblaAct = niebla;   // neblina más lejos (antes 1,15 y 3,4): el macizo completo se ve nítido
     // arriba de todo la ruta y los buses van tenues, para que manden las montañas (Benjamin, 2026-10-30); toman fuerza
     // en el primer tramo del descenso
-    tenue = RUTA_TENUE + (1 - RUTA_TENUE) * suave(Math.min(1, pCam / 0.4));
+    // la ruta y los buses aparecen con SACEL (antes, tenues desde el comienzo)
+    tenue = suave(Math.max(0, Math.min(1, (pCam - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
     // terreno
     gl.useProgram(pTerreno);
     atributo(pTerreno, "aPos", bufTerreno, 3, 5, 0); atributo(pTerreno, "aUV", bufTerreno, 2, 5, 3);
@@ -880,7 +893,7 @@
     capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr);
     if (cielo) { cielo.width = Math.round(W * dpr); cielo.height = Math.round(H * dpr); }
   }
-  function paso(dt) { if (dt) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }
+  function paso(dt) { if (dt && tenue > 0) sim.avanzar(dt); if (listo === 2 && alturas) dibujar(); }   // los buses parten cuando aparecen
 
   function aplicarTema() {
     tema = temaActual(); TM = TEMAS[tema]; sim.tema(tema);
