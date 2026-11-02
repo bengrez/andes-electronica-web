@@ -523,10 +523,15 @@
       return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
     }).filter(function (o) { return o.c && o.c[0] > 0 && o.c[0] < W && o.c[1] > 0 && o.c[1] < H; })
       .sort(function (a, b) { return a.d - b.d; });
-    // dos fichas (Benjamin, 2026-11-02): el bus más cerca que sube y el más cerca que baja
-    var sube1 = cerca.filter(function (o) { return o.f.b.dir > 0; })[0], baja1 = cerca.filter(function (o) { return o.f.b.dir < 0; })[0];
+    // dos fichas fijas (Benjamin, 2026-11-02): cada una muestra el bus de su sentido que está más cerca de ella en pantalla
+    function masCerca(sube) {
+      var A = anclaFicha(sube); if (!A) return null;
+      return cerca.filter(function (o) { return (o.f.b.dir > 0) === sube; })
+        .sort(function (a, b) { return Math.hypot(a.c[0] - A.p[0], a.c[1] - A.p[1]) - Math.hypot(b.c[0] - A.p[0], b.c[1] - A.p[1]); })[0];
+    }
+    var sube1 = masCerca(true), baja1 = masCerca(false);
     cerca = [sube1, baja1].filter(Boolean).sort(function (a, b) { return a.c[1] - b.c[1]; });
-    var claro = tema === "claro", ANCHO = 180, ALTO = 82, ocupado = -1e9;
+    var claro = tema === "claro", ANCHO = 180, ALTO = 82;
     cr.save();
     cr.globalAlpha = op;
     cerca.forEach(function (o) {
@@ -534,17 +539,18 @@
       var km = (s * D.largo / sim.LARGO / 1000).toFixed(1).replace(".", ","), alt = Math.round(sim.altitud(s)).toLocaleString("es-CL");
       var estado = b.v < 0.5 ? "Detenido" : kmh > lim ? "Sobre el límite" : "En ruta";   // con la misma velocidad que se muestra
       var sube = (b.dir > 0) ? "subiendo" : "bajando";
-      // a la derecha del bus; si choca con la ficha anterior, más abajo
-      var x = Math.min(o.c[0] + 46, W - ANCHO - 12), y = Math.max(o.c[1] - ALTO / 2 - 20, ocupado + 10);
-      ocupado = y + ALTO;
-      // sombra sobre el mapa: corrida en contra del sol y desenfocada
-      cr.save(); cr.fillStyle = claro ? "rgba(40,36,20,.22)" : "rgba(0,0,6,.55)";
-      if ("filter" in cr) cr.filter = "blur(6px)";
-      redondeado(x - 10, y + 16, ANCHO, ALTO, 10); cr.fill(); cr.restore();
-      // línea al bus
-      cr.strokeStyle = claro ? "rgba(0,16,79,.5)" : "rgba(242,237,227,.55)"; cr.lineWidth = 1;
-      cr.beginPath(); cr.moveTo(o.c[0] + 5, o.c[1]); cr.lineTo(x, y + 20); cr.stroke();
-      cr.fillStyle = claro ? "rgba(0,16,79,.8)" : "rgba(242,237,227,.85)"; cr.beginPath(); cr.arc(o.c[0], o.c[1], 2.5, 0, 7); cr.fill();
+      // fija en el mapa (Benjamin, 2026-11-02): flota sobre un punto del relieve a la derecha de la ruta, uno para la
+      // ficha de subida y otro para la de bajada; sólo la línea sigue al bus
+      var A = anclaFicha(b.dir > 0); if (!A) return;
+      var x = Math.min(A.p[0], W - ANCHO - 12), y = A.p[1] - ALTO;
+      // su sombra sobre el terreno, como la de la nube de SACEL
+      sombraFicha(A, ANCHO);
+      // conexión con el bus, en azul Andes
+      var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
+      cr.strokeStyle = azul; cr.lineWidth = 1.4;
+      cr.beginPath(); cr.moveTo(o.c[0], o.c[1]); cr.lineTo(x, y + ALTO / 2); cr.stroke();
+      cr.fillStyle = azul; cr.beginPath(); cr.arc(o.c[0], o.c[1], 3, 0, 7); cr.fill();
+      cr.beginPath(); cr.arc(x, y + ALTO / 2, 2.2, 0, 7); cr.fill();
       // tarjeta, con color por sentido (Benjamin, 2026-11-02: «un poco de color»): cálida (cobre) si sube, fría (azul) si baja
       var arriba = b.dir > 0;
       var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
@@ -567,6 +573,31 @@
       cr.font = "500 9px 'Plex Mono', monospace"; cr.fillStyle = tinta2; cr.textAlign = "right"; cr.fillText("simulación", x + ANCHO - 10, y + 75); cr.textAlign = "left";
     });
     cr.restore();
+  }
+  // anclas de las fichas: a la derecha (este) de la ruta, la de subida más arriba en la ruta que la de bajada; flotan a
+  // la altura de la nube de SACEL sobre el terreno
+  var ANCLAS = { sube: { s: 0.66, este: 2600 }, baja: { s: 0.30, este: 3200 } };
+  function anclaFicha(sube) {
+    var a = ANCLAS[sube ? "sube" : "baja"], q = sim.enRuta(a.s * sim.LARGO), x = q[0] + a.este, z = q[1];
+    var e = alturaEn(x, z), y = (e + NUBE.altura * 0.55) * EXAG, p = proyectar(x, y, z);
+    return p ? { p: p, x: x, z: z, e: e, alto: y - e * EXAG } : null;
+  }
+  function sombraFicha(A, anchoPx) {           // rectángulo redondeado tendido sobre el terreno, corrido como la sombra de la nube
+    var wm = tamPantalla(A.x, A.e * EXAG, A.z, anchoPx), hm = wm * 0.42;
+    // corrida al sur (hacia quien mira), así asoma bajo la tarjeta como la sombra de la nube bajo la nube
+    var d = A.alto * NUBE.sombra, cx = A.x + d * 0.25 - wm * 0.08, cz = A.z + d + hm * 1.1;
+    cr.save();
+    if ("filter" in cr) cr.filter = "blur(3px)";
+    cr.fillStyle = tema === "claro" ? "rgba(40,30,10,.62)" : "rgba(0,0,6,.72)";
+    cr.beginPath();
+    for (var k = 0; k <= 48; k++) {
+      var t = k / 48 * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
+      var sx = Math.sign(c) * Math.pow(Math.abs(c), 0.35), sz = Math.sign(s) * Math.pow(Math.abs(s), 0.35);   // casi rectángulo
+      var x = cx + wm * 0.5 + sx * wm * 0.5, z = cz + sz * hm * 0.5;
+      var q = proyectar(x, alturaEn(x, z) * EXAG + 15, z); if (!q) { cr.restore(); return; }
+      if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]);
+    }
+    cr.fill(); cr.restore();
   }
   function redondeado(x, y, w, h, r) {
     cr.beginPath();
