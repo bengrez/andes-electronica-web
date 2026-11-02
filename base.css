@@ -520,6 +520,10 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .saltar-seccion svg { width: .62rem; height: .62rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .saltar-seccion:hover { border-color: var(--tinta); }
 @keyframes seguir { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(2px); } }
+/* Área tocable de 24 px (WCAG 2.2, 2.5.8) sin cambiar el tamaño que se ve (Benjamin, 2026-10-30: texto de .56 rem): un ::before
+   transparente sobresale .2 rem por cada lado (el hueco entre botones es .5 rem, así que las áreas no se pisan). */
+.seguir, .saltar-seccion, .pausa { position: relative; }
+.seguir::before, .saltar-seccion::before, .pausa::before { content: ""; position: absolute; inset: -.2rem; }
 @media (prefers-reduced-motion: reduce) { .seguir, .saltar-seccion { display: none; } }
 .taco-hint-fila { display: flex; align-items: center; gap: .5rem; }
 .taco-hint-fila .taco-hint { margin-right: .5rem; }
