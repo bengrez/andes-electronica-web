@@ -16,7 +16,7 @@
   var recorrido = document.querySelector(".recorrido");
   if (!D || !window.FlotaSim || !lienzo || !capa) return;
   var heroe = document.querySelector(".heroe");
-  var SACEL_ENTRA = [0.35, 0.65];               // tramo del descenso en que el texto pasa de la empresa a SACEL
+  var SACEL_ENTRA = [-1, 0];                    // SACEL desde el comienzo: los párrafos de la empresa salieron del mapa (Benjamin, 2026-11-02); antes [0.35, 0.65]
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }

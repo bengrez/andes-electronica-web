@@ -19,3 +19,22 @@
     rotular();
   }
 })();
+/* Inicio (Benjamin, 2026-11-02): la barra queda fija y el logo parte grande y se achica mientras entra el mapa. --k va
+   de 0 (arriba de todo) a 1 (el mapa llega arriba); lo usan base.css (tamaño del logo, fondo de la barra) y el texto
+   del mapa, que aparece a medida que entra. Ligado al scroll, no es una animación por sí misma. */
+(function () {
+  "use strict";
+  var portada = document.querySelector(".cordillera");
+  if (!portada) return;
+  var d = document.documentElement, pedido = false, ultimo = -1;
+  function poner() {
+    pedido = false;
+    var k = Math.min(1, Math.max(0, scrollY / Math.max(1, portada.offsetHeight)));
+    k = Math.round(k * 1000) / 1000;
+    if (k !== ultimo) { ultimo = k; d.style.setProperty("--k", String(k)); }
+  }
+  addEventListener("scroll", function () { if (!pedido) { pedido = true; requestAnimationFrame(poner); } }, { passive: true });
+  addEventListener("resize", poner);
+  poner();
+})();
+

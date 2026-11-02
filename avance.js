@@ -35,7 +35,10 @@
     a.firstChild.textContent = d.titulo;
     a.addEventListener("click", function (e) {
       e.preventDefault();
-      var y = d.el.getBoundingClientRect().top + scrollY - (d.el.hasAttribute("data-etapas") ? 0 : 16);
+      // la barra fija (escritorio) tapa el borde de arriba: se deja su alto, como mucho 110 px (en inicio el logo se achica al bajar)
+      var barra = document.querySelector(".barra"), pos = barra && getComputedStyle(barra).position;
+      var tapa = pos === "sticky" || pos === "fixed" ? Math.min(barra.offsetHeight, 110) : 0;
+      var y = d.el.getBoundingClientRect().top + scrollY - (d.el.hasAttribute("data-etapas") ? 0 : 16 + tapa);
       scrollTo({ top: Math.max(0, y), behavior: quieto ? "auto" : "smooth" });
       history.replaceState(null, "", "#" + d.el.id);
     });

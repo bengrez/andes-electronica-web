@@ -294,7 +294,8 @@ async function main() {
           const m = await page.evaluate(medirDOM);
           const at = { scroll: pc };
           if (m.desborde) dura('desborde-horizontal', { ...at, ...m.desborde });
-          const lt = await page.evaluate(medirLogoTitulo);
+          // sólo arriba de la página: al bajar, el h1 pasa por debajo de la barra fija (que lo tapa con su fondo) y no es un solape
+          const lt = pc === 0 ? await page.evaluate(medirLogoTitulo) : null;
           if (lt) dura('solape-logo-titulo', { ...at, ...lt });
           for (const x of m.tactil) aviso(x.espaciado || x.enLinea ? 'tactil-por-excepcion' : 'tactil-pequeno', { ...at, ...x });   // 2.5.8: espaciado o enlace en línea
           for (const x of m.tactilFalso) dura('tactil-area-no-responde', { ...at, ...x });

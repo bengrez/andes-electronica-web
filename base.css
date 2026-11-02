@@ -106,6 +106,19 @@ a { color: inherit; }
    pantalla y deja asomar el borde superior del mapa (las cumbres nevadas de su primer cuadro): «que el mapa sobresalga».
    Desde el 2-nov (tarde) mide 70 %: «un poco más de las montañas». En el celular, por ahora, ocupa la pantalla entera (Benjamin: el celular se ve más adelante). La barra flota encima. ─── */
 body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; }
+/* barra fija en todas las páginas (Benjamin, 2026-11-02: «mantener el top banner a lo largo de la página»), en
+   escritorio. El fondo ocupa todo el ancho (sombra de 100vmax recortada a la franja). En inicio el fondo aparece con --k. */
+@media (min-width: 47.51rem) {
+  html { scroll-padding-top: 6.5rem; }
+  .barra { position: sticky; top: 0; z-index: 12; padding-block: .75rem; background: var(--pagina);
+    box-shadow: 0 0 0 100vmax var(--pagina), 0 1px 0 100vmax var(--linea); clip-path: inset(0 -100vmax -1px); }   /* sombras: no agrandan la página */
+  /* inicio: transparente sobre el cielo arriba de todo; el fondo llega entero apenas el texto empieza a pasar por debajo */
+  body:has(.cordillera) > .barra { position: fixed; padding-block: 1.25rem calc(1.25rem - .5rem * var(--k, 0));
+    --a-barra: min(1, calc(var(--k, 0) * 6));
+    --fondo-barra: color-mix(in srgb, var(--pagina) calc(var(--a-barra) * 100%), transparent);
+    --linea-barra: color-mix(in srgb, var(--linea) calc(var(--a-barra) * 100%), transparent);
+    background: var(--fondo-barra); box-shadow: 0 0 0 100vmax var(--fondo-barra), 0 1px 0 100vmax var(--linea-barra); }
+}
 .cordillera { position: relative; height: 70vh; height: 70svh; min-height: 30rem; display: flex; flex-direction: column; background: var(--cordillera-cielo); }
 .cordillera-texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(8rem, 24vh, 15rem) 0 2rem; }
 .cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, 7vw, 6rem); }
@@ -123,7 +136,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (min-width: 47.51rem) {
   body:has(.cordillera) { --logo-ancho: clamp(8rem, 13vw, 13.5rem); }
   body:has(.cordillera) > .barra { align-items: flex-start; }
-  body:has(.cordillera) > .barra .marca img { width: var(--logo-ancho); }
+  body:has(.cordillera) > .barra .marca img { width: calc(var(--logo-ancho) - (var(--logo-ancho) - 4.08rem) * var(--k, 0)); }   /* grande → 4,08 rem (el de las demás páginas) */
   .cordillera-texto { padding-top: calc(1.25rem + var(--logo-ancho) * 34 / 38 + clamp(2.5rem, 10vh, 6.5rem)); }   /* texto más abajo (Benjamin, 2-nov) */
 }
 /* antes de que cargue WebGL, el lienzo del mapa muestra su primer cuadro fijo (el mismo que dibuja después) */
@@ -158,6 +171,10 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
    animado (sin JS, sin WebGL o con movimiento reducido) los textos van uno debajo del otro. */
 .heroe .capa { max-width: 30rem; }
 .capa-sacel { margin-top: 4rem; }
+.mapa-marca { font: 600 clamp(1.3rem, 2vw, 1.75rem)/1.1 var(--titulos); letter-spacing: -.02em; color: var(--tinta); margin-bottom: .9rem; }
+@media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
+  .con-mapa:not(.sin-3d) .recorrido .heroe { opacity: var(--k, 1); }   /* lo que asoma son sólo cumbres; el texto entra con el mapa */
+}
 .capa-empresa h1 { max-width: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
 .capa-empresa .lugar { margin-top: 2rem; font: 500 .85rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); letter-spacing: .02em; }
 .capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.2rem, 4.2vw, 3.6rem); }
@@ -177,10 +194,8 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   .con-mapa:not(.sin-3d) .sacel-datos { opacity: var(--datos, 0); transform: translateY(calc((1 - var(--datos, 0)) * 1rem)); }
   .con-mapa:not(.sin-3d) .capa-empresa { padding-top: clamp(3rem, 14vh, 9rem); }
 }
-/* en escritorio, los párrafos del mapa empiezan bajo la franja que asoma bajo la portada (30 % de la pantalla): lo que
-   asoma son sólo cumbres (2026-11-02) */
-@media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) {
-  .con-mapa:not(.sin-3d) .capa-empresa { padding-top: max(clamp(3rem, 14vh, 9rem), calc(30vh + 2.5rem - var(--heroe-pad))); }
+/* SACEL abre el mapa (2026-11-02): bajo la barra fija */
+@media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .capa-sacel { padding-top: clamp(3.5rem, 10vh, 6.5rem); } }
 }
 @media (max-height: 50rem) and (min-width: 47.5rem) {   /* pantallas bajas (1366 × 768): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
