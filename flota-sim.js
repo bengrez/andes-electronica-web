@@ -128,6 +128,7 @@
       for (var q = api.llegadas.length - 1; q >= 0; q--) if (reloj - api.llegadas[q].t > 0.9) api.llegadas.splice(q, 1);
     };
     api.enRuta = enRuta; api.rumbo = rumbo; api.altitud = altitud; api.posicion = posicion; api.exceso = exceso;
+    api.limiteKmh = limiteKmh;                 // para las fichas de los buses en el mapa de inicio (flota-3d.js)
     // sentido de marcha en el plano: el rumbo de la ruta, o el opuesto al bajar
     api.rumboBus = function (bus) { return rumbo(posicion(bus)) + (bus.dir > 0 ? 0 : Math.PI); };
 

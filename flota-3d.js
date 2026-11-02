@@ -496,6 +496,7 @@
       cr.beginPath(); cr.arc(c[0], c[1], 9 + 3 * Math.sin(sim.reloj * 4), 0, 7); cr.stroke();
     });
     vida();
+    if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
     condores();
     loros();
@@ -512,6 +513,57 @@
   function resaltes() {                         // se acercan a su meta en ~0,3 s (de inmediato con movimiento reducido)
     var t = performance.now(), dt = tRes ? Math.min(0.1, (t - tRes) / 1000) : 0; tRes = t;
     for (var k in RES) RES[k] = quieto ? META[k] : RES[k] + (META[k] - RES[k]) * Math.min(1, dt * 8);
+  }
+
+  // ─── fichas de los buses (Benjamin, 2026-11-02): al pasar sobre «Rastreo de flotas», una tarjeta semitransparente a la
+  // derecha de cada uno de los 3 buses más cerca de la cámara, unida a él por una línea y con su sombra sobre el mapa.
+  // Datos de la simulación (no son de un cliente): velocidad y límite del tramo, altitud, km de la ruta, sentido y estado ───
+  function fichas(op) {
+    var cerca = focos.map(function (f, i) {
+      return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
+    }).filter(function (o) { return o.c && o.c[0] > 0 && o.c[0] < W && o.c[1] > 0 && o.c[1] < H; })
+      .sort(function (a, b) { return a.d - b.d; }).slice(0, 3)
+      .sort(function (a, b) { return a.c[1] - b.c[1]; });
+    var claro = tema === "claro", ANCHO = 176, ALTO = 82, ocupado = -1e9;
+    cr.save();
+    cr.globalAlpha = op;
+    cerca.forEach(function (o) {
+      var b = o.f.b, s = sim.posicion(b), kmh = Math.round(b.v * 3.6), lim = sim.limiteKmh(s);
+      var km = (s * D.largo / sim.LARGO / 1000).toFixed(1).replace(".", ","), alt = Math.round(sim.altitud(s)).toLocaleString("es-CL");
+      var estado = b.v < 0.5 ? "Detenido" : kmh > lim ? "Sobre el límite" : "En ruta";   // con la misma velocidad que se muestra
+      var sube = (b.dir > 0) ? "subiendo" : "bajando";
+      // a la derecha del bus; si choca con la ficha anterior, más abajo
+      var x = Math.min(o.c[0] + 46, W - ANCHO - 12), y = Math.max(o.c[1] - ALTO / 2 - 20, ocupado + 10);
+      ocupado = y + ALTO;
+      // sombra sobre el mapa: corrida en contra del sol y desenfocada
+      cr.save(); cr.fillStyle = claro ? "rgba(40,36,20,.22)" : "rgba(0,0,6,.55)";
+      if ("filter" in cr) cr.filter = "blur(6px)";
+      redondeado(x - 10, y + 16, ANCHO, ALTO, 10); cr.fill(); cr.restore();
+      // línea al bus
+      cr.strokeStyle = claro ? "rgba(0,16,79,.5)" : "rgba(242,237,227,.55)"; cr.lineWidth = 1;
+      cr.beginPath(); cr.moveTo(o.c[0] + 5, o.c[1]); cr.lineTo(x, y + 20); cr.stroke();
+      cr.fillStyle = claro ? "rgba(0,16,79,.8)" : "rgba(242,237,227,.85)"; cr.beginPath(); cr.arc(o.c[0], o.c[1], 2.5, 0, 7); cr.fill();
+      // tarjeta
+      cr.fillStyle = claro ? "rgba(248,249,248,.82)" : "rgba(5,10,34,.78)";
+      cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
+      redondeado(x, y, ANCHO, ALTO, 10); cr.fill(); cr.stroke();
+      var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
+      var alerta = estado === "Sobre el límite", acento = claro ? "#8f5213" : "#d99a55";
+      cr.textBaseline = "alphabetic";
+      cr.font = "600 12.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta; cr.fillText("Bus " + (o.i + 1) + " · H-25, " + sube, x + 12, y + 20);
+      cr.font = "600 20px 'DM Sans', sans-serif"; cr.fillStyle = alerta ? acento : tinta; cr.fillText(kmh + " km/h", x + 12, y + 44);
+      var wv = cr.measureText(kmh + " km/h").width;
+      cr.font = "400 11.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta2; cr.fillText("límite " + lim, x + 18 + wv, y + 44);
+      cr.fillText(alt + " m s. n. m. · km " + km, x + 12, y + 61);
+      cr.fillStyle = alerta ? acento : tinta2; cr.fillText(estado, x + 12, y + 75);
+      cr.font = "500 9px 'Plex Mono', monospace"; cr.fillStyle = tinta2; cr.textAlign = "right"; cr.fillText("simulación", x + ANCHO - 10, y + 75); cr.textAlign = "left";
+    });
+    cr.restore();
+  }
+  function redondeado(x, y, w, h, r) {
+    cr.beginPath();
+    if (cr.roundRect) { cr.roundRect(x, y, w, h, r); return; }
+    cr.moveTo(x + r, y); cr.arcTo(x + w, y, x + w, y + h, r); cr.arcTo(x + w, y + h, x, y + h, r); cr.arcTo(x, y + h, x, y, r); cr.arcTo(x, y, x + w, y, r); cr.closePath();
   }
 
   // ─── tramas: cada una es un paquete que viaja en arco desde el bus hasta la nube de SACEL (Benjamin, 2026-10-30),
