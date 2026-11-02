@@ -2,6 +2,9 @@
 (function () {
   "use strict";
   var d = document.documentElement, b = document.querySelector(".tema");
+  // ancho de la barra de desplazamiento, para anclar el selector de idioma al borde de la ventana (base.css, .idioma)
+  function sb() { d.style.setProperty("--sb", (innerWidth - d.clientWidth) + "px"); }
+  sb(); addEventListener("resize", sb); addEventListener("load", sb);
   if (b) {
     // botón redondo con un símbolo (2026-10-30): una luna para pasar a oscuro, un sol para pasar a claro
     var LUNA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
