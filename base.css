@@ -40,7 +40,7 @@
   --pagina-2: #e0e4e1;
   --tinta: #00104f;
   --tinta-2: #3d4466;
-  --tinta-3: #5f6580;
+  --tinta-3: #5d637e;   /* antes #5f6580: 4,47:1 sobre --pagina-2; ahora 4,6:1 (2026-11-02) */
   --linea: rgba(0, 16, 79, .16);
   --acento: #8f5213;          /* cobre sobre el marfil: 5,9:1 */
   --boton: #00104f; --boton-tinta: #ebeeec;
