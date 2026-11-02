@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261103c">
+<link rel="stylesheet" href="base.css?v=20261103h">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -73,14 +73,13 @@
     <div class="capa capa-empresa" role="region" aria-label="Qué hace Andes Electrónica">
       <p class="entrada panorama">Diseñamos, fabricamos y mantenemos electrónica en Chile.</p>
       <!-- etiquetas con un dibujo simple por actividad (Benjamin, 2026-11-02: «de bajo contenido cognitivo»); las
-           actividades son las de la frase del sitio oficial -->
+           actividades son las de la frase del sitio oficial, agrupadas en 4 (Benjamin); las descripciones salen de sus fichas (Diseño PCB, Sistema
+           SACEL, I+D) y de servicios.html. Las que tienen lugar en el mapa lo señalan al pasar o enfocar (data-resalta) -->
       <ul class="haceres">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><rect class="ac" x="6" y="9" width="7" height="5" rx="1"/><path d="M16 10h2M16 13h2"/></svg><span>Equipos electrónicos</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span>Diseño y armado de circuitos</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span>Soporte técnico</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-5M19 12a7 7 0 0 1-12 5"/><path class="ac" d="M17 3v4h-4M7 21v-4h4"/></svg><span>Control automático</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/></svg><span>Rastreo satelital de flotas</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ac" cx="12" cy="12" r="2.4"/><circle cx="4.5" cy="6" r="1.8"/><circle cx="19.5" cy="6" r="1.8"/><circle cx="12" cy="20.5" r="1.8"/><path d="M6 7.2l4 3M18 7.2l-4 3M12 14.4v4.3"/></svg><span>Internet de las cosas</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span><b>Diseño e investigación</b><small>Circuitos impresos (PCB), sistemas de control automático e I+D en electrónica, computación y comunicaciones.</small></span></li>
+        <li data-resalta="bus" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><rect class="ac" x="6" y="9" width="7" height="5" rx="1"/><path d="M16 10h2M16 13h2"/></svg><span><b>Fabricación de equipos</b><small>Fabricamos en Chile los equipos que diseñamos, como el tacógrafo que va a bordo.</small></span></li>
+        <li data-resalta="flota nube" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/><path class="ac" d="M17.5 3.5a5 5 0 0 1 3 3M16.5 6a2.2 2.2 0 0 1 1.3 1.3"/></svg><span><b>Rastreo de flotas e Internet de las cosas</b><small>Con SACEL, cada bus o camión transmite su conducción en línea a la nube.</small></span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span><b>Soporte técnico</b><small>Servicio técnico para empresas del transporte; instalamos SACEL en buses y camiones.</small></span></li>
       </ul>
     </div>
     <section class="capa capa-sacel" aria-labelledby="t-sacel">
@@ -287,26 +286,23 @@
 
 <!-- pie -->
 <footer class="pie">
-  <div class="pie-fila">
-    <p>Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
-    <nav aria-label="Pie"><ul>
-      <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
-      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
-    </ul></nav>
-  </div>
-  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
-  <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
+  <p class="pie-datos">Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
+  <nav class="pie-nav" aria-label="Pie"><ul>
+    <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+    <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
+  </ul></nav>
+  <p class="atribucion">Sitio diseñado por BM-G y desarrollado por BM-G y Claude · Mapa y relieve: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL), Terrain Tiles (Mapzen, AWS) · Especies: <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores)</p>
 </footer>
 <!-- /pie -->
 
-<script src="sitio.js?v=20261103c"></script>
-<script src="avance.js?v=20261103c"></script>
-<script src="datos/h25.js?v=20261103c"></script>
-<script src="flota-sim.js?v=20261103c"></script>
-<script src="flota-mapa.js?v=20261103c"></script>
-<script src="flota-3d.js?v=20261103c"></script>
-<script src="clientes.js?v=20261103c"></script>
-<script src="productos-nube.js?v=20261103c"></script>
-<script src="etapas.js?v=20261103c"></script>
+<script src="sitio.js?v=20261103h"></script>
+<script src="avance.js?v=20261103h"></script>
+<script src="datos/h25.js?v=20261103h"></script>
+<script src="flota-sim.js?v=20261103h"></script>
+<script src="flota-mapa.js?v=20261103h"></script>
+<script src="flota-3d.js?v=20261103h"></script>
+<script src="clientes.js?v=20261103h"></script>
+<script src="productos-nube.js?v=20261103h"></script>
+<script src="etapas.js?v=20261103h"></script>
 </body>
 </html>

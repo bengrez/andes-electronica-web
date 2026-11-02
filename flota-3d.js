@@ -427,8 +427,11 @@
     var niebla = [dist * 2.2, dist * 6]; nieblaAct = niebla;   // neblina más lejos (antes 1,15 y 3,4): el macizo completo se ve nítido
     // arriba de todo la ruta y los buses van tenues, para que manden las montañas (Benjamin, 2026-10-30); toman fuerza
     // en el primer tramo del descenso
-    // la ruta y los buses aparecen con SACEL (antes, tenues desde el comienzo)
-    tenue = suave(Math.max(0, Math.min(1, (pCam - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
+    // la ruta y los buses van tenues desde el comienzo (el mapa ya muestra una flota en ruta, no sólo un paisaje;
+    // Benjamin, 2026-11-02) y toman fuerza con SACEL; al pasar sobre «Rastreo satelital de flotas», enteros
+    resaltes();
+    tenue = 0.4 + 0.6 * suave(Math.max(0, Math.min(1, (pCam - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
+    tenue = Math.max(tenue, RES.flota);
     // terreno
     gl.useProgram(pTerreno);
     atributo(pTerreno, "aPos", bufTerreno, 3, 5, 0); atributo(pTerreno, "aUV", bufTerreno, 2, 5, 3);
@@ -487,10 +490,28 @@
     });
     cr.globalAlpha = 1;
     cr.globalCompositeOperation = "source-over";
+    if (RES.bus > 0.01) focos.forEach(function (f) {          // «Equipos electrónicos»: cada bus lleva un tacógrafo
+      var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (!c) return;
+      cr.strokeStyle = "rgba(" + PULSO[tema].normal + "," + (0.9 * RES.bus).toFixed(3) + ")"; cr.lineWidth = 1.5;
+      cr.beginPath(); cr.arc(c[0], c[1], 9 + 3 * Math.sin(sim.reloj * 4), 0, 7); cr.stroke();
+    });
     vida();
     pulsos();
     condores();
     loros();
+  }
+
+  // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
+  var RES = { flota: 0, nube: 0, bus: 0 }, META = { flota: 0, nube: 0, bus: 0 }, tRes = 0;
+  [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
+    var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
+    function on() { ks.forEach(function (k) { META[k] = 1; }); paso(0); } function off() { ks.forEach(function (k) { META[k] = 0; }); paso(0); }
+    el.addEventListener("mouseenter", on); el.addEventListener("mouseleave", off);
+    el.addEventListener("focus", on); el.addEventListener("blur", off);
+  });
+  function resaltes() {                         // se acercan a su meta en ~0,3 s (de inmediato con movimiento reducido)
+    var t = performance.now(), dt = tRes ? Math.min(0.1, (t - tRes) / 1000) : 0; tRes = t;
+    for (var k in RES) RES[k] = quieto ? META[k] : RES[k] + (META[k] - RES[k]) * Math.min(1, dt * 8);
   }
 
   // ─── tramas: cada una es un paquete que viaja en arco desde el bus hasta la nube de SACEL (Benjamin, 2026-10-30),
@@ -508,7 +529,7 @@
   function posSwitch() {
     var e = alturaEn(SWITCH[0], SWITCH[1]), y0 = e * EXAG;
     // aparece con el descenso, en su lugar y de la nada: se condensa (Benjamin, 2026-10-30; NUBE.cielo > 0 la haría bajar)
-    var vis = suave(Math.max(0, Math.min(1, (pCam - 0.15) / 0.55)));
+    var vis = Math.max(suave(Math.max(0, Math.min(1, (pCam - 0.15) / 0.55))), RES.nube);   // o al pasar sobre «Internet de las cosas»
     var yc = y0 + NUBE.altura + (1 - vis) * NUBE.cielo, c = proyectar(SWITCH[0], yc, SWITCH[1]), suelo = proyectar(SWITCH[0], y0, SWITCH[1]);
     if (!c || !suelo) return null;
     var esc = Math.max(0.6, Math.min(2.6, NUBE.ancho / tamPantalla(SWITCH[0], yc, SWITCH[1], 1) / 38));
@@ -915,6 +936,7 @@
     heroe.style.setProperty("--datos", d.toFixed(3));
     var v = quieto || s > 0.5 ? "sacel" : "empresa";
     if (v === capaVisible) return; capaVisible = v;
+    heroe.setAttribute("data-capa", v);           // la capa que no se ve no toma el puntero (base.css)
     heroe.querySelectorAll(".capa-sacel a").forEach(function (a) { if (v === "sacel") a.removeAttribute("tabindex"); else a.setAttribute("tabindex", "-1"); });
   }
   }
