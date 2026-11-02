@@ -507,6 +507,7 @@
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
+  var acumPc = 0, envioPc = -1;                // «Hardware e IoT»: señales juntadas en la nube y envío en curso
   var RES = { flota: 0, nube: 0, bus: 0, pc: 0 }, META = { flota: 0, nube: 0, bus: 0, pc: 0 }, tRes = 0;
   [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
     var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
@@ -592,7 +593,7 @@
     var d = A.alto * NUBE.sombra, cx = A.x + d * 0.25 - wm * 0.08, cz = A.z + d + hm * 1.1;
     cr.save();
     if ("filter" in cr) cr.filter = "blur(3px)";
-    cr.fillStyle = tema === "claro" ? "rgba(40,30,10,.62)" : "rgba(0,0,6,.72)";
+    cr.fillStyle = tema === "claro" ? "rgba(40,30,10,.4)" : "rgba(0,0,6,.5)";   // más transparente (Benjamin, 2026-11-02)
     cr.beginPath();
     for (var k = 0; k <= 48; k++) {
       var t = k / 48 * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
@@ -663,7 +664,7 @@
       // sale del bus que la envía, donde va ahora (Benjamin, 2026-10-30), no del punto de la ruta donde se generó
       var fb = focos[tr.bus]; if (!fb) return;
       var o = proyectar(fb.centro[0], fb.centro[1], fb.centro[2]); if (!o) return;
-      if (u > 0.97 && !tr.llego) { tr.llego = true; var k = tr.bus % 6; puertos[k] = sim.reloj; estPuerto[k] = tr.estado; }
+      if (u > 0.97 && !tr.llego) { tr.llego = true; if (META.pc && envioPc < 0 && acumPc < 4 && ++acumPc === 4) { envioPc = sim.reloj; acumPc = 0; } var k = tr.bus % 6; puertos[k] = sim.reloj; estPuerto[k] = tr.estado; }
       // arco: el control sobre el punto medio, más alto cuanto más lejos va
       var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
       var col = tr.estado === 2 ? P.alerta : P.normal;
@@ -712,6 +713,10 @@
       var hb = 3 + [3, 6, 4, 7][k] * (0.55 + 0.45 * brillo);
       cr.globalAlpha = aN * aN;
       cr.fillStyle = "rgba(" + (estPuerto[k] === 2 ? P.alerta : P.normal) + "," + (0.5 + 0.5 * brillo).toFixed(3) + ")";
+      if (RES.pc > 0.01) {                       // «Hardware e IoT»: cada señal que llega queda como una barra llena
+        var llena = k < acumPc; hb = llena ? 10 : 3;
+        cr.fillStyle = "rgba(" + P.normal + "," + (llena ? 1 : 0.3).toFixed(2) + ")";
+      }
       cr.fillRect(-8 + k * 4.6, 7 - hb, 3, hb);
     }
     cr.globalAlpha = aN * (1 - RES.pc);                                      // con «Hardware e IoT», el computador en su lugar
@@ -735,24 +740,32 @@
     var gx = x0 - 26, gy = y0 + 6.5, gr = 7;
     cr.fillStyle = PULSO[tema].caja; cr.beginPath(); cr.arc(gx, gy, gr, 0, 7); cr.fill(); cr.stroke();
     cr.beginPath(); cr.ellipse(gx, gy, gr * 0.45, gr, 0, 0, 7); cr.moveTo(gx - gr, gy); cr.lineTo(gx + gr, gy); cr.stroke();
-    // pulsos (Benjamin, 2026-11-02): salen de la nube hacia el computador, y del computador hacia internet
-    pulsoArco([-17, -2], [x0 + 20, y0 + 4], -16, 0);
-    pulsoArco([x0, y0 + 5], [gx + gr, gy], -10, 0.45);
-    function pulsoArco(o, z, alza, fase) {
-      var mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) + alza;
-      for (var n = 0; n < 2; n++) {
-        var u = ((sim.reloj / 0.9) + n * 0.5 + fase) % 1;
-        var arco = function (t) { t = (Math.exp(4 * t) - 1) / (Math.exp(4) - 1); var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; };
-        var fin = Math.min(1, (1 - u) / 0.15);
-        cr.lineWidth = 2.2;
-        for (var j = 0; j < 12; j++) {
-          var t1 = Math.max(0, u - j * 0.035), t0 = Math.max(0, u - (j + 1) * 0.035); if (t1 <= 0) break;
-          var p1 = arco(t1), p0 = arco(t0);
-          cr.strokeStyle = "rgba(" + P.normal + "," + (fin * (1 - j / 12)).toFixed(3) + ")";
-          cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
-        }
-        var h = arco(u); cr.fillStyle = "rgba(" + P.normal + "," + fin.toFixed(3) + ")"; cr.beginPath(); cr.arc(h[0], h[1], 2.2, 0, 7); cr.fill();
+    // envío (Benjamin, 2026-11-02): cuando la nube junta 4 señales, el paquete baja al computador (0,8 s) y de ahí sale
+    // por aire a internet (0,8 s), como ondas
+    var u = envioPc < 0 ? -1 : (sim.reloj - envioPc) / 0.8;
+    if (u >= 2) { envioPc = -1; u = -1; }
+    if (u >= 0 && u < 1) pulsoArco([-17, -2], [x0 + 20, y0 + 4], -16, u);
+    if (u >= 1 && u < 2) {
+      var v = u - 1, o = [x0, y0 + 5], z = [gx + gr, gy];
+      for (var w = 0; w < 3; w++) {             // ondas que viajan del computador al globo
+        var t = v - w * 0.18; if (t < 0 || t > 1) continue;
+        var cx = o[0] + (z[0] - o[0]) * t, cy = o[1] + (z[1] - o[1]) * t;
+        cr.strokeStyle = "rgba(" + P.normal + "," + (1 - t * 0.6).toFixed(3) + ")"; cr.lineWidth = 1.6;
+        cr.beginPath(); cr.arc(cx + 3, cy, 4 + w, Math.PI * 0.7, Math.PI * 1.3); cr.stroke();
       }
+    }
+    function pulsoArco(o, z, alza, u) {
+      var mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) + alza;
+      var arco = function (t) { var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; };
+      cr.lineWidth = 2.2;
+      for (var j = 0; j < 10; j++) {
+        var t1 = Math.max(0, u - j * 0.04), t0 = Math.max(0, u - (j + 1) * 0.04); if (t1 <= 0) break;
+        var p1 = arco(t1), p0 = arco(t0);
+        cr.strokeStyle = "rgba(" + P.normal + "," + (1 - j / 10).toFixed(3) + ")";
+        cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
+      }
+      var h = arco(u); cr.fillStyle = "rgba(" + P.normal + ",1)";
+      for (var q = 0; q < 4; q++) cr.fillRect(h[0] - 4 + q * 2.2, h[1] - 2, 1.6, 4);   // el paquete: las 4 barras
     }
     cr.restore();
   }
