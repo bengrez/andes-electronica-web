@@ -614,7 +614,7 @@
       var A = anclaFicha(b.dir > 0); if (!A) return;
       var x = Math.min(A.p[0], W - ANCHO - 12), y = A.p[1] - ALTO;
       // su sombra sobre el terreno, como la de la nube de SACEL
-      sombraFicha(A, ANCHO);
+      sombraCard(x, y, ANCHO, ALTO, 10);
       // conexión con el bus, en azul Andes
       var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
       cr.strokeStyle = azul; cr.lineWidth = 1.4;
@@ -652,22 +652,17 @@
     var e = alturaEn(x, z), y = (e + NUBE.altura * 0.55) * EXAG, p = proyectar(x, y, z);
     return p ? { p: p, x: x, z: z, e: e, alto: y - e * EXAG } : null;
   }
-  function sombraFicha(A, anchoPx) {           // rectángulo redondeado tendido sobre el terreno, corrido como la sombra de la nube
-    var wm = tamPantalla(A.x, A.e * EXAG, A.z, anchoPx), hm = wm * 0.42;
-    // corrida al sur (hacia quien mira), así asoma bajo la tarjeta como la sombra de la nube bajo la nube
-    var d = A.alto * NUBE.sombra, cx = A.x + d * 0.25 - wm * 0.08, cz = A.z + d + hm * 1.1;
-    cr.save();
-    if ("filter" in cr) cr.filter = "blur(3px)";
-    cr.fillStyle = tema === "claro" ? "rgba(40,30,10,.4)" : "rgba(0,0,6,.5)";   // más transparente (Benjamin, 2026-11-02)
-    cr.beginPath();
-    for (var k = 0; k <= 48; k++) {
-      var t = k / 48 * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
-      var sx = Math.sign(c) * Math.pow(Math.abs(c), 0.35), sz = Math.sign(s) * Math.pow(Math.abs(s), 0.35);   // casi rectángulo
-      var x = cx + wm * 0.5 + sx * wm * 0.5, z = cz + sz * hm * 0.5;
-      var q = proyectar(x, alturaEn(x, z) * EXAG + 15, z); if (!q) { cr.restore(); return; }
-      if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]);
-    }
-    cr.fill(); cr.restore();
+  // una sola sombra para todas las tarjetas del mapa (Benjamin, 2026-11-03): la misma transparencia, el mismo desenfoque
+  // y corrida hacia el mismo lado (abajo a la derecha), como con un solo foco de luz arriba a la izquierda. Se dibuja
+  // con la sombra del canvas de una forma puesta fuera de la pantalla, así sólo queda la sombra
+  var SOMBRA = { dx: 12, dy: 18, blur: 14, claro: "rgba(40,30,10,.26)", oscuro: "rgba(0,0,6,.55)" };
+  function sombraCard(x, y, w, h, r) {
+    cr.save(); cr.shadowColor = SOMBRA[tema]; cr.shadowBlur = SOMBRA.blur; cr.shadowOffsetX = SOMBRA.dx + 10000; cr.shadowOffsetY = SOMBRA.dy;
+    cr.fillStyle = "#000"; redondeado(x - 10000, y, w, h, r); cr.fill(); cr.restore();
+  }
+  function sombraCirculo(x, y, r) {
+    cr.save(); cr.shadowColor = SOMBRA[tema]; cr.shadowBlur = SOMBRA.blur; cr.shadowOffsetX = SOMBRA.dx + 10000; cr.shadowOffsetY = SOMBRA.dy;
+    cr.fillStyle = "#000"; cr.beginPath(); cr.arc(x - 10000, y, r, 0, 7); cr.fill(); cr.restore();
   }
   function redondeado(x, y, w, h, r) {
     cr.beginPath();
@@ -936,8 +931,8 @@
     cr.beginPath(); cr.moveTo(cb[0] - Math.cos(ang) * 12, cb[1] - Math.sin(ang) * 12); cr.lineTo(bx, by);
     cr.strokeStyle = P.caja; cr.lineWidth = 4; cr.stroke(); cr.strokeStyle = borde + ".75)"; cr.lineWidth = 1.4; cr.stroke();
     // el aro de la lupa, con su sombra
-    cr.save(); cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.25)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 16; cr.shadowOffsetY = 6;
-    cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke(); cr.restore();
+    sombraCirculo(LUPA.x, LUPA.y, LUPA.r);
+    cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke();
     // GPS: el satélite sobre la cordillera manda arcos al bus real
     var sat = posSatelite();
     var a = Math.atan2(cb[1] - sat[1], cb[0] - sat[0]), dist = Math.hypot(cb[0] - sat[0], cb[1] - sat[1]);
@@ -1068,11 +1063,17 @@
       cr.beginPath(); cr.arc(c[0], c[1], 12 + 3 * Math.sin(t * 5), 0, 7); cr.stroke();
     });
     // la ficha, a la derecha de la geocerca, con su sombra tendida como las de «Rastreo de flotas»
-    var este = G.x + GEOCERCA.radio * 1.15, sur = G.z + GEOCERCA.radio * 0.2, e = alturaEn(este, sur), alto = NUBE.altura * 0.45;
-    var p = proyectar(este, (e + alto) * EXAG, sur); if (!p) { cr.restore(); return; }
-    var A = { p: p, x: este, z: sur, e: e, alto: alto * EXAG }, AN = 196, AL = 70;
-    var x = Math.min(p[0], W - AN - 16), y = p[1] - AL;
-    sombraFicha(A, AN);
+    // bien a la derecha de la ruta (2026-11-03)
+    // la ficha, bien a la derecha de la ruta (2026-11-03): a la altura de la geocerca, 90 px a la derecha del punto de la
+    // ruta que más se acerca por la derecha en esa franja de la pantalla
+    var AN = 196, AL = 70, yc = pts.reduce(function (m, q) { return m + q[1]; }, 0) / pts.length;
+    var y = Math.max(96, Math.min(H - AL - 56, yc - AL - 30)), xr = 0;
+    for (var ir = 0; ir < R.length; ir += 4) {
+      var qr = proyectar(R[ir][0], alturaEn(R[ir][0], R[ir][1]) * EXAG, R[ir][1]);
+      if (qr && qr[1] > y - 30 && qr[1] < y + AL + 30) xr = Math.max(xr, qr[0]);
+    }
+    var x = Math.max(W * 0.5, Math.min(W - AN - 24, xr + 90));
+    sombraCard(x, y, AN, AL, 10);
     var borde = pts.reduce(function (m, q) { return q[0] > m[0] ? q : m; });     // el punto del borde más a la derecha
     cr.strokeStyle = "rgba(" + P.normal + ",.8)"; cr.lineWidth = 1.2; cr.beginPath(); cr.moveTo(borde[0], borde[1]); cr.lineTo(x, y + AL / 2); cr.stroke();
     redondeado(x, y, AN, AL, 10);
@@ -1092,18 +1093,6 @@
   // 3) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
   var panelRect = null, BUSES_PANEL = 4, VENTANA_PANEL = 180;   // 180 s de animación × escala 5 = 15 min simulados
-  var anclaCache = null, claveAncla = "";
-  function anclaPanel(px, py) {                  // el punto del relieve más cercano, en pantalla, a (px, py) a la altura de las fichas
-    var clave = (VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(4); }).join(",") : "") + "|" + Math.round(px / 8) + "|" + Math.round(py / 8);
-    if (clave === claveAncla) return anclaCache;
-    claveAncla = clave; anclaCache = null;
-    var mejor = Infinity, alto = NUBE.altura * 0.55;
-    for (var j = 0; j < T.nz; j += 2) for (var i = 0; i < T.nx; i += 2) {
-      var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso, e = alturas[j * T.nx + i], q = proyectar(x, (e + alto) * EXAG, z); if (!q) continue;
-      var d = Math.hypot(q[0] - px, q[1] - py); if (d < mejor) { mejor = d; anclaCache = { p: q, x: x, z: z, e: e, alto: alto * EXAG }; }
-    }
-    return anclaCache;
-  }
   function panelReporte() {
     var sw = posSwitch(); if (!sw) return;
     // más chico (Benjamin, 2026-11-03): 4 buses y 15 min de línea de tiempo
@@ -1118,10 +1107,6 @@
     var y0 = Math.max(96, Math.min(H - ph - 56, ym - ph / 2)), xr = 0;
     rp.forEach(function (q) { if (q[1] > y0 - 20 && q[1] < y0 + ph + 20) xr = Math.max(xr, q[0]); });
     var x0 = Math.max(W * 0.45, Math.min(W - pw - 24, xr + 44));
-    // con su sombra tendida sobre el relieve, como las fichas de «Rastreo de flotas»: se busca el punto del relieve que,
-    // a la altura de las fichas, cae en la esquina de abajo a la izquierda del panel, y el panel se pone ahí
-    var A = anclaPanel(x0, y0 + ph);
-    if (A) { x0 = Math.max(W * 0.45, Math.min(W - pw - 24, A.p[0])); y0 = Math.max(96, Math.min(H - ph - 56, A.p[1] - ph)); cr.save(); cr.globalAlpha = e; sombraFicha(A, pw); cr.restore(); }
     panelRect = { x: x0, y: y0, w: pw, h: ph };
     var tinta = claro ? "0,16,79" : "242,237,227", cob = P.normal;
     cr.save(); cr.globalAlpha = e;
@@ -1129,7 +1114,8 @@
     cr.strokeStyle = "rgba(" + P.borde + ",.5)"; cr.setLineDash([3, 4]); cr.lineWidth = 1;
     cr.beginPath(); cr.moveTo(sw.x, sw.y + 14); cr.lineTo(Math.max(x0 + 20, Math.min(x0 + pw - 20, sw.x)), y0); cr.stroke(); cr.setLineDash([]);
     var hv = ph * (0.3 + 0.7 * e);
-    cr.save(); cr.shadowColor = claro ? "rgba(0,16,79,.18)" : "rgba(0,0,0,.5)"; cr.shadowBlur = 14; cr.shadowOffsetY = 5;
+    sombraCard(x0, y0, pw, hv, 12);
+    cr.save();
     // caja translúcida (Benjamin, 2026-11-03: «un poco más de transparencia»): deja ver el relieve detrás
     cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.globalAlpha = e * 0.55; cr.fill(); cr.restore();
     cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.stroke();
