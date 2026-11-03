@@ -1031,7 +1031,8 @@
     cr.beginPath(); cr.moveTo(sw.x, sw.y + 14); cr.lineTo(Math.max(x0 + 20, Math.min(x0 + pw - 20, sw.x)), y0); cr.stroke(); cr.setLineDash([]);
     var hv = ph * (0.3 + 0.7 * e);
     cr.save(); cr.shadowColor = claro ? "rgba(0,16,79,.18)" : "rgba(0,0,0,.5)"; cr.shadowBlur = 14; cr.shadowOffsetY = 5;
-    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.fill(); cr.restore();
+    // caja translúcida (Benjamin, 2026-11-03: «un poco más de transparencia»): deja ver el relieve detrás
+    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.globalAlpha = e * 0.72; cr.fill(); cr.restore();
     cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.stroke();
     cr.beginPath(); cr.rect(x0, y0, pw, hv); cr.clip();
     cr.fillStyle = "rgb(" + tinta + ")"; cr.font = "600 14px 'Archivo', 'DM Sans', sans-serif"; cr.textAlign = "left"; cr.textBaseline = "alphabetic";
