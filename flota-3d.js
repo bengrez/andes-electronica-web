@@ -593,11 +593,16 @@
       return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
     }).filter(function (o) { return o.c && o.c[0] > 0 && o.c[0] < W && o.c[1] > 0 && o.c[1] < H; })
       .sort(function (a, b) { return a.d - b.d; });
-    // dos fichas fijas (Benjamin, 2026-11-02): cada una muestra el bus de su sentido que está más cerca de ella en pantalla
+    // dos fichas fijas (Benjamin, 2026-11-02): cada una muestra el bus más cercano a ella en pantalla (2026-11-03: sin
+    // importar el sentido, para no elegir uno lejano; y nunca uno del extremo izquierdo, junto al texto)
+    var mvF = medidasVelo(), usados = [];
+    cerca = cerca.filter(function (o) { return lejosDelTexto(o.c[0], mvF) > 0.5; });
     function masCerca(sube) {
       var A = anclaFicha(sube); if (!A) return null;
-      return cerca.filter(function (o) { return (o.f.b.dir > 0) === sube; })
+      var o = cerca.filter(function (o) { return usados.indexOf(o) < 0; })
         .sort(function (a, b) { return Math.hypot(a.c[0] - A.p[0], a.c[1] - A.p[1]) - Math.hypot(b.c[0] - A.p[0], b.c[1] - A.p[1]); })[0];
+      if (o) { usados.push(o); o.ancla = sube; }
+      return o;
     }
     var sube1 = masCerca(true), baja1 = masCerca(false);
     cerca = [sube1, baja1].filter(Boolean).sort(function (a, b) { return a.c[1] - b.c[1]; });
@@ -611,7 +616,7 @@
       var sube = (b.dir > 0) ? "subiendo" : "bajando";
       // fija en el mapa (Benjamin, 2026-11-02): flota sobre un punto del relieve a la derecha de la ruta, uno para la
       // ficha de subida y otro para la de bajada; sólo la línea sigue al bus
-      var A = anclaFicha(b.dir > 0); if (!A) return;
+      var A = anclaFicha(o.ancla); if (!A) return;   // la ficha de su lugar (no la de su sentido)
       var x = Math.min(A.p[0], W - ANCHO - 12), y = A.p[1] - ALTO;
       // su sombra sobre el terreno, como la de la nube de SACEL
       sombraCard(x, y, ANCHO, ALTO, 10);
