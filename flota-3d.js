@@ -1367,6 +1367,18 @@
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
+  // los discos van tendidos sobre el terreno (Benjamin, 2026-11-03, opción 1): un círculo de R_MUNDO m en el plano de la
+  // ladera, que en pantalla queda como una elipse inclinada según la pendiente y más chica con la distancia; sus ejes se
+  // limitan a DISCO_PX px para que no se pierdan ni tapen
+  var R_MUNDO = 400, DISCO_PX = [5, 14];
+  function discoTerreno(c, x, z, q) {
+    var a = proyectar(x + R_MUNDO, alturaEn(x + R_MUNDO, z) * EXAG, z), b = proyectar(x, alturaEn(x, z + R_MUNDO) * EXAG, z + R_MUNDO);
+    c.beginPath();
+    if (!a || !b) { c.arc(q[0], q[1], R_DISCO, 0, 7); return; }
+    var u = [a[0] - q[0], a[1] - q[1]], v = [b[0] - q[0], b[1] - q[1]], m = Math.max(Math.hypot(u[0], u[1]), Math.hypot(v[0], v[1]));
+    var k = m > DISCO_PX[1] ? DISCO_PX[1] / m : (m < DISCO_PX[0] ? DISCO_PX[0] / Math.max(m, 0.01) : 1);
+    c.save(); c.transform(u[0] * k, u[1] * k, v[0] * k, v[1] * k, q[0], q[1]); c.arc(0, 0, 1, 0, 7); c.restore();
+  }
   var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [];
   // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
   var ALFA_TEMA = { claro: { disco: 0.58, modelado: 0.3 }, oscuro: { disco: 0.42, modelado: 0.2 } };
@@ -1396,7 +1408,7 @@
         // sobreponen suman color, así donde hay más registros el color se ve más sólido. Al centro, un punto chico
         crEsp.fillStyle = "rgb(" + colorRegistro(p.e, C).join(",") + ")";
         crEsp.globalAlpha = a * ALFA_TEMA[tema].disco * (GRUPO[p.e.c] || p.e.i || /cactus|árbol|arbusto|bromelia/.test(p.e.g) ? 1 : ALFA_FAUNA);
-        crEsp.beginPath(); crEsp.arc(q[0], q[1], R_DISCO, 0, 7); crEsp.fill();
+        discoTerreno(crEsp, p.x, p.z, q); crEsp.fill();
         crEsp.globalAlpha = a * 0.9; crEsp.beginPath(); crEsp.arc(q[0], q[1], 1.3, 0, 7); crEsp.fill();
         if (p.e.f && a > 0.3) visEsp.push({ p: p, q: q });
       });
@@ -1556,7 +1568,7 @@
       if (!o.real && e2 > 0.01) {                  // modelado: un disco del color del grupo, más tenue que el de un registro
         cr.globalAlpha = Math.min(1, a2 * 1.6) * e2 * ALFA_TEMA[tema].modelado;
         cr.fillStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")";
-        cr.beginPath(); cr.arc(q[0], q[1], R_DISCO, 0, 7); cr.fill();
+        discoTerreno(cr, o.x, o.z, q); cr.fill();
       }
     });
     cr.restore();
