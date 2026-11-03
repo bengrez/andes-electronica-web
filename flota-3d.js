@@ -284,15 +284,23 @@
   // pan y tilt ligeros en cada parada del relato de SACEL (Benjamin, 2026-11-03): la cámara gira alrededor del objetivo
   // (grados por parada: [giro, elevación]) a medida que entran la flota y el registro
   var PAN_TILT = [[-5, 4], [-5, -3]];
+  var ZOOM_GEO = { centro: 1, acerca: 0.5 };      // fase 2: el objetivo pasa a la geocerca y la distancia baja a la mitad
   function panTilt(q) {
     var eF = suave(aFlota), eR = suave(aReporte);
     var giro = (PAN_TILT[0][0] * eF + PAN_TILT[1][0] * eR) * Math.PI / 180, elev = (PAN_TILT[0][1] * eF + PAN_TILT[1][1] * eR) * Math.PI / 180;
     if (!giro && !elev) return q;
-    var v = [q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]], L = Math.hypot(v[0], v[1], v[2]);
+    // en la fase 2 (operación y seguridad) la cámara además se acerca y se centra en la geocerca (Benjamin, 2026-11-03);
+    // en la fase 3 vuelve a la vista amplia
+    var w2 = eF * (1 - eR), obj = q.obj;
+    if (w2 > 0) {
+      var G = datosGeocerca(), gy = alturaEn(G.x, G.z) * EXAG;
+      obj = [q.obj[0] + (G.x - q.obj[0]) * w2 * ZOOM_GEO.centro, q.obj[1] + (gy - q.obj[1]) * w2 * ZOOM_GEO.centro, q.obj[2] + (G.z - q.obj[2]) * w2 * ZOOM_GEO.centro];
+    }
+    var v = [q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]], L = Math.hypot(v[0], v[1], v[2]) * (1 - ZOOM_GEO.acerca * w2);
     var cg = Math.cos(giro), sg = Math.sin(giro), x = v[0] * cg - v[2] * sg, z = v[0] * sg + v[2] * cg;
     var hz = Math.hypot(x, z), ang = Math.atan2(v[1], hz) + elev;
-    var o = [q.obj[0] + x / hz * Math.cos(ang) * L, q.obj[1] + Math.sin(ang) * L, q.obj[2] + z / hz * Math.cos(ang) * L];
-    return { ojo: o, obj: q.obj, arriba: q.arriba };
+    var o = [obj[0] + x / hz * Math.cos(ang) * L, obj[1] + Math.sin(ang) * L, obj[2] + z / hz * Math.cos(ang) * L];
+    return { ojo: o, obj: obj, arriba: q.arriba };
   }
   function camara(p) {
     var q = panTilt(pose(p));
