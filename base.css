@@ -136,9 +136,9 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .cordillera { position: relative; min-height: 70vh; min-height: 70svh;   /* mínimo: crece si el texto no cabe */ display: flex; flex-direction: column; background: var(--cordillera-cielo); }
 .cordillera-texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(8rem, 24vh, 15rem) 0 2rem; }
 .cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, min(7vw, 11vh), 6rem); }
-.cordillera .entrada { margin-top: 1.5rem; font-size: clamp(1.25rem, 2vw, 1.65rem); max-width: 40rem; }   /* +18 % (Benjamin, 2026-11-02) */
+.cordillera .entrada { margin-top: 1.5rem; max-width: 40rem; }   /* tamaño de .entrada, como el resto del sitio (Benjamin, 2026-11-03: estandarizar; antes hasta 1,65 rem) */
 /* segunda línea (Benjamin, 2026-11-02): subordinada a la bajada, más chica y en la tinta secundaria */
-.cordillera .alcance { margin-top: 1rem; max-width: 40rem; font-size: clamp(1.1rem, 1.4vw, 1.28rem); line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
+.cordillera .alcance { margin-top: 1rem; max-width: 40rem; font-size: 1rem; line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
 .bajar { position: absolute; left: 50%; bottom: .75rem; transform: translateX(-50%); display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; color: var(--tinta-3); }
 .bajar svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .bajar:hover { color: var(--tinta); }
@@ -201,15 +201,13 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 .capa-empresa h1 { max-width: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
 .capa-empresa .lugar { margin-top: 2rem; font: 500 .85rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); letter-spacing: .02em; }
-.capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.5rem, 4.8vw, 4.1rem); }
-.capa-sacel .entrada { font-size: clamp(1.2rem, 1.75vw, 1.45rem); }
-.sacel-datos .pasos h3 { font-size: 1.12rem; }
+.capa-sacel h2 { margin-top: 1rem; }   /* h2 y .entrada del sitio (2026-11-03: estandarizar; antes hasta 4,1 rem y 1,45 rem) */
 .capa-sacel .acciones { margin-top: 1.75rem; }
 .sacel-datos { margin-top: 2.25rem; }
 .sacel-datos .pasos { grid-template-columns: 1fr 1fr; gap: 1.1rem 2rem; }
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
-.sacel-datos .pasos p { font-size: 1.02rem; margin-top: .3rem; }
+.sacel-datos .pasos p { margin-top: .3rem; }
 @media all {   /* también con movimiento reducido (2026-11-03): --sacel salta de 0 a 1 sin animar */
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
@@ -222,14 +220,15 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 /* mapa (2026-11-02): «Andes Electrónica» arriba (fila 1, bajo la barra fija) y, debajo, el panorama y SACEL en la misma
    celda, turnándose con --sacel */
-.panorama.entrada, .panorama { font-size: clamp(1.35rem, 2.15vw, 1.85rem); line-height: 1.3; color: var(--tinta); max-width: 30rem; margin-top: 0; font-weight: 500; }
+.panorama.entrada, .panorama { line-height: 1.4;   /* tamaño de .entrada (2026-11-03; antes hasta 1,85 rem) */
+   color: var(--tinta); max-width: 30rem; margin-top: 0; font-weight: 500; }
 /* qué hace Andes: etiquetas con un dibujo de línea (2 columnas) */
 .haceres { list-style: none; margin: clamp(2.75rem, 8vh, 5.5rem) 0 0;   /* más aire bajo la frase (Benjamin, 2026-11-02) */
    padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 7vh, 4.5rem) 1.75rem; max-width: 40rem; }   /* filas repartidas hacia abajo (Benjamin, 2026-11-02) */
-.haceres li { display: flex; align-items: flex-start; gap: .8rem; font: 500 clamp(1rem, 1.2vw, 1.12rem)/1.25 "DM Sans", sans-serif; color: var(--tinta); border-radius: .8rem; }
-.haceres b { display: block; font-weight: 600; }
+.haceres li { display: flex; align-items: flex-start; gap: .8rem; font: 400 1rem/1.5 "DM Sans", sans-serif; color: var(--tinta); border-radius: .8rem; }
+.haceres b { display: block; font: 600 1.35rem/1.2 var(--titulos); letter-spacing: -.012em; }   /* como un h3 del sitio (2026-11-03) */
 .haceres .marca-sacel { font-family: var(--titulos); font-weight: 600; color: var(--acento); letter-spacing: -.01em; }   /* como el título «a SACEL.» (Benjamin, 2026-11-03) */
-.haceres small { display: block; margin-top: .2rem; font: 400 .9rem/1.35 "DM Sans", sans-serif; color: var(--tinta-2); }
+.haceres small { display: block; margin-top: .35rem; font: 400 1rem/1.5 "DM Sans", sans-serif; color: var(--tinta-2); }   /* texto del sitio (antes .9 rem) */
 .haceres li[data-resalta] { cursor: default; }
 .heroe[data-capa="empresa"] .capa-sacel, .heroe[data-capa="sacel"] .capa-empresa { pointer-events: none; }   /* comparten celda: sólo la visible recibe el mouse */
 .haceres li[data-resalta]:hover svg, .haceres li[data-resalta]:focus-visible svg { border-color: var(--acento); }
@@ -253,8 +252,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   .heroe { padding-top: 1rem; }
   .con-mapa:not(.sin-3d) .capa-empresa { padding-top: 1.5rem; }
   .capa-empresa h1 { font-size: clamp(2.2rem, 10vw, 3rem); }
-  .capa-sacel h2 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
-  .capa-sacel .entrada { font-size: 1rem; margin-top: 1rem; }
+  .capa-sacel .entrada { margin-top: 1rem; }
   .sacel-datos { margin-top: 1.25rem; }
   .sacel-datos .pasos p { display: none; }
   .sin-3d .heroe { padding-bottom: 26rem; }
