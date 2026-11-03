@@ -168,7 +168,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (prefers-reduced-motion: reduce) { .cordillera { height: auto; min-height: 100vh; min-height: 100svh; } }
 
 /* ─── mapa de inicio: queda fijo mientras se recorre .recorrido; la cámara baja según el avance ─── */
-.recorrido { height: 200vh; }   /* dos paradas: el panorama y SACEL, que se anima solo al llegar (2026-11-02; antes 900vh con tres paradas) */
+.recorrido { height: 400vh; }   /* panorama y 3 paradas: SACEL con datos, la flota y el registro (2026-11-03; antes 200vh) */
 .portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
 .portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }
@@ -208,6 +208,9 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
 .sacel-datos .pasos p { margin-top: .3rem; }
+.sacel-datos .pasos li { transition: opacity .35s ease; }
+.sacel-datos .pasos li.atenuado { opacity: .45; }   /* paradas 2 y 3 del mapa: se destaca su paso (2026-11-03) */
+.sacel-datos .pasos li.destacado h3 { color: var(--acento); }
 @media all {   /* también con movimiento reducido (2026-11-03): --sacel salta de 0 a 1 sin animar */
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }

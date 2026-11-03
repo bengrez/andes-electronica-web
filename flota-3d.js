@@ -21,7 +21,13 @@
   // (2026-11-02, tarde) SACEL es una sola parada: al llegar, la animación corre sola (aSacel, DUR_SACEL) y el panorama
   // sale y SACEL entra en el primer 35 %
   var SACEL_ENTRA = [0, 0.35];
-  var DUR_SACEL = 2.5, aSacel = 0, tSacel = 0;               // s; 0 = panorama, 1 = SACEL completo
+  var DUR_SACEL = 2.5, aSacel = 0, tSacel = 0;
+  // (2026-11-03) Benjamin: el relato de SACEL va dentro del mapa, en 3 paradas tras el panorama: 1) SACEL (la de antes)
+  // con chips de datos que salen de los buses hacia la nube; 2) la flota: cada bus de la ruta con su línea a la nube y
+  // pulsos de cobre; 3) un panel que se despliega desde la nube con el registro de conducción y descanso de los buses
+  // simulados. nivelMapa (0–3) lo elige el scroll; aFlota y aReporte se animan solos en DUR_NIVEL
+  var PARADAS_MAPA = 3, DUR_NIVEL = 0.9, nivelMapa = 0, aFlota = 0, aReporte = 0;
+  var VENTANA_REG = 360;                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -85,7 +91,8 @@
   if (!gl) { fallar(); return; }
   var cr = capa.getContext("2d");
   var sim = window.FlotaSim(D, {
-    escala: ACELERACION_TIEMPO * VELOCIDAD_BUSES, periodo: 9, vuelo: 3.2,   // una trama cada 9 s por bus (2026-10-30; antes 2,6) ventana: 80,
+    escala: ACELERACION_TIEMPO * VELOCIDAD_BUSES, periodo: 9, vuelo: 3.2,   // una trama cada 9 s por bus (2026-10-30; antes 2,6)
+    ventana: VENTANA_REG,                         // el registro guarda 30 min simulados, para el panel de la parada 3 (2026-11-03)
     descanso: [10 * 60 / ACELERACION_TIEMPO, 25 * 60 / ACELERACION_TIEMPO],
     parada: [2 * 60 / ACELERACION_TIEMPO, 5 * 60 / ACELERACION_TIEMPO]
   });
@@ -512,6 +519,9 @@
     especies();
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
+    if (pDatos > 0.01) chipsDatos();
+    if (aFlota > 0.01) redFlota();
+    if (aReporte > 0.01) panelReporte();
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
@@ -932,6 +942,102 @@
     rotulo("GPS", sat[0] + 26, sat[1] - 14, "left");
     rotulo("GPS", pz.mastil[0] + 8, pz.mastil[1] - 6, "left");
     rotulo("CAN bus", pz.can[0], pz.can[1], "center");
+    cr.restore();
+  }
+
+  // ─── paradas 1–3 del relato de SACEL en el mapa (Benjamin, 2026-11-03) ───
+  function acelU(u) { return (Math.exp(4 * u) - 1) / (Math.exp(4) - 1); }   // sale lento y llega rápido
+  function arcoNube(o, sw, u) {                  // el mismo arco de las tramas, del bus a la nube
+    var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]), m = 1 - u;
+    return [m * m * o[0] + 2 * m * u * mx + u * u * sw.x, m * m * o[1] + 2 * m * u * my + u * u * sw.y];
+  }
+  function busesEnPantalla() {
+    var out = [];
+    focos.forEach(function (f) { var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (c && c[0] > 0 && c[0] < W && c[1] > 0 && c[1] < H) out.push(c); });
+    return out;
+  }
+  // 1) chips con nombre que salen de los buses hacia la nube: uno cada CADA_CHIP s, de un bus distinto cada vez
+  var DATOS_CHIP = ["km/h", "GPS", "conductor", "CAN bus"], CADA_CHIP = 0.9, VUELO_CHIP = 2.2;
+  function chipsDatos() {
+    var sw = posSwitch(); if (!sw || sw.vis < 0.3) return;
+    var bs = busesEnPantalla(); if (!bs.length) return;
+    var op = pDatos * (1 - 0.75 * suave(aFlota)) * (1 - suave(aReporte)); if (op <= 0.02) return;
+    var P = PULSO[tema], t = quieto ? 3.1 : performance.now() / 1000, n = Math.floor(t / CADA_CHIP);
+    cr.save(); cr.font = "500 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
+    for (var k = n - Math.ceil(VUELO_CHIP / CADA_CHIP); k <= n; k++) {
+      var u = (t - k * CADA_CHIP) / VUELO_CHIP; if (u < 0 || u > 1) continue;
+      var o = bs[((k % bs.length) + bs.length) % bs.length], q = arcoNube(o, { x: sw.x, y: sw.y + 6 }, acelU(u)), txt = DATOS_CHIP[((k % 4) + 4) % 4];
+      var w = cr.measureText(txt).width + 14;
+      cr.globalAlpha = op * Math.min(1, u / 0.08) * Math.min(1, (1 - u) / 0.15);
+      cr.beginPath(); if (cr.roundRect) cr.roundRect(q[0] - w / 2, q[1] - 10, w, 20, 10); else cr.rect(q[0] - w / 2, q[1] - 10, w, 20);
+      cr.fillStyle = P.caja; cr.fill(); cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.3; cr.stroke();
+      cr.fillStyle = P.texto; cr.fillText(txt, q[0], q[1] + 0.5);
+    }
+    cr.restore();
+  }
+  // 2) la flota: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
+  function redFlota() {
+    var sw = posSwitch(); if (!sw) return;
+    var P = PULSO[tema], op = suave(aFlota) * (1 - 0.55 * suave(aReporte)), t = quieto ? 0.6 : performance.now() / 1000;
+    cr.save(); cr.lineCap = "round";
+    busesEnPantalla().forEach(function (o, i) {
+      cr.globalAlpha = op;
+      cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.beginPath(); cr.moveTo(o[0], o[1]);
+      var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
+      cr.quadraticCurveTo(mx, my, sw.x, sw.y + 6); cr.stroke();
+      cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.6; cr.beginPath(); cr.arc(o[0], o[1], 9, 0, 7); cr.stroke();
+      var f = ((t / 2.2) + i * 0.27) % 1, q = arcoNube(o, { x: sw.x, y: sw.y + 6 }, acelU(f));
+      var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+      g.addColorStop(0, "rgba(" + P.normal + "," + (0.95 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + P.normal + ",0)");
+      cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1], 6, 0, 7); cr.fill();
+    });
+    cr.restore();
+  }
+  // 3) el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
+  // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
+  function panelReporte() {
+    var sw = posSwitch(); if (!sw) return;
+    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte), bs = sim.buses, n = bs.length;
+    var pw = Math.min(440, W * 0.34), fila = 22, ph = 64 + fila * n + 26;
+    var mv = medidasVelo(), x0 = Math.max(mv[0] + mv[1] * 0.6, Math.min(W - pw - 24, sw.x - pw / 2)), y0 = Math.min(H - ph - 56, sw.y + 34);
+    var tinta = claro ? "0,16,79" : "242,237,227", cob = P.normal;
+    cr.save(); cr.globalAlpha = e;
+    // de la nube baja el panel: una línea y la caja que se abre hacia abajo
+    cr.strokeStyle = "rgba(" + P.borde + ",.5)"; cr.setLineDash([3, 4]); cr.lineWidth = 1;
+    cr.beginPath(); cr.moveTo(sw.x, sw.y + 14); cr.lineTo(Math.max(x0 + 20, Math.min(x0 + pw - 20, sw.x)), y0); cr.stroke(); cr.setLineDash([]);
+    var hv = ph * (0.3 + 0.7 * e);
+    cr.save(); cr.shadowColor = claro ? "rgba(0,16,79,.18)" : "rgba(0,0,0,.5)"; cr.shadowBlur = 14; cr.shadowOffsetY = 5;
+    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.fill(); cr.restore();
+    cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.stroke();
+    cr.beginPath(); cr.rect(x0, y0, pw, hv); cr.clip();
+    cr.fillStyle = "rgb(" + tinta + ")"; cr.font = "600 14px 'Archivo', 'DM Sans', sans-serif"; cr.textAlign = "left"; cr.textBaseline = "alphabetic";
+    cr.fillText("Registro de la flota", x0 + 16, y0 + 26);
+    cr.font = "500 10.5px 'Plex Mono', monospace"; cr.fillStyle = "rgba(" + tinta + ",.7)";
+    cr.fillText("conducción y descanso · últimos 30 min", x0 + 16, y0 + 44);
+    var gx = x0 + 58, gw = pw - 58 - 60, top = y0 + 60, pps = gw / VENTANA_REG, reloj = sim.reloj, revela = e;
+    bs.forEach(function (b, r) {
+      var y = top + r * fila;
+      cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "right"; cr.textBaseline = "middle"; cr.fillText("Bus " + (r + 1), gx - 10, y + 6);
+      cr.fillStyle = "rgba(" + tinta + ",.07)"; cr.fillRect(gx, y, gw, 12);
+      var cond = 0, tot = 0;
+      b.fila.forEach(function (sg) {
+        var d0 = Math.max(sg[0], reloj - VENTANA_REG), d1 = sg[1]; if (d1 <= d0) return;
+        tot += d1 - d0; if (sg[2]) cond += d1 - d0;
+        var x1 = gx + gw - (reloj - d0) * pps, x2 = gx + gw - (reloj - d1) * pps;
+        x1 = Math.max(x1, gx + gw * (1 - revela)); if (x2 <= x1) return;      // se dibuja de derecha a izquierda al abrirse
+        if (sg[2] === 0) { cr.fillStyle = "rgba(" + cob + ",.32)"; cr.fillRect(x1, y + 3, x2 - x1, 6); }
+        else { cr.fillStyle = sg[2] === 2 ? "rgba(" + cob + ",1)" : "rgba(" + tinta + ",.85)"; cr.fillRect(x1, y, x2 - x1, 12); }
+      });
+      cr.textAlign = "left"; cr.fillStyle = "rgba(" + tinta + ",.75)";
+      cr.fillText(tot > 1 ? Math.round(100 * cond / tot) + " %" : "—", gx + gw + 10, y + 6);
+    });
+    // leyenda
+    var ly = top + n * fila + 10, lx = gx;
+    [["conducción", "rgba(" + tinta + ",.85)", 12], ["descanso", "rgba(" + cob + ",.32)", 6], ["exceso", "rgba(" + cob + ",1)", 12]].forEach(function (l) {
+      cr.fillStyle = l[1]; cr.fillRect(lx, ly - l[2] / 2, 10, l[2]); cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "left"; cr.fillText(l[0], lx + 14, ly);
+      lx += 14 + cr.measureText(l[0]).width + 16;
+    });
+    cr.textAlign = "right"; cr.fillText("% conducción", gx + gw + 52, ly);
     cr.restore();
   }
 
@@ -1512,10 +1618,18 @@
   function paso(dt) {
     // la parada de SACEL (Benjamin, 2026-11-02: tres paradas en una): el scroll elige la meta y la animación va sola
     // con reloj propio (no el dt del ciclo, que se recorta a 50 ms por cuadro): dura DUR_SACEL aunque el equipo sea lento
-    var meta = pAct >= 0.5 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
+    nivelMapa = Math.round(pAct * PARADAS_MAPA);
+    var meta = nivelMapa >= 1 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
     tSacel = ahora;
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
+    // flota y reporte, cuando SACEL ya está completo
+    var mF = nivelMapa >= 2 && aSacel > 0.98 ? 1 : 0, mR = nivelMapa >= 3 && aFlota > 0.98 ? 1 : 0;
+    if (quieto || (!dt && !window.FlotaCicloAndando)) { aFlota = nivelMapa >= 2 ? 1 : 0; aReporte = nivelMapa >= 3 ? 1 : 0; }
+    else {
+      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - (mR ? 0 : dReal / DUR_NIVEL));
+      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - dReal / DUR_NIVEL);
+    }
     if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * Math.max(RES.flota, RES.iot)));
     if (listo === 2 && alturas) dibujar();
   }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
@@ -1534,12 +1648,12 @@
     // con movimiento reducido el ciclo no corre ni escucha el scroll: aquí se redibuja al cruzar entre el panorama y
     // SACEL, de golpe (2026-11-03)
     if (quieto) window.addEventListener("scroll", function () {
-      var p = progreso(); if ((p >= 0.5) === (pAct >= 0.5)) { pAct = p; return; }
+      var p = progreso(); if (Math.round(p * PARADAS_MAPA) === Math.round(pAct * PARADAS_MAPA)) { pAct = p; return; }
       pAct = p; paso(0); textos();
     }, { passive: true });
   }
   // --sacel y --datos para .heroe; el enlace de la capa que no se ve sale del orden del tabulador
-  var capaVisible = null;
+  var capaVisible = null, pasoDestacado = -2;
   function textos() {
     if (!heroe) return;
     var pc = suave(aSacel);
@@ -1547,6 +1661,12 @@
     var d = suave(Math.max(0, Math.min(1, (pc - 0.5) / 0.4)));
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
+    // en las paradas 2 y 3 se destaca su paso: Operación (la flota) y Registro y cumplimiento (el panel)
+    var nv = Math.round(pAct * PARADAS_MAPA), dest = nv >= 3 ? 2 : (nv >= 2 ? 3 : -1);
+    if (dest !== pasoDestacado) {
+      pasoDestacado = dest;
+      heroe.querySelectorAll(".sacel-datos .pasos li").forEach(function (li, i) { li.classList.toggle("destacado", i === dest); li.classList.toggle("atenuado", dest >= 0 && i !== dest); });
+    }
     var v = s > 0.5 ? "sacel" : "empresa";
     if (v === capaVisible) return; capaVisible = v;
     heroe.setAttribute("data-capa", v);           // la capa que no se ve no toma el puntero (base.css)
