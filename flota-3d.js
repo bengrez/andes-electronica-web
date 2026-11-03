@@ -26,8 +26,9 @@
   // con chips de datos que salen de los buses hacia la nube; 2) la flota: cada bus de la ruta con su línea a la nube y
   // pulsos de cobre; 3) un panel que se despliega desde la nube con el registro de conducción y descanso de los buses
   // simulados. nivelMapa (0–3) lo elige el scroll; aFlota y aReporte se animan solos en DUR_NIVEL
-  var PARADAS_MAPA = 3, DUR_NIVEL = 0.9, nivelMapa = 0, aFlota = 0, aReporte = 0;
-  var VENTANA_REG = 360;                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
+  var PARADAS_MAPA = 3, DUR_NIVEL = 1.3, nivelMapa = 0, aFlota = 0, aReporte = 0;
+  var VENTANA_REG = 360;
+  var PASOS_PARADA = [[], [0, 1], [3], [2]];      // índices de .pasos li que destaca cada parada                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -280,8 +281,21 @@
     var r = recorrido.getBoundingClientRect(), largo = r.height - window.innerHeight;
     return largo > 0 ? Math.max(0, Math.min(1, -r.top / largo)) : 0;
   }
+  // pan y tilt ligeros en cada parada del relato de SACEL (Benjamin, 2026-11-03): la cámara gira alrededor del objetivo
+  // (grados por parada: [giro, elevación]) a medida que entran la flota y el registro
+  var PAN_TILT = [[-5, 4], [-5, -3]];
+  function panTilt(q) {
+    var eF = suave(aFlota), eR = suave(aReporte);
+    var giro = (PAN_TILT[0][0] * eF + PAN_TILT[1][0] * eR) * Math.PI / 180, elev = (PAN_TILT[0][1] * eF + PAN_TILT[1][1] * eR) * Math.PI / 180;
+    if (!giro && !elev) return q;
+    var v = [q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]], L = Math.hypot(v[0], v[1], v[2]);
+    var cg = Math.cos(giro), sg = Math.sin(giro), x = v[0] * cg - v[2] * sg, z = v[0] * sg + v[2] * cg;
+    var hz = Math.hypot(x, z), ang = Math.atan2(v[1], hz) + elev;
+    var o = [q.obj[0] + x / hz * Math.cos(ang) * L, q.obj[1] + Math.sin(ang) * L, q.obj[2] + z / hz * Math.cos(ang) * L];
+    return { ojo: o, obj: q.obj, arriba: q.arriba };
+  }
   function camara(p) {
-    var q = pose(p);
+    var q = panTilt(pose(p));
     ojo = q.ojo;
     var dist = Math.hypot(q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]);
     var P = perspectiva(FOV * Math.PI / 180, W / H, Math.max(30, dist * 0.004), dist * 6);
@@ -522,6 +536,7 @@
     if (pDatos > 0.01) chipsDatos();
     if (aFlota > 0.01) redFlota();
     if (aReporte > 0.01) panelReporte();
+    if (pDatos > 0.5) enlacesPasos();
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
@@ -995,11 +1010,20 @@
   }
   // 3) el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
+  var panelRect = null;
   function panelReporte() {
     var sw = posSwitch(); if (!sw) return;
     var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte), bs = sim.buses, n = bs.length;
     var pw = Math.min(440, W * 0.34), fila = 22, ph = 64 + fila * n + 26;
-    var mv = medidasVelo(), x0 = Math.max(mv[0] + mv[1] * 0.6, Math.min(W - pw - 24, sw.x - pw / 2)), y0 = Math.min(H - ph - 56, sw.y + 34);
+    // al costado derecho de la H-25 (Benjamin, 2026-11-03: para repartir la información en la página): a la altura del
+    // medio de la ruta en pantalla, a la derecha del punto más a la derecha de la ruta en esa franja
+    var rp = [];
+    for (var ir = 0; ir < R.length; ir += 4) { var qr = proyectar(R[ir][0], alturaEn(R[ir][0], R[ir][1]) * EXAG, R[ir][1]); if (qr) rp.push(qr); }
+    var ys = rp.map(function (q) { return q[1]; }).sort(function (a, b) { return a - b; }), ym = ys.length ? ys[ys.length >> 1] : H / 2;
+    var y0 = Math.max(96, Math.min(H - ph - 56, ym - ph / 2)), xr = 0;
+    rp.forEach(function (q) { if (q[1] > y0 - 20 && q[1] < y0 + ph + 20) xr = Math.max(xr, q[0]); });
+    var x0 = Math.max(W * 0.45, Math.min(W - pw - 24, xr + 44));
+    panelRect = { x: x0, y: y0, w: pw, h: ph };
     var tinta = claro ? "0,16,79" : "242,237,227", cob = P.normal;
     cr.save(); cr.globalAlpha = e;
     // de la nube baja el panel: una línea y la caja que se abre hacia abajo
@@ -1038,6 +1062,42 @@
       lx += 14 + cr.measureText(l[0]).width + 16;
     });
     cr.textAlign = "right"; cr.fillText("% conducción", gx + gw + 52, ly);
+    cr.restore();
+  }
+
+  // las líneas que unen los pasos destacados del texto con lo que muestran en el mapa, con el número del paso
+  function txtW(dest) { cr.font = "600 11px 'Plex Mono', monospace"; return Math.max(20, cr.measureText(dest.map(function (k) { return k + 1; }).join(" · ")).width + 12); }
+  function enlacesPasos() {
+    var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || []; if (!dest.length || !heroe) return;
+    var e = nv === 1 ? pDatos * (1 - suave(aFlota)) : (nv === 2 ? suave(aFlota) * (1 - suave(aReporte)) : suave(aReporte)); if (e <= 0.02) return;
+    var P = PULSO[tema], lis = heroe.querySelectorAll(".sacel-datos .pasos li"), b0 = lienzo.getBoundingClientRect(), meta = null;
+    var bs = busesEnPantalla(), sw = posSwitch();
+    if (nv === 1 && bs.length) meta = bs.reduce(function (m, q) { return q[0] < m[0] ? q : m; });      // el bus más a la izquierda
+    if (nv === 2 && sw) meta = [sw.x, sw.y + 12];                                                      // donde llegan las líneas
+    if (nv === 3 && panelRect) meta = [panelRect.x, panelRect.y + 30];
+    if (!meta) return;
+    cr.save(); cr.globalAlpha = e; cr.lineCap = "round";
+    dest.forEach(function (k, j) {
+      var li = lis[k]; if (!li) return;
+      var r = li.getBoundingClientRect(), h3 = li.querySelector("h3"), rh = h3 ? h3.getBoundingClientRect() : r;
+      var a = [Math.min(r.right, rh.right + 12) - b0.left, rh.top + rh.height / 2 - b0.top];
+      cr.strokeStyle = "rgba(" + P.normal + ",.75)"; cr.lineWidth = 1.2; cr.setLineDash([3, 4]);
+      cr.beginPath(); cr.moveTo(a[0] + 6, a[1]);
+      // los de la columna izquierda bajan primero por debajo de la lista, para no cruzar el paso de al lado
+      var lista = li.parentNode.getBoundingClientRect(), izq = k % 2 === 0, yb = lista.bottom - b0.top + 14 + j * 6;
+      if (izq) { cr.lineTo(a[0] + 6, yb - 8); cr.quadraticCurveTo(a[0] + 6, yb, a[0] + 14, yb); a = [a[0] + 14, yb]; }
+      var mx = a[0] + (meta[0] - a[0]) * 0.55;
+      cr.bezierCurveTo(mx, a[1], mx, meta[1], meta[0] - 10 - (txtW(dest) + 0), meta[1]); cr.stroke(); cr.setLineDash([]);
+      a = [Math.min(r.right, rh.right + 12) - b0.left, rh.top + rh.height / 2 - b0.top];
+      cr.fillStyle = "rgba(" + P.normal + ",.95)"; cr.beginPath(); cr.arc(a[0] + 6, a[1], 2.4, 0, 7); cr.fill();
+    });
+    // el número del paso, en el destino
+    var txt = dest.map(function (k) { return k + 1; }).join(" · ");
+    cr.font = "600 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
+    var w = Math.max(20, cr.measureText(txt).width + 12), bx = meta[0] - 10 - w / 2, by = meta[1];   // pastilla entre la línea y el destino
+    cr.beginPath(); if (cr.roundRect) cr.roundRect(bx - w / 2, by - 10, w, 20, 10); else cr.rect(bx - w / 2, by - 10, w, 20);
+    cr.fillStyle = P.caja; cr.fill(); cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.3; cr.stroke();
+    cr.fillStyle = "rgb(" + P.normal + ")"; cr.fillText(txt, bx, by + 0.5);
     cr.restore();
   }
 
@@ -1653,7 +1713,7 @@
     }, { passive: true });
   }
   // --sacel y --datos para .heroe; el enlace de la capa que no se ve sale del orden del tabulador
-  var capaVisible = null, pasoDestacado = -2;
+  var capaVisible = null, pasoDestacado = "x";
   function textos() {
     if (!heroe) return;
     var pc = suave(aSacel);
@@ -1662,10 +1722,12 @@
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
     // en las paradas 2 y 3 se destaca su paso: Operación (la flota) y Registro y cumplimiento (el panel)
-    var nv = Math.round(pAct * PARADAS_MAPA), dest = nv >= 3 ? 2 : (nv >= 2 ? 3 : -1);
-    if (dest !== pasoDestacado) {
-      pasoDestacado = dest;
-      heroe.querySelectorAll(".sacel-datos .pasos li").forEach(function (li, i) { li.classList.toggle("destacado", i === dest); li.classList.toggle("atenuado", dest >= 0 && i !== dest); });
+    // cada parada destaca sus pasos: 1) Captura a bordo y Transmisión (los datos); 2) Operación (la flota); 3) Registro y
+    // cumplimiento (el panel). enlacesPasos() los une con lo que muestran en el mapa
+    var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || [];
+    if (dest.join() !== pasoDestacado) {
+      pasoDestacado = dest.join();
+      heroe.querySelectorAll(".sacel-datos .pasos li").forEach(function (li, i) { var d = dest.indexOf(i) >= 0; li.classList.toggle("destacado", d); li.classList.toggle("atenuado", dest.length > 0 && !d); });
     }
     var v = s > 0.5 ? "sacel" : "empresa";
     if (v === capaVisible) return; capaVisible = v;

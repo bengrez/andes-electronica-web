@@ -211,6 +211,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .sacel-datos .pasos li { transition: opacity .35s ease; }
 .sacel-datos .pasos li.atenuado { opacity: .45; }   /* paradas 2 y 3 del mapa: se destaca su paso (2026-11-03) */
 .sacel-datos .pasos li.destacado h3 { color: var(--acento); }
+.sacel-datos .pasos li.destacado { border-top-color: var(--acento); }
 @media all {   /* también con movimiento reducido (2026-11-03): --sacel salta de 0 a 1 sin animar */
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
