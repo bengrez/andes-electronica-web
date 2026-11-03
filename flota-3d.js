@@ -28,7 +28,7 @@
   // simulados. nivelMapa (0–3) lo elige el scroll; aFlota y aReporte se animan solos en DUR_NIVEL
   var PARADAS_MAPA = 3, DUR_NIVEL = 1.3, nivelMapa = 0, aFlota = 0, aReporte = 0;
   var VENTANA_REG = 360;
-  var PASOS_PARADA = [[], [0, 1], [3], [2]];      // índices de .pasos li que destaca cada parada                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
+  var PASOS_PARADA = [[], [0], [1], [2]];        // la fase (.pasos li) de cada parada: captura y transmisión, registro, operación                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -536,7 +536,6 @@
     if (pDatos > 0.01) chipsDatos();
     if (aFlota > 0.01) redFlota();
     if (aReporte > 0.01) panelReporte();
-    if (pDatos > 0.5) enlacesPasos();
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
@@ -996,12 +995,12 @@
     focos.forEach(function (f) { var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (c && c[0] > 0 && c[0] < W && c[1] > 0 && c[1] < H) out.push(c); });
     return out;
   }
-  // 1) chips con nombre que salen de los buses hacia la nube: uno cada CADA_CHIP s, de un bus distinto cada vez
+  // 1) captura y transmisión: chips con nombre que salen de los buses hacia la nube: uno cada CADA_CHIP s, de un bus distinto cada vez
   var DATOS_CHIP = ["km/h", "GPS", "conductor", "CAN bus"], CADA_CHIP = 0.9, VUELO_CHIP = 2.2;
   function chipsDatos() {
     var sw = posSwitch(); if (!sw || sw.vis < 0.3) return;
     var bs = busesEnPantalla(); if (!bs.length) return;
-    var op = pDatos * (1 - 0.75 * suave(aFlota)) * (1 - suave(aReporte)); if (op <= 0.02) return;
+    var op = pDatos * (1 - suave(aReporte)); if (op <= 0.02) return;
     var P = PULSO[tema], t = quieto ? 3.1 : performance.now() / 1000, n = Math.floor(t / CADA_CHIP);
     cr.save(); cr.font = "500 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
     for (var k = n - Math.ceil(VUELO_CHIP / CADA_CHIP); k <= n; k++) {
@@ -1015,10 +1014,10 @@
     }
     cr.restore();
   }
-  // 2) la flota: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
+  // 3) operación y seguridad: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
   function redFlota() {
     var sw = posSwitch(); if (!sw) return;
-    var P = PULSO[tema], op = suave(aFlota) * (1 - 0.55 * suave(aReporte)), t = quieto ? 0.6 : performance.now() / 1000;
+    var P = PULSO[tema], op = suave(aFlota), t = quieto ? 0.6 : performance.now() / 1000;
     cr.save(); cr.lineCap = "round";
     busesEnPantalla().forEach(function (o, i) {
       cr.globalAlpha = op;
@@ -1033,12 +1032,13 @@
     });
     cr.restore();
   }
-  // 3) el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
+  // 2) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
   var panelRect = null;
   function panelReporte() {
     var sw = posSwitch(); if (!sw) return;
-    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte), bs = sim.buses, n = bs.length;
+    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte) * (1 - suave(aFlota)), bs = sim.buses, n = bs.length;
+    if (e <= 0.02) return;
     var pw = Math.min(440, W * 0.34), fila = 22, ph = 64 + fila * n + 26;
     // al costado derecho de la H-25 (Benjamin, 2026-11-03: para repartir la información en la página): a la altura del
     // medio de la ruta en pantalla, a la derecha del punto más a la derecha de la ruta en esa franja
@@ -1088,42 +1088,6 @@
       lx += 14 + cr.measureText(l[0]).width + 16;
     });
     cr.textAlign = "right"; cr.fillText("% conducción", gx + gw + 52, ly);
-    cr.restore();
-  }
-
-  // las líneas que unen los pasos destacados del texto con lo que muestran en el mapa, con el número del paso
-  function txtW(dest) { cr.font = "600 11px 'Plex Mono', monospace"; return Math.max(20, cr.measureText(dest.map(function (k) { return k + 1; }).join(" · ")).width + 12); }
-  function enlacesPasos() {
-    var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || []; if (!dest.length || !heroe) return;
-    var e = nv === 1 ? pDatos * (1 - suave(aFlota)) : (nv === 2 ? suave(aFlota) * (1 - suave(aReporte)) : suave(aReporte)); if (e <= 0.02) return;
-    var P = PULSO[tema], lis = heroe.querySelectorAll(".sacel-datos .pasos li"), b0 = lienzo.getBoundingClientRect(), meta = null;
-    var bs = busesEnPantalla(), sw = posSwitch();
-    if (nv === 1 && bs.length) meta = bs.reduce(function (m, q) { return q[0] < m[0] ? q : m; });      // el bus más a la izquierda
-    if (nv === 2 && sw) meta = [sw.x, sw.y + 12];                                                      // donde llegan las líneas
-    if (nv === 3 && panelRect) meta = [panelRect.x, panelRect.y + 30];
-    if (!meta) return;
-    cr.save(); cr.globalAlpha = e; cr.lineCap = "round";
-    dest.forEach(function (k, j) {
-      var li = lis[k]; if (!li) return;
-      var r = li.getBoundingClientRect(), h3 = li.querySelector("h3"), rh = h3 ? h3.getBoundingClientRect() : r;
-      var a = [Math.min(r.right, rh.right + 12) - b0.left, rh.top + rh.height / 2 - b0.top];
-      cr.strokeStyle = "rgba(" + P.normal + ",.75)"; cr.lineWidth = 1.2; cr.setLineDash([3, 4]);
-      cr.beginPath(); cr.moveTo(a[0] + 6, a[1]);
-      // los de la columna izquierda bajan primero por debajo de la lista, para no cruzar el paso de al lado
-      var lista = li.parentNode.getBoundingClientRect(), izq = k % 2 === 0, yb = lista.bottom - b0.top + 14 + j * 6;
-      if (izq) { cr.lineTo(a[0] + 6, yb - 8); cr.quadraticCurveTo(a[0] + 6, yb, a[0] + 14, yb); a = [a[0] + 14, yb]; }
-      var mx = a[0] + (meta[0] - a[0]) * 0.55;
-      cr.bezierCurveTo(mx, a[1], mx, meta[1], meta[0] - 10 - (txtW(dest) + 0), meta[1]); cr.stroke(); cr.setLineDash([]);
-      a = [Math.min(r.right, rh.right + 12) - b0.left, rh.top + rh.height / 2 - b0.top];
-      cr.fillStyle = "rgba(" + P.normal + ",.95)"; cr.beginPath(); cr.arc(a[0] + 6, a[1], 2.4, 0, 7); cr.fill();
-    });
-    // el número del paso, en el destino
-    var txt = dest.map(function (k) { return k + 1; }).join(" · ");
-    cr.font = "600 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
-    var w = Math.max(20, cr.measureText(txt).width + 12), bx = meta[0] - 10 - w / 2, by = meta[1];   // pastilla entre la línea y el destino
-    cr.beginPath(); if (cr.roundRect) cr.roundRect(bx - w / 2, by - 10, w, 20, 10); else cr.rect(bx - w / 2, by - 10, w, 20);
-    cr.fillStyle = P.caja; cr.fill(); cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.3; cr.stroke();
-    cr.fillStyle = "rgb(" + P.normal + ")"; cr.fillText(txt, bx, by + 0.5);
     cr.restore();
   }
 
@@ -1710,11 +1674,12 @@
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
     // flota y reporte, cuando SACEL ya está completo
-    var mF = nivelMapa >= 2 && aSacel > 0.98 ? 1 : 0, mR = nivelMapa >= 3 && aFlota > 0.98 ? 1 : 0;
-    if (quieto || (!dt && !window.FlotaCicloAndando)) { aFlota = nivelMapa >= 2 ? 1 : 0; aReporte = nivelMapa >= 3 ? 1 : 0; }
+    // (2026-11-03, noche) orden de las fases: 2) registro y cumplimiento (el panel); 3) operación y seguridad (la flota)
+    var mR = nivelMapa >= 2 && aSacel > 0.98 ? 1 : 0, mF = nivelMapa >= 3 && aReporte > 0.98 ? 1 : 0;
+    if (quieto || (!dt && !window.FlotaCicloAndando)) { aReporte = nivelMapa >= 2 ? 1 : 0; aFlota = nivelMapa >= 3 ? 1 : 0; }
     else {
-      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - (mR ? 0 : dReal / DUR_NIVEL));
-      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - dReal / DUR_NIVEL);
+      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - (mF ? 0 : dReal / DUR_NIVEL));
+      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - dReal / DUR_NIVEL);
     }
     if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * Math.max(RES.flota, RES.iot)));
     if (listo === 2 && alturas) dibujar();
@@ -1748,8 +1713,8 @@
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
     // en las paradas 2 y 3 se destaca su paso: Operación (la flota) y Registro y cumplimiento (el panel)
-    // cada parada destaca sus pasos: 1) Captura a bordo y Transmisión (los datos); 2) Operación (la flota); 3) Registro y
-    // cumplimiento (el panel). enlacesPasos() los une con lo que muestran en el mapa
+    // cada parada destaca su fase, que muestra su texto: 1) captura y transmisión (los chips); 2) registro y cumplimiento
+    // (el panel); 3) operación y seguridad (la flota). Sin líneas que los unan: el texto y la animación van a la par
     var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || [];
     if (dest.join() !== pasoDestacado) {
       pasoDestacado = dest.join();
