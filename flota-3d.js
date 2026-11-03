@@ -1034,12 +1034,25 @@
   }
   // 2) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
-  var panelRect = null;
+  var panelRect = null, BUSES_PANEL = 4, VENTANA_PANEL = 180;   // 180 s de animación × escala 5 = 15 min simulados
+  var anclaCache = null, claveAncla = "";
+  function anclaPanel(px, py) {                  // el punto del relieve más cercano, en pantalla, a (px, py) a la altura de las fichas
+    var clave = (VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(4); }).join(",") : "") + "|" + Math.round(px / 8) + "|" + Math.round(py / 8);
+    if (clave === claveAncla) return anclaCache;
+    claveAncla = clave; anclaCache = null;
+    var mejor = Infinity, alto = NUBE.altura * 0.55;
+    for (var j = 0; j < T.nz; j += 2) for (var i = 0; i < T.nx; i += 2) {
+      var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso, e = alturas[j * T.nx + i], q = proyectar(x, (e + alto) * EXAG, z); if (!q) continue;
+      var d = Math.hypot(q[0] - px, q[1] - py); if (d < mejor) { mejor = d; anclaCache = { p: q, x: x, z: z, e: e, alto: alto * EXAG }; }
+    }
+    return anclaCache;
+  }
   function panelReporte() {
     var sw = posSwitch(); if (!sw) return;
-    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte) * (1 - suave(aFlota)), bs = sim.buses, n = bs.length;
+    // más chico (Benjamin, 2026-11-03): 4 buses y 15 min de línea de tiempo
+    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte) * (1 - suave(aFlota)), bs = sim.buses.slice(0, BUSES_PANEL), n = bs.length;
     if (e <= 0.02) return;
-    var pw = Math.min(440, W * 0.34), fila = 22, ph = 64 + fila * n + 26;
+    var pw = Math.min(330, W * 0.26), fila = 22, ph = 64 + fila * n + 26;
     // al costado derecho de la H-25 (Benjamin, 2026-11-03: para repartir la información en la página): a la altura del
     // medio de la ruta en pantalla, a la derecha del punto más a la derecha de la ruta en esa franja
     var rp = [];
@@ -1048,6 +1061,10 @@
     var y0 = Math.max(96, Math.min(H - ph - 56, ym - ph / 2)), xr = 0;
     rp.forEach(function (q) { if (q[1] > y0 - 20 && q[1] < y0 + ph + 20) xr = Math.max(xr, q[0]); });
     var x0 = Math.max(W * 0.45, Math.min(W - pw - 24, xr + 44));
+    // con su sombra tendida sobre el relieve, como las fichas de «Rastreo de flotas»: se busca el punto del relieve que,
+    // a la altura de las fichas, cae en la esquina de abajo a la izquierda del panel, y el panel se pone ahí
+    var A = anclaPanel(x0, y0 + ph);
+    if (A) { x0 = Math.max(W * 0.45, Math.min(W - pw - 24, A.p[0])); y0 = Math.max(96, Math.min(H - ph - 56, A.p[1] - ph)); cr.save(); cr.globalAlpha = e; sombraFicha(A, pw); cr.restore(); }
     panelRect = { x: x0, y: y0, w: pw, h: ph };
     var tinta = claro ? "0,16,79" : "242,237,227", cob = P.normal;
     cr.save(); cr.globalAlpha = e;
@@ -1057,21 +1074,21 @@
     var hv = ph * (0.3 + 0.7 * e);
     cr.save(); cr.shadowColor = claro ? "rgba(0,16,79,.18)" : "rgba(0,0,0,.5)"; cr.shadowBlur = 14; cr.shadowOffsetY = 5;
     // caja translúcida (Benjamin, 2026-11-03: «un poco más de transparencia»): deja ver el relieve detrás
-    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.globalAlpha = e * 0.72; cr.fill(); cr.restore();
+    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.globalAlpha = e * 0.55; cr.fill(); cr.restore();
     cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.stroke();
     cr.beginPath(); cr.rect(x0, y0, pw, hv); cr.clip();
     cr.fillStyle = "rgb(" + tinta + ")"; cr.font = "600 14px 'Archivo', 'DM Sans', sans-serif"; cr.textAlign = "left"; cr.textBaseline = "alphabetic";
     cr.fillText("Registro de la flota", x0 + 16, y0 + 26);
     cr.font = "500 10.5px 'Plex Mono', monospace"; cr.fillStyle = "rgba(" + tinta + ",.7)";
-    cr.fillText("conducción y descanso · últimos 30 min", x0 + 16, y0 + 44);
-    var gx = x0 + 58, gw = pw - 58 - 60, top = y0 + 60, pps = gw / VENTANA_REG, reloj = sim.reloj, revela = e;
+    cr.fillText("conducción y descanso · últimos 15 min", x0 + 16, y0 + 44);
+    var gx = x0 + 58, gw = pw - 58 - 50, top = y0 + 60, pps = gw / VENTANA_PANEL, reloj = sim.reloj, revela = e;
     bs.forEach(function (b, r) {
       var y = top + r * fila;
       cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "right"; cr.textBaseline = "middle"; cr.fillText("Bus " + (r + 1), gx - 10, y + 6);
       cr.fillStyle = "rgba(" + tinta + ",.07)"; cr.fillRect(gx, y, gw, 12);
       var cond = 0, tot = 0;
       b.fila.forEach(function (sg) {
-        var d0 = Math.max(sg[0], reloj - VENTANA_REG), d1 = sg[1]; if (d1 <= d0) return;
+        var d0 = Math.max(sg[0], reloj - VENTANA_PANEL), d1 = sg[1]; if (d1 <= d0) return;
         tot += d1 - d0; if (sg[2]) cond += d1 - d0;
         var x1 = gx + gw - (reloj - d0) * pps, x2 = gx + gw - (reloj - d1) * pps;
         x1 = Math.max(x1, gx + gw * (1 - revela)); if (x2 <= x1) return;      // se dibuja de derecha a izquierda al abrirse
@@ -1087,7 +1104,7 @@
       cr.fillStyle = l[1]; cr.fillRect(lx, ly - l[2] / 2, 10, l[2]); cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "left"; cr.fillText(l[0], lx + 14, ly);
       lx += 14 + cr.measureText(l[0]).width + 16;
     });
-    cr.textAlign = "right"; cr.fillText("% conducción", gx + gw + 52, ly);
+    cr.textAlign = "right"; cr.fillText("%", gx + gw + 40, ly);
     cr.restore();
   }
 
