@@ -1127,15 +1127,15 @@
   var puntosEsp = null;
   function prepararPuntos() {                    // todos los registros, del valle (oeste) a la cordillera (este)
     puntosEsp = [];
-    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2] }); }); });
+    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], lat: r[4], lon: r[5] }); }); });
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
   function especies() {
-    if (!alturas || etapaEsp <= 0.005 || !ESP.length) return;
+    if (!alturas || etapaEsp <= 0.005 || !ESP.length) { if (aCoord && !aCoord.hidden) { cajaEsp = null; enlaceCoord(null); } return; }
     if (!puntosEsp) prepararPuntos();
     var C = COLORES_VIDA[tema], P = PULSO[tema], claro = tema === "claro", mejor = null, dMejor = Infinity;
-    var ref = cursor || [W * 0.72, H * 0.5];
+    var ref = cursor || [W * 0.72, H * 0.5], qFijo = null;
     cr.save();
     puntosEsp.forEach(function (p) {
       var ap = aparece(etapaEsp - 1, p.orden); if (ap <= 0.01) return;
@@ -1150,10 +1150,13 @@
       cr.beginPath(); cr.arc(q[0], q[1], 2.6, 0, 7);
       cr.fillStyle = P.caja; cr.fill();
       cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7); cr.fillStyle = col; cr.fill();   // ● registro iNaturalist
-      if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } }
+      if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } if (cajaEsp && p === cajaEsp.p) qFijo = q; }
     });
-    // c) el rótulo de la especie más cercana al cursor
+    // c) el rótulo de la especie más cercana al cursor; mientras el cursor esté sobre el rótulo (p. ej. camino al enlace de
+    // las coordenadas) se mantiene el mismo registro
     var al = Math.max(0, Math.min(1, etapaEsp - 2));
+    if (cajaEsp && qFijo && cursor && cursor[0] > cajaEsp.x0 - 8 && cursor[0] < cajaEsp.x1 + 8 && cursor[1] > cajaEsp.y0 - 8 && cursor[1] < cajaEsp.y1 + 8) mejor = { p: cajaEsp.p, q: qFijo };
+    if (!mejor || al <= 0.01) { cajaEsp = null; enlaceCoord(null); }
     leyenda(Math.max(0, Math.min(1, etapaEsp)), C, P, claro);
     if (mejor && al > 0.01) {
       var m = mejor, x = m.q[0], y0 = m.q[1];
@@ -1174,8 +1177,32 @@
       linea(l2, "italic 12.5px 'Source Serif', serif", ty + 16, tinta);
       linea(l3, "500 10.5px 'Plex Mono', monospace", ty + 31);
       if (l4) linea(l4, "600 10.5px 'Plex Mono', monospace", ty + 45, claro ? "#8a3c12" : "#f0b07a");
+      // las coordenadas del registro, como enlace a Google Maps (un <a> sobre el lienzo, en la línea siguiente)
+      var yc = ty + (l4 ? 59 : 45);
+      enlaceCoord(m.p, tx, yc, al);
+      cajaEsp = { p: m.p, x0: Math.min(x, tx), x1: Math.max(x, tx + Math.max(w, 150)), y0: ty - 10, y1: yc + 10 };
     }
     cr.restore();
+  }
+  // enlace a Google Maps con la latitud y longitud del registro del rótulo (Benjamin, 2026-11-03); sólo se toca el DOM
+  // cuando cambia algo
+  var cajaEsp = null, aCoord = null, estadoCoord = "";
+  function gms(v, pos, neg) { return Math.abs(v).toFixed(4).replace(".", ",") + "° " + (v >= 0 ? pos : neg); }
+  function enlaceCoord(p, x, y, al) {
+    if (!aCoord) {
+      aCoord = document.createElement("a"); aCoord.className = "coord-esp"; aCoord.target = "_blank"; aCoord.rel = "noopener";
+      lienzo.parentNode.appendChild(aCoord);
+    }
+    var ok = p && p.lat != null && al > 0.05;
+    var est = ok ? [p.lat, p.lon, Math.round(x), Math.round(y), al > 0.5 ? 1 : 0, (al * 20 | 0)].join("|") : "";
+    if (est === estadoCoord) return; estadoCoord = est;
+    if (!ok) { aCoord.hidden = true; aCoord.tabIndex = -1; return; }
+    aCoord.hidden = false; aCoord.tabIndex = al > 0.5 ? 0 : -1;
+    aCoord.href = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lon;
+    aCoord.textContent = gms(p.lat, "N", "S") + " · " + gms(p.lon, "E", "O") + " ↗";
+    aCoord.setAttribute("aria-label", "Ver el registro de " + p.e.n + " en Google Maps (" + aCoord.textContent.replace(" ↗", "") + ")");
+    aCoord.style.left = Math.round(x) + "px"; aCoord.style.top = Math.round(y) + "px";
+    aCoord.style.opacity = al.toFixed(2); aCoord.style.pointerEvents = al > 0.5 ? "auto" : "none";
   }
   // la leyenda de «Diseño e investigación», abajo a la derecha (la esquina libre del mapa, sobre «Pausar animación»)
   function leyenda(al, C, P, claro) {

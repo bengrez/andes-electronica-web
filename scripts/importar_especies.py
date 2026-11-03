@@ -18,7 +18,7 @@ def regs(e):
     for r in e['registros']:
         if r.get('oscurecida') or r.get('geoprivacy') not in (None, 'open'):
             continue
-        out.append([round(r['x']), round(r['z']), r['fecha'], r['id']])
+        out.append([round(r['x']), round(r['z']), r['fecha'], r['id'], round(r['lat'], 5), round(r['lon'], 5)])
     return out
 
 # modelo de hábitat (Benjamin, 3-nov): altura de los registros y pesos de exposición, para repartir las plantas modeladas
@@ -55,7 +55,7 @@ n = sum(len(e['r']) for e in especies)
 cab = ('/* Especies de la ruta H-25 para el mapa de inicio. Generado por scripts/importar_especies.py desde la lista curada '
        'de A10 (handoff 019), ' + d['meta']['generado'][:10] + '. Registros de iNaturalist con coordenadas abiertas '
        '(c: clave de la silueta, n: nombre común, s: científico, g: grupo, o: origen, i: introducida, f: lleva ficha, '
-       'r: [x, z, fecha, id de observación] en metros del cuadro; https://www.inaturalist.org/observations/<id>). '
+       'r: [x, z, fecha, id de observación, lat, lon] (x, z en metros del cuadro; lat, lon WGS84); https://www.inaturalist.org/observations/<id>). '
        + str(len(especies)) + ' especies, ' + str(n) + ' registros. */\n')
 open(SALIDA, 'w').write(cab + 'window.ESPECIES_H25 = ' + json.dumps({'especies': especies}, ensure_ascii=False, separators=(',', ':')) + ';\n')
 print(len(especies), 'especies,', n, 'registros →', os.path.normpath(SALIDA))
