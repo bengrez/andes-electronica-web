@@ -269,7 +269,7 @@
     return { ojo: o, obj: m, arriba: [0, 1, 0] };
   }
   function progreso() {
-    if (quieto || !recorrido) return 1;
+    if (!recorrido) return 1;                     // con movimiento reducido también parte en el panorama (2026-11-03)
     var r = recorrido.getBoundingClientRect(), largo = r.height - window.innerHeight;
     return largo > 0 ? Math.max(0, Math.min(1, -r.top / largo)) : 0;
   }
@@ -962,60 +962,76 @@
   // quiscos en las laderas de solana bajas y quillayes en las de umbría (los zorros se quitaron el 30-oct).
   // Van con el relieve (mismo velo, niebla y color) y se esconden detrás de las lomas; al final se transparentan con
   // un desfase respecto de él (opacVida).
-  var VIDA = { quiscos: 70, quillayes: 34 };   // sin fauna terrestre (Benjamin, 2026-10-30: fuera los zorros)
-  // los simulados, en una zona acotada en torno al tramo medio de la ruta, que siempre queda a la vista (2026-10-30)
-  var ZONA_VIDA = { cx: 13600, cz: 11200, rx: 4200, rz: 3400 };
-  // registros reales de iNaturalist (Benjamin, 2026-11-03: los datos de A10, handoff 019, en datos/especies-h25.js;
-  // sólo coordenadas abiertas). Los quiscos y quillayes reales se dibujan siempre, en colores más vivos; los repetidos a
-  // menos de 80 m se juntan. Las mismas coordenadas que la consulta del 30-oct (≤ 1 m), más los registros nuevos
+  // Plantas uniformes en reposo (Benjamin, 2026-11-03): las 9 especies dibujadas de informe.md §5 se ven siempre, todas
+  // del tono del relieve, sin distinguir registro real de modelado. Las reales van en sus registros de iNaturalist
+  // (datos/especies-h25.js, de A10; sólo coordenadas abiertas; los repetidos a menos de 60–80 m se juntan); las modeladas
+  // completan unas TOTAL_PLANTAS (risk-006: el mismo costo de antes) repartidas según cuántos registros tiene cada especie
+  // y puestas con un modelo de hábitat: la altura de sus registros (altitud_registros_m) y su exposición (pesos de solana,
+  // umbría, río/quebrada y plano/fondo de valle), cerca de donde se registró. Al activar «Diseño e investigación» se ve la
+  // diversidad (especies(), más abajo)
+  var TOTAL_PLANTAS = 200;
+  var PLANTAS = ["quisco", "quillay", "colliguay", "litre", "espino", "boldo", "peumo", "bollen", "chagual"];
+  // grupo de cada una para el color de la etapa 1: cactus, árboles esclerófilos, arbustos y bromelia
+  var GRUPO = { quisco: "cactus", quillay: "arbol", litre: "arbol", espino: "arbol", boldo: "arbol", peumo: "arbol", bollen: "arbol",
+                colliguay: "arbusto", chagual: "bromelia" };
   var ESP = (window.ESPECIES_H25 && window.ESPECIES_H25.especies) || [];
+  function especie(clave) { return ESP.filter(function (x) { return x.c === clave; })[0]; }
   function registrosDe(clave, junta) {
-    var e = ESP.filter(function (x) { return x.c === clave; })[0], out = [];
+    var e = especie(clave), out = [];
     (e ? e.r : []).forEach(function (r) { if (!out.some(function (q) { return Math.hypot(q[0] - r[0], q[1] - r[1]) < junta; })) out.push([r[0], r[1]]); });
     return out;
   }
-  var INAT = { quiscos: registrosDe("quisco", 80), quillayes: registrosDe("quillay", 80) };
   var seres = null;
   function cercaDeRuta(x, z, d) {
     for (var i = 0; i < R.length; i++) if (Math.abs(R[i][0] - x) < d && Math.abs(R[i][1] - z) < d && Math.hypot(R[i][0] - x, R[i][1] - z) < d) return true;
     return false;
   }
+  // exposición del relieve en un punto, con las mismas clases que el informe: q río/quebrada (hondonada), p plano o fondo
+  // de valle, s solana (ladera que mira al norte) o u umbría
+  function exposicion(x, z) {
+    var h = alturaEn(x, z), d = 300;
+    var hn = alturaEn(x, z + d), hs = alturaEn(x, z - d), he = alturaEn(x + d, z), ho = alturaEn(x - d, z);
+    if ((hn + hs + he + ho) / 4 - h > 22) return "q";
+    var gz = (hn - hs) / (2 * d), gx = (he - ho) / (2 * d);
+    if (Math.hypot(gx, gz) < 0.06) return "p";
+    return gz > 0 ? "s" : "u";
+  }
   function prepararVida() {
     var semilla = 29;
     function az() { semilla = (semilla * 1664525 + 1013904223) >>> 0; return semilla / 4294967296; }
-    function lugar(min, max, solana, intentos) {   // un punto del cuadro entre esas alturas, con la exposición pedida
-      for (var n = 0; n < intentos; n++) {
-        var ang = az() * 6.2832, rr = Math.sqrt(az());
-        var x = ZONA_VIDA.cx + Math.cos(ang) * rr * ZONA_VIDA.rx, z = ZONA_VIDA.cz + Math.sin(ang) * rr * ZONA_VIDA.rz, h = alturaEn(x, z);
-        if (h < min || h > max) continue;
-        if (cercaDeRuta(x, z, 320)) continue;                              // que no tapen el camino
-        var pend = (alturaEn(x, z + 150) - alturaEn(x, z - 150)) / 300;    // > 0: la ladera mira al norte (al sol)
-        if (solana === 1 && pend < 0.03) continue;
-        if (solana === -1 && pend > -0.02) continue;
-        return [x, z];
-      }
-      return null;
+    function sorteo(pesos) {                       // una clave al azar según sus pesos
+      var tot = 0, k; for (k in pesos) tot += pesos[k];
+      var u = az() * tot; for (k in pesos) { u -= pesos[k]; if (u <= 0) return k; }
+      return k;
     }
     seres = [];
-    var k, p;
-    for (k = 0; k < VIDA.quiscos; k++) if ((p = lugar(700, 1700, 1, 150))) seres.push({ tipo: "quisco", x: p[0], z: p[1], t: 0.8 + az() * 0.5, brazos: az() < 0.7 ? (az() < 0.5 ? 1 : 2) : 0 });
-    for (k = 0; k < VIDA.quillayes; k++) {          // de a dos o tres, como en las quebradas
-      if (!(p = lugar(700, 1800, -1, 150))) continue;
-      var n = 1 + Math.floor(az() * 3);
-      for (var j = 0; j < n; j++) {
-        var qx = p[0] + (az() - 0.5) * 500, qz = p[1] + (az() - 0.5) * 500;
-        if (!cercaDeRuta(qx, qz, 320)) seres.push({ tipo: "quillay", x: qx, z: qz, t: 0.8 + az() * 0.45 });
+    var reales = {}, nReales = 0, nRegs = 0;
+    PLANTAS.forEach(function (c) { reales[c] = registrosDe(c, c === "quisco" || c === "quillay" ? 80 : 60); nReales += reales[c].length; nRegs += (especie(c) || { r: [] }).r.length; });
+    var libres = Math.max(0, TOTAL_PLANTAS - nReales);
+    function forma(c) { return { brazos: c === "quisco" ? (az() < 0.7 ? (az() < 0.5 ? 1 : 2) : 0) : 0 }; }
+    PLANTAS.forEach(function (c) {
+      var e = especie(c); if (!e) return;
+      reales[c].forEach(function (q) { var o = forma(c); o.tipo = c; o.x = q[0]; o.z = q[1]; o.t = 0.95 + az() * 0.2; o.real = true; seres.push(o); });
+      // las modeladas: dentro de 2,5 km de sus registros, en su franja de altura (con algo de holgura) y con la exposición
+      // sorteada según sus pesos; si no hay lugar con esa exposición, sólo la altura
+      var n = Math.round(libres * e.r.length / Math.max(1, nRegs)), a = e.a || [600, 1100], hab = e.h || { s: 1 };
+      var x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      e.r.forEach(function (r) { x0 = Math.min(x0, r[0]); x1 = Math.max(x1, r[0]); z0 = Math.min(z0, r[1]); z1 = Math.max(z1, r[1]); });
+      x0 -= 2500; x1 += 2500; z0 -= 2500; z1 += 2500;
+      for (var k = 0; k < n; k++) {
+        var quiere = sorteo(hab), p = null;
+        for (var t = 0; t < 160 && !p; t++) {
+          var x = x0 + az() * (x1 - x0), z = z0 + az() * (z1 - z0), h = alturaEn(x, z);
+          if (h < a[0] - 80 || h > a[1] + 150 || cercaDeRuta(x, z, 320)) continue;
+          if (t < 110 && exposicion(x, z) !== quiere) continue;
+          p = [x, z];
+        }
+        if (p) { var o = forma(c); o.tipo = c; o.x = p[0]; o.z = p[1]; o.t = 0.8 + az() * 0.45; seres.push(o); }
       }
-    }
-    INAT.quiscos.forEach(function (q) { seres.push({ tipo: "quisco", x: q[0], z: q[1], t: 1.05, brazos: az() < 0.5 ? 1 : 2, real: true }); });
-    INAT.quillayes.forEach(function (q) { seres.push({ tipo: "quillay", x: q[0], z: q[1], t: 1.1, real: true }); });
-    // «Diseño e investigación» (2026-11-03): las especies dibujadas de informe.md §5 que no estaban (7 plantas), en sus
-    // registros reales; aparecen de a poco al pasar el mouse (etapa b). El aguilucho vuela aparte (aguiluchos())
-    var orden = 0;
-    ["colliguay", "litre", "espino", "boldo", "peumo", "bollen", "chagual"].forEach(function (c) {
-      registrosDe(c, 60).forEach(function (q) { seres.push({ tipo: c, x: q[0], z: q[1], t: 0.9 + az() * 0.3, real: true, esp: 1, orden: orden++ }); });
     });
-    seres.forEach(function (o) { if (o.esp) o.orden /= Math.max(1, orden); });
+    // el turno de cada una en la etapa 1 (el color corre del valle a la cordillera)
+    var xs = seres.map(function (o) { return o.x; }), xa = Math.min.apply(null, xs), xb = Math.max.apply(null, xs);
+    seres.forEach(function (o) { o.orden = (o.x - xa) / Math.max(1, xb - xa); });
   }
   function aLaVista(x, y, z) {                     // ¿alguna loma tapa el punto? se recorre el rayo hacia la cámara
     for (var k = 1; k < 14; k++) {
@@ -1025,13 +1041,23 @@
     return true;
   }
   var COLORES_VIDA = {
-    // tonos cercanos al relieve que los rodea, apenas más oscuros (Benjamin, 2026-10-30: que se integren); los «vivo»
-    // son para los registros reales de iNaturalist, para que se distingan
+    // en reposo, tonos cercanos al relieve que los rodea, apenas más oscuros (Benjamin, 2026-10-30: que se integren), los
+    // mismos para todas; «grupos» es el color de la etapa 1 de «Diseño e investigación» (2026-11-03)
     claro:  { cactus: [86, 102, 70], tronco: [104, 92, 76], copa: [84, 98, 64], copa2: [112, 124, 88],
-              cactusVivo: [46, 150, 58], copaVivo: [58, 138, 40], copa2Vivo: [118, 186, 74] },
+              grupos: { cactus: [24, 120, 112], arbol: [44, 104, 36], arbusto: [150, 136, 20], bromelia: [124, 70, 150] },
+              otras: [70, 74, 96], introducida: [150, 92, 40] },
     oscuro: { cactus: [30, 36, 44], tronco: [26, 28, 34], copa: [26, 32, 40], copa2: [40, 48, 58],
-              cactusVivo: [90, 190, 110], copaVivo: [96, 176, 96], copa2Vivo: [150, 214, 140] }
+              grupos: { cactus: [96, 210, 196], arbol: [126, 204, 104], arbusto: [226, 206, 96], bromelia: [204, 160, 234] },
+              otras: [196, 202, 220], introducida: [236, 184, 128] }
   };
+  function mezcla(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+  // el color de grupo de un registro: las plantas por su grupo (según su clave o su forma de vida), las introducidas en
+  // cobre y la fauna y las demás nativas en tinta
+  function colorRegistro(e, C) {
+    if (e.i) return C.introducida;
+    var g = GRUPO[e.c] || { cactus: "cactus", "árbol": "arbol", arbusto: "arbusto", bromelia: "bromelia" }[e.g];
+    return g ? C.grupos[g] : C.otras;
+  }
   // el mismo tratamiento de color que el relieve en su shader: lavado hacia el papel y niebla por distancia
   function comoMapa(c, f) {
     var l = TM.lavado * suave(pCam), r = [];
@@ -1042,11 +1068,13 @@
     return "rgb(" + r.join(",") + ")";
   }
 
-  // ─── «Diseño e investigación» (Benjamin, 2026-11-03): al pasar el mouse, los detalles de la simulación aparecen de a poco,
-  // como señal del detalle que Andes pone en sus equipos: a) se encienden los puntos de los registros reales de especies;
-  // b) aparecen las siluetas de las especies dibujadas; c) un rótulo con el nombre común y científico de la especie más
-  // cercana al cursor y «registro iNaturalist · <fecha>». Al salir se apaga en orden inverso; con movimiento reducido,
-  // todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
+  // ─── «Diseño e investigación» (Benjamin, 2026-11-03): al pasar el mouse aparece la diversidad que en reposo no se
+  // distingue, como señal del detalle que Andes pone en sus equipos: 1) las plantas toman el color de su grupo (cactus,
+  // árboles esclerófilos, arbustos, bromelia), del valle a la cordillera; 2) se encienden los registros reales de
+  // iNaturalist (punto lleno; fauna y exóticas también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
+  // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» y,
+  // si está amenazada, su categoría del RCE. Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
+  // se apaga en orden inverso; con movimiento reducido, todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
   var etapaEsp = 0, tEsp = 0, DUR_ETAPA_ESP = 0.9, cursor = null, ancladoEsp = false, bordeEsp = 0;
   function aparece(e, orden) {                  // 0–1 para un elemento con su turno (orden 0–1) dentro de una etapa
     return Math.max(0, Math.min(1, (e - orden * 0.75) / 0.25));
@@ -1062,11 +1090,26 @@
     if (ancladoEsp && (ev.clientX < bordeEsp - 4 || pCam > 0.1)) { ancladoEsp = false; META.especies = 0; paso(0); }
   }, { passive: true });
   document.addEventListener("pointerleave", function () { if (ancladoEsp) { ancladoEsp = false; META.especies = 0; paso(0); } });
-  function silueta(o, q, f, C, fn) {             // las 7 plantas nuevas, del mismo tamaño de juguete que quiscos y quillayes
-    var x = q[0], y = q[1], k = f * o.t, copa = comoMapa(C.copaVivo, fn), copa2 = comoMapa(C.copa2Vivo, fn), tronco = comoMapa(C.tronco, fn);
+  // las 9 plantas, del mismo tamaño de juguete; g (0–1) lleva la copa del tono del relieve al color de su grupo
+  function silueta(o, q, f, C, fn, g) {
+    var x = q[0], y = q[1], k = f * o.t, cg = C.grupos[GRUPO[o.tipo]];
+    var copa = comoMapa(mezcla(o.tipo === "quisco" ? C.cactus : C.copa, cg, g), fn), copa2 = comoMapa(mezcla(C.copa2, mezcla(cg, [255, 255, 255], 0.3), g), fn), tronco = comoMapa(C.tronco, fn);
     function grad(cx, cy, r) { var g = cr.createRadialGradient(cx - r * 0.3, cy - r * 0.4, r * 0.1, cx, cy, r * 1.1); g.addColorStop(0, copa2); g.addColorStop(1, copa); return g; }
     function palo(h) { cr.strokeStyle = tronco; cr.lineWidth = 1.2 * f; cr.beginPath(); cr.moveTo(x, y); cr.lineTo(x, y - h); cr.stroke(); }
     switch (o.tipo) {
+      case "quisco":                             // columna con uno o dos brazos
+        var hq = 8 * k;
+        cr.strokeStyle = copa; cr.lineWidth = 1.6 * f;
+        cr.beginPath(); cr.moveTo(x, y); cr.lineTo(x, y - hq);
+        if (o.brazos > 0) { cr.moveTo(x, y - hq * 0.45); cr.lineTo(x - hq * 0.28, y - hq * 0.45); cr.lineTo(x - hq * 0.28, y - hq * 0.78); }
+        if (o.brazos > 1) { cr.moveTo(x, y - hq * 0.3); cr.lineTo(x + hq * 0.25, y - hq * 0.3); cr.lineTo(x + hq * 0.25, y - hq * 0.62); }
+        cr.stroke();
+        break;
+      case "quillay":                            // tronco corto y copa redonda, más clara arriba
+        var r = 4.2 * k;
+        palo(r * 1.1); cr.fillStyle = grad(x, y - r * 1.5, r);
+        cr.beginPath(); cr.arc(x, y - r * 1.5, r, 0, 7); cr.fill();
+        break;
       case "colliguay":                          // mata redonda y baja, de a tres
         cr.fillStyle = grad(x, y - 2.5 * k, 3.5 * k);
         [[-3.2, 0, 2.6], [0, -0.6, 3.2], [3.2, 0, 2.4]].forEach(function (m) { cr.beginPath(); cr.arc(x + m[0] * k, y - 2.2 * k + m[1] * k, m[2] * k, Math.PI, 0); cr.fill(); });
@@ -1118,23 +1161,23 @@
     var ref = cursor || [W * 0.72, H * 0.5];
     cr.save();
     puntosEsp.forEach(function (p) {
-      var ap = aparece(etapaEsp, p.orden); if (ap <= 0.01) return;
+      var ap = aparece(etapaEsp - 1, p.orden); if (ap <= 0.01) return;
       var y = alturaEn(p.x, p.z) * EXAG, q = proyectar(p.x, y, p.z); if (!q || q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
       if (!aLaVista(p.x, y, p.z)) return;
       var dc = Math.hypot(p.x - ojo[0], y - ojo[1], p.z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
       var a = veloEn(q[0], q[1], y / EXAG) * (1 - 0.6 * fn) * opacVida * ap; if (a <= 0.02) return;
-      var col = "rgb(" + (p.e.i ? (claro ? "150,92,40" : "236,184,128") : (claro ? "40,128,52" : "130,214,140")) + ")";
+      var col = "rgb(" + colorRegistro(p.e, C).join(",") + ")";
       cr.globalAlpha = a;
       // el punto se enciende: un destello que se abre y queda un punto con borde de papel; las exóticas, huecas
       if (ap < 1) { cr.strokeStyle = col; cr.lineWidth = 1; cr.beginPath(); cr.arc(q[0], q[1], 2 + 8 * ap, 0, 7); cr.globalAlpha = a * (1 - ap); cr.stroke(); cr.globalAlpha = a; }
       cr.beginPath(); cr.arc(q[0], q[1], 2.6, 0, 7);
       cr.fillStyle = P.caja; cr.fill();
-      cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7);
-      if (p.e.i) { cr.strokeStyle = col; cr.lineWidth = 1.1; cr.stroke(); } else { cr.fillStyle = col; cr.fill(); }
+      cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7); cr.fillStyle = col; cr.fill();   // ● registro iNaturalist
       if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } }
     });
     // c) el rótulo de la especie más cercana al cursor
     var al = Math.max(0, Math.min(1, etapaEsp - 2));
+    leyenda(Math.max(0, Math.min(1, etapaEsp)), C, P, claro);
     if (mejor && al > 0.01) {
       var m = mejor, x = m.q[0], y0 = m.q[1];
       cr.globalAlpha = al;
@@ -1143,6 +1186,8 @@
       cr.font = "600 13px 'DM Sans', sans-serif"; var w = cr.measureText(l1).width;
       cr.font = "italic 12.5px 'Source Serif', serif"; w = Math.max(w, cr.measureText(l2).width);
       cr.font = "500 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l3).width);
+      var l4 = m.p.e.rce || "";                  // p. ej. «NT · Casi amenazada (RCE)», sólo si está amenazada
+      if (l4) { cr.font = "600 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l4).width); }
       if (tx + w > W - 12) tx = x - 12 - w;
       cr.beginPath(); cr.moveTo(x + (tx > x ? 5 : -5), y0 - 4); cr.lineTo(tx + (tx > x ? -3 : w + 3), ty + 4); cr.lineWidth = 1; cr.stroke();
       cr.textBaseline = "middle"; cr.textAlign = "left"; cr.lineJoin = "round"; cr.lineWidth = 4; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
@@ -1151,18 +1196,46 @@
       linea(l1, "600 13px 'DM Sans', sans-serif", ty, tinta);
       linea(l2, "italic 12.5px 'Source Serif', serif", ty + 16, tinta);
       linea(l3, "500 10.5px 'Plex Mono', monospace", ty + 31);
+      if (l4) linea(l4, "600 10.5px 'Plex Mono', monospace", ty + 45, claro ? "#8a3c12" : "#f0b07a");
     }
     cr.restore();
   }
-  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores (etapa b)
+  // la leyenda de «Diseño e investigación», abajo a la derecha (la esquina libre del mapa, sobre «Pausar animación»)
+  function leyenda(al, C, P, claro) {
+    if (al <= 0.01) return;
+    var filas = [["cactus", "Cactus"], ["arbol", "Árboles esclerófilos"], ["arbusto", "Arbustos"], ["bromelia", "Bromelia"]];
+    var x1 = W - 22, alto = 15, y0 = H - 62 - (filas.length + 2) * alto, ancho = 204, x0 = x1 - ancho, tinta = claro ? "#00104f" : "#f2ede3";
+    cr.save(); cr.globalAlpha = al;
+    cr.fillStyle = P.caja; cr.globalAlpha = al * 0.86;
+    cr.beginPath(); cr.roundRect ? cr.roundRect(x0 - 10, y0 - 12, ancho + 20, (filas.length + 2) * alto + 14, 6) : cr.rect(x0 - 10, y0 - 12, ancho + 20, (filas.length + 2) * alto + 14); cr.fill();
+    cr.globalAlpha = al; cr.textBaseline = "middle"; cr.textAlign = "left";
+    cr.font = "500 10.5px 'Plex Mono', monospace";
+    filas.forEach(function (f, k) {
+      var y = y0 + k * alto;
+      cr.fillStyle = "rgb(" + C.grupos[f[0]].join(",") + ")"; cr.fillRect(x0, y - 4, 12, 8);
+      cr.fillStyle = tinta; cr.fillText(f[1], x0 + 20, y);
+    });
+    var y = y0 + filas.length * alto + 4, gris = "rgb(" + C.otras.join(",") + ")";
+    cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
+    cr.fillStyle = tinta; cr.fillText("registro iNat", x0 + 20, y);
+    cr.strokeStyle = gris; cr.lineWidth = 1; cr.beginPath(); cr.arc(x0 + 122, y, 2.4, 0, 7); cr.stroke();
+    cr.fillText("modelado", x0 + 132, y);
+    y += alto;
+    cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
+    cr.fillStyle = tinta; cr.fillText("fauna", x0 + 20, y);
+    cr.fillStyle = "rgb(" + C.introducida.join(",") + ")"; cr.beginPath(); cr.arc(x0 + 122, y, 2.6, 0, 7); cr.fill();
+    cr.fillStyle = tinta; cr.fillText("introducida", x0 + 132, y);
+    cr.restore();
+  }
+  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores (etapa 2, con los registros)
   function aguiluchos() {
-    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
+    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;   // con los registros (etapa 2)
     var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232";
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     regs.slice(0, 3).forEach(function (r, k) {
       var a = t * 0.12 + k * 2.1, x = r[0] + Math.cos(a) * 500, z = r[1] + Math.sin(a) * 380;
       var y = (alturaEn(x, z) + 300) * EXAG, q = proyectar(x, y, z); if (!q) return;
-      var al = veloEn(q[0], q[1], y / EXAG) * opacVida * ap; if (al <= 0.02) return;
+      var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna()); if (al <= 0.02) return;
       var sp = 6 * Math.max(0.7, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100)));
       cr.globalAlpha = al; cr.strokeStyle = "rgba(" + col + ",.9)"; cr.lineWidth = 1.6;
       cr.beginPath(); cr.moveTo(q[0] - sp, q[1] + sp * 0.12); cr.quadraticCurveTo(q[0] - sp * 0.45, q[1] - sp * 0.28, q[0], q[1]);
@@ -1172,14 +1245,40 @@
     cr.restore();
   }
 
+  // Transparencia de la flora y fauna (Benjamin, 2026-11-03): en reposo, más transparentes que antes; cuando el mapa se
+  // activa (hover de cualquier tarjeta del panorama), más opacas, para que se integren al mapa como parte del mini mapa.
+  // Multiplica el alfa de las plantas, el aguilucho, los loros y los cóndores
+  var FAUNA_REPOSO = 0.5, FAUNA_ACTIVO = 1.15;
+  function opacFauna() {
+    var act = Math.min(1, Math.max(RES.flota, RES.nube, RES.bus, RES.iot, RES.ruta, etapaEsp));
+    return FAUNA_REPOSO + (FAUNA_ACTIVO - FAUNA_REPOSO) * act;
+  }
+  // las plantas se dibujan en un lienzo aparte y se redibujan sólo cuando cambia algo que las mueve o las tiñe (cámara,
+  // etapa, transparencias, tema, tamaño); el resto de los cuadros se copia de una vez (risk-006: el raster de ~200 siluetas
+  // por cuadro costaba ~1 fps en swiftshader)
+  var lienzoVida = null, crVida = null, claveVida = "";
   function vida() {
     if (!alturas || opacVida <= 0.02) return;
     if (!seres) prepararVida();
-    var C = COLORES_VIDA[tema], t = sim.reloj;
+    var vp = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(5); }).join(",") : "";
+    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFauna().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
+    if (!lienzoVida) { lienzoVida = document.createElement("canvas"); crVida = lienzoVida.getContext("2d"); }
+    if (clave !== claveVida) {
+      claveVida = clave;
+      if (lienzoVida.width !== capa.width || lienzoVida.height !== capa.height) { lienzoVida.width = capa.width; lienzoVida.height = capa.height; }
+      var crMapa = cr; cr = crVida;
+      cr.setTransform(1, 0, 0, 1, 0, 0); cr.clearRect(0, 0, lienzoVida.width, lienzoVida.height); cr.setTransform(dpr, 0, 0, dpr, 0, 0);
+      try { dibujarVida(); } finally { cr = crMapa; }
+    }
+    cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoVida, 0, 0); cr.restore();
+  }
+  function dibujarVida() {
+    var C = COLORES_VIDA[tema], fa = opacFauna();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    var e2 = Math.max(0, Math.min(1, etapaEsp - 1));   // etapa 2: las modeladas quedan tenues y huecas
+    var mv = medidasVelo();                        // una vez por cuadro (lee el estilo del documento)
     seres.forEach(function (o) {
-      var ap = o.esp ? aparece(etapaEsp - 1, o.orden) : 1; if (ap <= 0.01) return;
-      var x = o.x, z = o.z, rumbo = 0;
+      var x = o.x, z = o.z;
       var y = alturaEn(x, z) * EXAG;
       var q = proyectar(x, y, z); if (!q || q[0] < -20 || q[0] > W + 20 || q[1] < -20 || q[1] > H + 20) return;
       if (!aLaVista(x, y, z)) return;
@@ -1187,25 +1286,17 @@
       var dc = Math.hypot(x - ojo[0], y - ojo[1], z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
       fn = fn * fn * (3 - 2 * fn);
       // abajo a la izquierda (inicio de la H-25, junto al texto) van más tenues, para que no resalten (2026-10-30)
-      var mv = medidasVelo(), izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
+      var izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
       var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja); if (a2 <= 0.02) return;
       var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
-      cr.globalAlpha = a2 * ap;
-      if (o.esp) { silueta(o, q, f * (0.7 + 0.3 * ap), C, fn); return; }
-      if (o.tipo === "quisco") {                    // columna con uno o dos brazos
-        var h = 8 * f * o.t;
-        cr.strokeStyle = comoMapa(o.real ? C.cactusVivo : C.cactus, fn); cr.lineWidth = 1.6 * f;
-        cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] - h);
-        if (o.brazos > 0) { cr.moveTo(q[0], q[1] - h * 0.45); cr.lineTo(q[0] - h * 0.28, q[1] - h * 0.45); cr.lineTo(q[0] - h * 0.28, q[1] - h * 0.78); }
-        if (o.brazos > 1) { cr.moveTo(q[0], q[1] - h * 0.3); cr.lineTo(q[0] + h * 0.25, q[1] - h * 0.3); cr.lineTo(q[0] + h * 0.25, q[1] - h * 0.62); }
-        cr.stroke();
-      } else if (o.tipo === "quillay") {            // tronco corto y copa redonda, más clara arriba
-        var r = 4.2 * f * o.t;
-        cr.strokeStyle = comoMapa(C.tronco, fn); cr.lineWidth = 1.3 * f;
-        cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] - r * 1.1); cr.stroke();
-        var g = cr.createRadialGradient(q[0] - r * 0.3, q[1] - r * 1.9, r * 0.1, q[0], q[1] - r * 1.5, r * 1.1);
-        g.addColorStop(0, comoMapa(o.real ? C.copa2Vivo : C.copa2, fn)); g.addColorStop(1, comoMapa(o.real ? C.copaVivo : C.copa, fn));
-        cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1] - r * 1.5, r, 0, 7); cr.fill();
+      var g = aparece(etapaEsp, o.orden), tenue = o.real ? 1 : 1 - 0.65 * e2;
+      a2 = Math.min(1, a2 * fa);
+      cr.globalAlpha = a2 * tenue;
+      silueta(o, q, f, C, fn, g);
+      if (!o.real && e2 > 0.01) {                  // ○ modelado: un anillo del color del grupo al pie
+        cr.globalAlpha = Math.min(1, a2 * 1.6) * e2;
+        cr.strokeStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")"; cr.lineWidth = 1;
+        cr.beginPath(); cr.arc(q[0], q[1], 2.2, 0, 7); cr.stroke();
       }
     });
     cr.restore();
@@ -1290,7 +1381,7 @@
       var x = p[0] - dz / l * b.lado, z = p[1] + dx / l * b.lado;          // la formación, a los lados del trayecto
       var y = (alturaEn(x, z) + LOROS.altura + b.alto + Math.sin(t * 1.3 + b.fase) * 30) * EXAG;
       var q = proyectar(x, y, z); if (!q) return;
-      var a = veloEn(q[0], q[1], y / EXAG) * Math.min(1, u / 0.06) * Math.min(1, (1 - u) / 0.06); if (a <= 0.02) return;
+      var a = Math.min(1, veloEn(q[0], q[1], y / EXAG) * Math.min(1, u / 0.06) * Math.min(1, (1 - u) / 0.06) * opacFauna()); if (a <= 0.02) return;
       var sp = Math.max(3.5, Math.min(7, 5 * (2600 / tamPantalla(x, y, z, 100)))), al = Math.sin(t * 24 + b.fase) * 0.35;
       cr.strokeStyle = "rgba(" + colA + "," + (a * 0.95).toFixed(3) + ")"; cr.lineWidth = 1.4;
       cr.beginPath();
@@ -1363,7 +1454,7 @@
       var ciclo = (t + c.bate) % 14, alza = ciclo < 1.2 ? Math.sin(ciclo * 15) * 0.18 : 0;
       var a = veloEn(cen[0], cen[1], y / EXAG) * (tema === "claro" ? 0.8 : 0.65);
       if (c.intermitente) a *= Math.max(0, Math.min(1, Math.sin(t * 0.05 + c.hFase) * 3));   // a veces está, a veces no
-      if (a <= 0.02) return;
+      a = Math.min(1, a * opacFauna()); if (a <= 0.02) return;
       cr.save();
       cr.translate(cen[0], cen[1]); cr.rotate(ladeo);
       cr.strokeStyle = "rgba(" + colA + "," + a.toFixed(3) + ")"; cr.lineWidth = 1.3;
@@ -1409,17 +1500,23 @@
     new MutationObserver(aplicarTema).observe(document.documentElement, { attributes: true, attributeFilter: ["data-tema"] });
     window.FlotaCiclo(lienzo, medir, paso, function () { pAct = progreso(); textos(); });
     pAct = progreso(); paso(0); textos();
+    // con movimiento reducido el ciclo no corre ni escucha el scroll: aquí se redibuja al cruzar entre el panorama y
+    // SACEL, de golpe (2026-11-03)
+    if (quieto) window.addEventListener("scroll", function () {
+      var p = progreso(); if ((p >= 0.5) === (pAct >= 0.5)) { pAct = p; return; }
+      pAct = p; paso(0); textos();
+    }, { passive: true });
   }
   // --sacel y --datos para .heroe; el enlace de la capa que no se ve sale del orden del tabulador
   var capaVisible = null;
   function textos() {
     if (!heroe) return;
     var pc = suave(aSacel);
-    var s = quieto ? 1 : suave(Math.max(0, Math.min(1, (pc - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
-    var d = quieto ? 1 : suave(Math.max(0, Math.min(1, (pc - 0.5) / 0.4)));
+    var s = suave(Math.max(0, Math.min(1, (pc - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
+    var d = suave(Math.max(0, Math.min(1, (pc - 0.5) / 0.4)));
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
-    var v = quieto || s > 0.5 ? "sacel" : "empresa";
+    var v = s > 0.5 ? "sacel" : "empresa";
     if (v === capaVisible) return; capaVisible = v;
     heroe.setAttribute("data-capa", v);           // la capa que no se ve no toma el puntero (base.css)
     heroe.querySelectorAll(".capa-sacel a").forEach(function (a) { if (v === "sacel") a.removeAttribute("tabindex"); else a.setAttribute("tabindex", "-1"); });

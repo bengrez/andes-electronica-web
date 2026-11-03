@@ -21,10 +21,33 @@ def regs(e):
         out.append([round(r['x']), round(r['z']), r['fecha'], r['id']])
     return out
 
+# modelo de hábitat (Benjamin, 3-nov): altura de los registros y pesos de exposición, para repartir las plantas modeladas
+CLAVES_HAB = {'solana': 's', 'umbría': 'u', 'río/quebrada': 'q', 'plano/fondo de valle': 'p', 'alta montaña': 'm'}
+def habitat(txt):
+    out = {}
+    for parte in (txt or '').split(';'):
+        parte = parte.strip()
+        if not parte: continue
+        nombre, _, n = parte.rpartition(' ')
+        if nombre in CLAVES_HAB: out[CLAVES_HAB[nombre]] = int(n)
+    return out
+
+# línea de conservación del rótulo, sólo si la especie está amenazada en el RCE (NT, VU, EN, CR). El tricahue tiene
+# categoría por regiones: en O'Higgins (VI, dentro de «V-RM-XII») es VU, como dice su ficha (informe.md)
+CATEGORIAS = {'NT': 'Casi amenazada', 'VU': 'Vulnerable', 'EN': 'En peligro', 'CR': 'En peligro crítico'}
+REGIONAL = {'tricahue': 'VU'}
+def conservacion(e):
+    cat = REGIONAL.get(e['clave']) or (e.get('rce') or '').strip()[:2]
+    return cat + ' · ' + CATEGORIAS[cat] + ' (RCE)' if cat in CATEGORIAS else ''
+
 especies = []
 for e in d['especies']:
-    especies.append({'c': e['clave'], 'n': e['nombre_comun'], 's': e['nombre_cientifico'], 'g': e['grupo'],
-                     'o': e['origen'], 'i': 1 if e.get('introducida') else 0, 'f': 1, 'r': regs(e)})
+    x = {'c': e['clave'], 'n': e['nombre_comun'], 's': e['nombre_cientifico'], 'g': e['grupo'],
+         'o': e['origen'], 'i': 1 if e.get('introducida') else 0, 'f': 1, 'r': regs(e)}
+    if e.get('altitud_registros_m'): x['a'] = e['altitud_registros_m']
+    if habitat(e.get('habitat')): x['h'] = habitat(e.get('habitat'))
+    if conservacion(e): x['rce'] = conservacion(e)
+    especies.append(x)
 for e in d['exoticas_otras']:
     especies.append({'c': '', 'n': e['nombre_comun'], 's': e['nombre_cientifico'], 'g': e['grupo'],
                      'o': e['origen'], 'i': 1, 'f': 0, 'r': regs(e)})

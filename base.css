@@ -154,10 +154,10 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   .cordillera-texto { padding-top: calc(1.25rem + var(--logo-ancho) * 34 / 38 + clamp(1.75rem, 8vh, 6.5rem)); }   /* texto más abajo (Benjamin, 2-nov) */
 }
 /* antes de que cargue WebGL, el lienzo del mapa muestra su primer cuadro fijo (el mismo que dibuja después) */
-@media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 47.51rem) {
   .con-mapa:not(.con-3d):not(.sin-3d) .recorrido .portada { background: var(--mapa-inicial) right top / cover no-repeat, var(--cordillera-cielo); }
 }
-@media (min-width: 47.51rem) and (min-aspect-ratio: 17/10) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 47.51rem) and (min-aspect-ratio: 17/10) {
   .con-mapa:not(.con-3d):not(.sin-3d) .recorrido .portada { background: var(--mapa-inicial-ancho) right top / cover no-repeat, var(--cordillera-cielo); }
 }
 @media (max-width: 47.5rem) {
@@ -178,7 +178,8 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .sin-3d #flota3d, .sin-3d #cielo { display: none; }
 .sin-3d .camara { display: block; }
 .sin-3d .portada::before { background: var(--velo-sin3d, var(--velo)); }
-@media (prefers-reduced-motion: reduce) { .recorrido { height: auto; } .portada { position: relative; height: auto; min-height: 100svh; } }
+/* con movimiento reducido el mapa también parte en el panorama y pasa a SACEL con el scroll, pero de golpe, sin animar
+   (Benjamin, 2026-11-03; antes partía en SACEL con los textos uno debajo del otro) */
 .heroe { --heroe-pad: clamp(2rem, 7vh, 6rem); position: relative; z-index: 2; width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: var(--heroe-pad) 0 0; flex: 1; }
 /* dos textos en la misma columna: la empresa arriba y SACEL desde la mitad del descenso (--sacel, flota-3d.js);
    los 4 pasos de SACEL, en el tramo quieto (--datos). Todo está en el HTML desde el principio. Sin el mapa
@@ -209,7 +210,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
 .sacel-datos .pasos p { font-size: 1.02rem; margin-top: .3rem; }
-@media (prefers-reduced-motion: no-preference) {
+@media all {   /* también con movimiento reducido (2026-11-03): --sacel salta de 0 a 1 sin animar */
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
   .con-mapa:not(.sin-3d) .capa-sacel { margin-top: 0; }
@@ -236,11 +237,11 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   fill: none; stroke: var(--tinta-2); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .haceres svg .ac { stroke: var(--acento); }
 @media (max-width: 30rem) { .haceres { grid-template-columns: 1fr; } }
-@media (prefers-reduced-motion: no-preference) {
+@media all {
   .con-mapa:not(.sin-3d) .heroe .mapa-marca { grid-area: 1 / 1; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 2 / 1; padding-top: 0; }
 }
-@media (prefers-reduced-motion: no-preference) and (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
+@media (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
 @media (max-height: 62rem) and (min-width: 47.5rem) {   /* pantallas bajas (hasta ~990 px de alto; antes 50 rem): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
   .sacel-datos .pasos p { display: none; }
