@@ -54,7 +54,7 @@
     oscuro: { niebla: [0.008, 0.016, 0.075], brillo: 1.1, lavado: 0.45, verde: 0.3, bruma: [0.05, 0.07, 0.14], papel: [0.008, 0.016, 0.065], velo: true, borde: [0.004, 0.012, 0.06],
               calzada: [0.15, 0.18, 0.34], linea: [0.96, 0.77, 0.54], panel: "rgba(1,4,20,.7)", focos: true,
               cielo: ["#000004", "#01030f", "#01030f"] },  // sin banda azul abajo: el velo deja ver el cielo (2026-10-30)
-    claro:  { niebla: [0.922, 0.933, 0.925], brillo: 1.04, lavado: 0.36, verde: 0.6, bruma: [0.70, 0.76, 0.82], papel: [0.922, 0.933, 0.925], velo: true, borde: [0.08, 0.09, 0.14],
+    claro:  { niebla: [0.922, 0.933, 0.925], nieve: 0.9, brillo: 1.04, lavado: 0.36, verde: 0.6, bruma: [0.70, 0.76, 0.82], papel: [0.922, 0.933, 0.925], velo: true, borde: [0.08, 0.09, 0.14],
               calzada: [0.2, 0.22, 0.29], linea: [0.97, 0.8, 0.5], panel: "rgba(244,246,245,.86)", focos: false,
               cielo: ["#ebeeec", "#ebeeec", "#e7ebe9"] }
   };
@@ -152,7 +152,7 @@
       "attribute vec3 aPos; attribute vec2 aUV; uniform mat4 uMVP; varying vec2 vUV; varying vec3 vPos;" +
       "void main(){ vUV = aUV; vPos = aPos; gl_Position = uMVP * vec4(aPos, 1.0); }",
       "precision mediump float; uniform sampler2D uTex; varying vec2 vUV; varying vec3 vPos; " + NIEBLA + VELO +
-      "uniform float uBrillo, uLavado, uVerde, uOpac; uniform vec3 uPapel, uBruma;" +
+      "uniform float uBrillo, uLavado, uVerde, uOpac, uNieve; uniform vec3 uPapel, uBruma;" +
       // color más verde y realista (Benjamin, 2026-10-30): la textura aporta el sombreado y la nieve; encima, pisos de
       // vegetación de Chile central según la altura (valle agrícola, bosque esclerófilo, matorral andino, roca),
       // con manchas de ruido para que no se vea como franjas, y bruma azulada con la distancia
@@ -166,7 +166,11 @@
       " bio = mix(bio, vec3(0.50, 0.46, 0.42), smoothstep(2300.0, 3000.0, h + n * 400.0));" +
       " bio *= mix(vec3(1.0), vec3(0.9, 1.04, 0.86), smoothstep(0.4, 0.8, n));" +
       " vec3 c = bio * sombra * 1.25; float nieve = smoothstep(0.52, 0.72, lum) * smoothstep(2400.0, 3100.0, h);" +
-      " return mix(c, t * 1.04, nieve); }" +
+      " c = mix(c, t * 1.04, nieve);" +
+      // tema claro: la textura de día casi no trae nieve; se agrega por altura, con su sombreado (Benjamin, 2026-11-02:
+      // «más nieve en la cordillera, como en el oscuro»)
+      " float nv = uNieve * smoothstep(2350.0, 3150.0, h + n * 500.0) * smoothstep(0.08, 0.3, lum);" +
+      " return mix(c, vec3(0.96, 0.97, 0.99) * clamp(sombra * 0.85, 0.5, 1.2), nv); }" +
       "void main(){ vec3 t = texture2D(uTex, vUV).rgb; vec3 c = mix(t, pisos(t), uVerde) * uBrillo; c = mix(c, uPapel, uLavado);" +
       " float f = smoothstep(uNiebla.x, uNiebla.y, distance(vPos, uOjo));" +
       " c = mix(c, uBruma, smoothstep(0.0, 1.0, distance(vPos, uOjo) / uNiebla.y) * 0.35 * uVerde);" +
@@ -435,7 +439,7 @@
     // Benjamin, 2026-11-02) y toman fuerza con SACEL; al pasar sobre «Rastreo satelital de flotas», enteros
     resaltes();
     tenue = 0.4 + 0.6 * suave(Math.max(0, Math.min(1, (pCam - SACEL_ENTRA[0]) / (SACEL_ENTRA[1] - SACEL_ENTRA[0]))));
-    tenue = Math.max(tenue, RES.flota);
+    tenue = Math.max(tenue, RES.flota, RES.ruta);
     // terreno
     gl.useProgram(pTerreno);
     atributo(pTerreno, "aPos", bufTerreno, 3, 5, 0); atributo(pTerreno, "aUV", bufTerreno, 2, 5, 3);
@@ -447,6 +451,7 @@
     gl.uniform1f(gl.getUniformLocation(pTerreno, "uLavado"), TM.lavado * suave(pCam));   // el lavado llega con el descenso
     gl.uniform3fv(gl.getUniformLocation(pTerreno, "uPapel"), TM.papel);
     gl.uniform1f(gl.getUniformLocation(pTerreno, "uVerde"), TM.verde);
+    gl.uniform1f(gl.getUniformLocation(pTerreno, "uNieve"), TM.nieve || 0);
     // en el tramo quieto el relieve se vuelve translúcido, para que los datos y la ruta manden al final (2026-10-30)
     opacMapa = 1 - MAPA_FINAL * suave(pDatos);
     // la flora y fauna se transparentan con un desfase marcado: empiezan cuando el relieve ya va en el 75 % de su cambio
@@ -485,6 +490,7 @@
 
     // capa plana: focos, registro y tramas
     cr.setTransform(1, 0, 0, 1, 0, 0); cr.clearRect(0, 0, capa.width, capa.height); cr.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (RES.ruta > 0.01) ruta(RES.ruta);
     cr.globalCompositeOperation = "lighter"; cr.globalAlpha = tenue;
     focos.forEach(function (f) {
       var q = proyectar(f.frente[0], f.frente[1], f.frente[2]); if (!q) return;
@@ -508,13 +514,35 @@
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
   var acumPc = 0, envioPc = -1;                // «Hardware e IoT»: señales juntadas en la nube y envío en curso
-  var RES = { flota: 0, nube: 0, bus: 0, pc: 0 }, META = { flota: 0, nube: 0, bus: 0, pc: 0 }, tRes = 0;
+  var RES = { flota: 0, nube: 0, bus: 0, pc: 0, ruta: 0 }, META = { flota: 0, nube: 0, bus: 0, pc: 0, ruta: 0 }, tRes = 0;
   [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
     var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
     function on() { ks.forEach(function (k) { META[k] = 1; }); paso(0); } function off() { ks.forEach(function (k) { META[k] = 0; }); paso(0); }
     el.addEventListener("mouseenter", on); el.addEventListener("mouseleave", off);
     el.addEventListener("focus", on); el.addEventListener("blur", off);
   });
+  // «Soporte técnico» (Benjamin, 2026-11-02): se destaca la H-25 entera, con un halo cobre y un brillo que la recorre
+  var PASO_RUTA = 3;
+  function ruta(op) {
+    var pts = [];
+    for (var k = 0; k < R.length; k += PASO_RUTA) {
+      var x = R[k][0], z = R[k][1], y = elevBase(x, z, ER[k]) + 20, q = proyectar(x, y, z);
+      pts.push(q ? [q[0], q[1], veloEn(q[0], q[1], y / EXAG), acumR[k]] : null);
+    }
+    var col = PULSO[tema].normal, largo = acumR[acumR.length - 1], brillo = (sim.reloj * 0.08) % 1;
+    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    [[9, 0.16], [2.6, 0.85]].forEach(function (capa) {
+      cr.lineWidth = capa[0];
+      for (var i = 1; i < pts.length; i++) {
+        var a = pts[i - 1], b = pts[i]; if (!a || !b) continue;
+        // el brillo: un tramo más claro que avanza por la ruta
+        var u = b[3] / largo, d = Math.abs(u - brillo), e = Math.max(0, 1 - Math.min(d, 1 - d) / 0.05);
+        cr.strokeStyle = "rgba(" + col + "," + (op * Math.min(a[2], b[2]) * Math.min(1, capa[1] * (1 + e * 0.8))).toFixed(3) + ")";
+        cr.beginPath(); cr.moveTo(a[0], a[1]); cr.lineTo(b[0], b[1]); cr.stroke();
+      }
+    });
+    cr.restore();
+  }
   function resaltes() {                         // se acercan a su meta en ~0,3 s (de inmediato con movimiento reducido)
     var t = performance.now(), dt = tRes ? Math.min(0.1, (t - tRes) / 1000) : 0; tRes = t;
     for (var k in RES) RES[k] = quieto ? META[k] : RES[k] + (META[k] - RES[k]) * Math.min(1, dt * 8);
