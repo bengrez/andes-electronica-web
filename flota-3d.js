@@ -326,7 +326,7 @@
   var focos = [];
   // los buses siguen el terreno como juguetes (Benjamin, 2026-10-30): cabecean con la pendiente, se inclinan hacia
   // afuera en las curvas y rebotan un poco con la velocidad; todo un poco exagerado (JUGUETE)
-  var JUGUETE = { cabeceo: 2.6, balanceo: 1.4, rebote: 0.16 };
+  var JUGUETE = { cabeceo: 1, balanceo: 0, rebote: 0 };   // sin efecto de juguete (Benjamin, 2026-11-03): sólo la pendiente real
   function enCamino(s) {                         // punto del camino dibujado a s metros del extremo oeste
     s = Math.max(0, Math.min(sim.LARGO, s));
     var q = sim.enRuta(s); return [q[0], elevBase(q[0], q[1], sim.altitud(s)), q[1]];
@@ -346,7 +346,6 @@
       giro = Math.atan2(Math.sin(giro), Math.cos(giro));
       var rapido = Math.min(1, b.v / 20), bal = Math.max(-0.35, Math.min(0.35, giro * JUGUETE.balanceo * (0.4 + rapido)));
       var t = sim.reloj * 7 + i * 1.7;
-      cab += Math.sin(t * 1.3) * 0.05 * rapido;                                 // traqueteo
       var f = norma([d[0] * Math.cos(cab), Math.sin(cab), d[1] * Math.cos(cab)]);
       var r0 = norma(cruz(f, [0, 1, 0])), n0 = cruz(r0, f);
       var cb = Math.cos(bal), sb = Math.sin(bal);
@@ -357,7 +356,7 @@
       caja(out, base, B, L, L * 0.4, L * 0.34, COL);
       var techo = [base[0] + B.n[0] * L * 0.34, base[1] + B.n[1] * L * 0.34, base[2] + B.n[2] * L * 0.34];
       caja(out, techo, B, L * 0.6, L * 0.14, L * 0.02, { techo: COL.franja, frente: COL.franja, atras: COL.franja, lado: COL.franja });
-      focos.push({ b: b, frente: [x + f[0] * L * 0.55, base[1] + f[1] * L * 0.55 + L * 0.12, z + f[2] * L * 0.55], centro: [x, base[1] + L * 0.2, z] });
+      focos.push({ B: B, L: L, base: base, b: b, frente: [x + f[0] * L * 0.55, base[1] + f[1] * L * 0.55 + L * 0.12, z + f[2] * L * 0.55], centro: [x, base[1] + L * 0.2, z] });
     });
     return new Float32Array(out);
   }
@@ -487,6 +486,8 @@
     gl.uniform1f(gl.getUniformLocation(pBus, "uTenue"), tenue);
     ponerVelo(pBus);
     gl.drawArrays(gl.TRIANGLES, 0, vb.length / 6);
+    LUPA.ok = false;
+    if (RES.iot > 0.01) lupa3d(RES.iot, vb.length / 6, niebla);
 
     // capa plana: focos, registro y tramas
     cr.setTransform(1, 0, 0, 1, 0, 0); cr.clearRect(0, 0, capa.width, capa.height); cr.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -750,97 +751,150 @@
     cr.globalAlpha = 1;
   }
 
-  // ─── «Hardware e IoT» (Benjamin, 2026-11-02, aprobado; reemplaza nube → computador → internet): se destaca un bus y,
-  // junto a él, el mismo dibujo de líneas del tacógrafo de Productos, unido al bus por el cable del CAN bus, con pulsos
-  // de cobre que llegan al equipo. Un satélite pequeño sobre la cordillera le manda arcos de señal (GPS) y del tacógrafo
-  // sale un pulso a la nube del mapa. Rótulo «simulación»: no son datos de un cliente ───
-  var ANCLA_IOT = { s: 0.40, este: 7000 }, TACO_ANCHO = 200, CADA_IOT = 2.6, busIot = -1, dibTaco = null, temaTaco = "";
-  function piezasTaco() {                       // el SVG de Productos (mismo index.html), con los colores de su tema
-    if (dibTaco && temaTaco === tema) return dibTaco;
-    var svg = document.querySelector(".ilus-tacografo"); if (!svg || typeof Path2D === "undefined") return null;
-    var vb = svg.viewBox.baseVal, clip = null, out = [];
-    [].forEach.call(svg.querySelectorAll("path, rect"), function (el) {
-      if (el.closest(".ilus-pulso") || el.closest("clipPath")) return;
-      var p = new Path2D(), cs = getComputedStyle(el);
-      if (el.tagName.toLowerCase() === "rect") {
-        var x = +el.getAttribute("x"), y = +el.getAttribute("y"), w = +el.getAttribute("width"), h = +el.getAttribute("height"), r = +el.getAttribute("rx") || 0;
-        if (p.roundRect) p.roundRect(x, y, w, h, r); else p.rect(x, y, w, h);
-      } else p.addPath(new Path2D(el.getAttribute("d")));
-      if (el.getAttribute("clip-path")) {         // las curvas de nivel, recortadas a la silueta del equipo
-        var c = svg.querySelector("clipPath rect");
-        if (c) { clip = new Path2D(); clip.rect(+c.getAttribute("x"), +c.getAttribute("y"), +c.getAttribute("width"), +c.getAttribute("height")); }
+  // ─── «Hardware e IoT», versión 2 (Benjamin, 2026-11-03, elegida en 3 rondas; reemplaza el tacógrafo plano de be50b71):
+  // una LUPA circular fija sobre el relieve, unida por una línea al bus destacado. Adentro, 3D en vivo: una segunda cámara
+  // sigue al bus real en vista 3/4, con la carrocería translúcida (rayos X) y el relieve detrás, y dentro del bus sólo lo
+  // esencial: el equipo en el tablero, la antena GPS en el techo y el cable CAN hasta el motor, con pulsos de cobre. Los
+  // arcos del satélite y el pulso a la nube van en el mapa grande, sobre el bus real. El mapa no se mueve ───
+  var ANCLA_IOT = { s: 0.40, este: 7000 }, LUPA_R = 96, CADA_IOT = 2.6, busIot = -1;
+  var LUPA = { ok: false }, fbo = null, pLupa = null, bufQuad = null, bufInt = null;
+  function anclaLupa() {
+    var q = sim.enRuta(ANCLA_IOT.s * sim.LARGO), x = q[0] + ANCLA_IOT.este, z = q[1], e = alturaEn(x, z);
+    return proyectar(x, (e + 400) * EXAG, z);
+  }
+  function elegirBusIot(cx, cy) {               // el visible más cerca de la lupa (a su izquierda); se mantiene mientras se vea
+    function enPantalla(f) { var c = f && proyectar(f.centro[0], f.centro[1], f.centro[2]); return c && c[0] > 0 && c[0] < W && c[1] > 0 && c[1] < H ? c : null; }
+    if (enPantalla(focos[busIot])) return busIot;
+    var mejor = Infinity; busIot = -1;
+    focos.forEach(function (f, i) { var c = enPantalla(f); if (!c) return; var d = Math.hypot(c[0] - (cx - 190), c[1] - cy); if (d < mejor) { mejor = d; busIot = i; } });
+    return busIot;
+  }
+  function enBus(F, u, sl, h) {                  // punto en coordenadas del bus (fracciones de su largo L)
+    var B = F.B, L = F.L, c = F.base;
+    return [c[0] + (B.f[0] * u + B.r[0] * sl + B.n[0] * h) * L, c[1] + (B.f[1] * u + B.r[1] * sl + B.n[1] * h) * L, c[2] + (B.f[2] * u + B.r[2] * sl + B.n[2] * h) * L];
+  }
+  var PIEZAS = {                                 // u: hacia adelante, s: costado, h: altura (fracciones de L)
+    oscuro: { equipo: [0.95, 0.62, 0.32], motor: [0.42, 0.44, 0.5], antena: [0.95, 0.62, 0.32] },
+    claro:  { equipo: [0.72, 0.42, 0.13], motor: [0.30, 0.33, 0.42], antena: [0.72, 0.42, 0.13] }
+  };
+  function interior(F) {
+    var out = [], P = PIEZAS[tema], B = F.B, L = F.L;
+    function pieza(u, sl, h, largo, ancho, alto, col) { caja(out, enBus(F, u, sl, h), B, largo * L, ancho * L, alto * L, { techo: col, frente: col.map(function (v) { return v * 0.8; }), atras: col.map(function (v) { return v * 0.7; }), lado: col.map(function (v) { return v * 0.88; }) }); }
+    pieza(0.40, -0.07, 0.15, 0.07, 0.12, 0.06, P.equipo);        // el equipo, sobre el tablero
+    pieza(0.40, -0.07, 0.04, 0.05, 0.03, 0.11, P.motor);         // su pie
+    pieza(-0.38, 0, 0.03, 0.16, 0.28, 0.15, P.motor);            // el motor, atrás
+    pieza(0.30, 0, 0.34, 0.06, 0.06, 0.025, P.antena);           // la antena GPS, en el techo
+    return new Float32Array(out);
+  }
+  function lupa3d(op, nBus, niebla) {
+    var A = anclaLupa(); if (!A) return;
+    var k = elegirBusIot(A[0], A[1]), F = focos[k]; if (!F) return;
+    var r = LUPA_R * (0.6 + 0.4 * op), S = Math.round(2 * LUPA_R * dpr);
+    try {
+      if (!pLupa) {
+        pLupa = programa("attribute vec2 aP; uniform vec4 uRect; varying vec2 vUV; void main(){ vUV = aP * 0.5 + 0.5; gl_Position = vec4(uRect.xy + aP * uRect.zw, 0.0, 1.0); }",
+          "precision mediump float; uniform sampler2D uTex; uniform float uOp; varying vec2 vUV; void main(){ float d = length(vUV * 2.0 - 1.0);" +
+          " float a = (1.0 - smoothstep(0.985, 1.0, d)) * uOp; gl_FragColor = texture2D(uTex, vUV) * a; }");
+        bufQuad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bufQuad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        bufInt = gl.createBuffer();
       }
-      out.push({ p: p, fill: cs.fill, stroke: cs.stroke, ancho: parseFloat(cs.strokeWidth) || 1, op: +cs.opacity, clip: el.getAttribute("clip-path") ? clip : null });
-    });
-    temaTaco = tema; dibTaco = { piezas: out, w: vb.width, h: vb.height };
-    return dibTaco;
+      if (!fbo || fbo.S !== S) {
+        if (fbo) { gl.deleteFramebuffer(fbo.f); gl.deleteTexture(fbo.t); gl.deleteRenderbuffer(fbo.d); }
+        var t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, S, S, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        var d = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, d); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, S, S);
+        var fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, d);
+        fbo = { f: fb, t: t, d: d, S: S };
+      }
+    } catch (e) { return; }
+    // la segunda cámara: vista 3/4 desde adelante y al costado, siguiendo al bus; nunca bajo el relieve
+    var L = F.L, c = [F.base[0], F.base[1] + L * 0.17, F.base[2]];
+    var fh = norma([F.B.f[0], 0, F.B.f[2]]), rh = norma(cruz(fh, [0, 1, 0]));
+    var o = [c[0] + fh[0] * 1.3 * L - rh[0] * 1.05 * L, c[1] + 0.75 * L, c[2] + fh[2] * 1.3 * L - rh[2] * 1.05 * L];
+    o[1] = Math.max(o[1], alturaEn(o[0], o[2]) * EXAG + 0.4 * L);
+    var VPl = mult(perspectiva(36 * Math.PI / 180, 1, L * 0.2, L * 80), mirar(o, c, [0, 1, 0]));
+    var nl = [L * 6, L * 40];
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.f); gl.viewport(0, 0, S, S);
+    var fondo = TM.cielo[0], cf = [parseInt(fondo.substr(1, 2), 16) / 255, parseInt(fondo.substr(3, 2), 16) / 255, parseInt(fondo.substr(5, 2), 16) / 255];
+    gl.clearColor(cf[0], cf[1], cf[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    function comunes(p) { ponerVelo(p); gl.uniform1f(gl.getUniformLocation(p, "uVeloOn"), 0); gl.uniformMatrix4fv(gl.getUniformLocation(p, "uMVP"), false, VPl); }
+    // relieve
+    gl.useProgram(pTerreno); comunes(pTerreno);
+    atributo(pTerreno, "aPos", bufTerreno, 3, 5, 0); atributo(pTerreno, "aUV", bufTerreno, 2, 5, 3);
+    gl.uniform3fv(gl.getUniformLocation(pTerreno, "uOjo"), o); gl.uniform2fv(gl.getUniformLocation(pTerreno, "uNiebla"), nl);
+    gl.uniform3fv(gl.getUniformLocation(pTerreno, "cNiebla"), cf);
+    gl.uniform1f(gl.getUniformLocation(pTerreno, "uOpac"), 1); gl.uniform1f(gl.getUniformLocation(pTerreno, "uPicos"), 0);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texturas[texListo()].gl); gl.uniform1i(gl.getUniformLocation(pTerreno, "uTex"), 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufIdx); gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_SHORT, 0);
+    // camino
+    gl.useProgram(pCamino); comunes(pCamino);
+    atributo(pCamino, "aPos", bufCamino, 3, 5, 0); atributo(pCamino, "aLS", bufCamino, 2, 5, 3);
+    gl.uniform3fv(gl.getUniformLocation(pCamino, "uOjo"), o); gl.uniform2fv(gl.getUniformLocation(pCamino, "uNiebla"), nl);
+    gl.uniform3fv(gl.getUniformLocation(pCamino, "cNiebla"), cf); gl.uniform1f(gl.getUniformLocation(pCamino, "uTenue"), 0.6);
+    gl.uniform1f(gl.getUniformLocation(pCamino, "uRaya"), L * 0.3);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, R.length * 2);
+    // el interior, opaco; después la carrocería translúcida, sin escribir profundidad (rayos X)
+    var vi = interior(F);
+    gl.useProgram(pBus); comunes(pBus);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufInt); gl.bufferData(gl.ARRAY_BUFFER, vi, gl.DYNAMIC_DRAW);
+    atributo(pBus, "aPos", bufInt, 3, 6, 0); atributo(pBus, "aCol", bufInt, 3, 6, 3);
+    gl.uniform1f(gl.getUniformLocation(pBus, "uTenue"), 1); gl.drawArrays(gl.TRIANGLES, 0, vi.length / 6);
+    atributo(pBus, "aPos", bufBus, 3, 6, 0); atributo(pBus, "aCol", bufBus, 3, 6, 3);
+    gl.depthMask(false); gl.uniform1f(gl.getUniformLocation(pBus, "uTenue"), tema === "claro" ? 0.22 : 0.18);
+    gl.drawArrays(gl.TRIANGLES, 0, nBus); gl.depthMask(true);
+    // de vuelta al lienzo: el disco de la lupa
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, lienzo.width, lienzo.height);
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(pLupa);
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufQuad); var la = gl.getAttribLocation(pLupa, "aP"); gl.enableVertexAttribArray(la); gl.vertexAttribPointer(la, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform4fv(gl.getUniformLocation(pLupa, "uRect"), [A[0] / W * 2 - 1, 1 - A[1] / H * 2, r / W * 2, r / H * 2]);
+    gl.uniform1f(gl.getUniformLocation(pLupa, "uOp"), op);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, fbo.t); gl.uniform1i(gl.getUniformLocation(pLupa, "uTex"), 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.enable(gl.DEPTH_TEST);
+    LUPA = { ok: true, x: A[0], y: A[1], r: r, VP: VPl, F: F };
+  }
+  function proyLupa(p) {                        // punto del mundo → px de la portada, dentro de la lupa
+    var m = LUPA.VP, cx = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], cy = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], cw = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
+    if (cw <= 0) return null;
+    return [LUPA.x + cx / cw * LUPA.r, LUPA.y - cy / cw * LUPA.r];
   }
   function iot(op) {
-    var A = (function () {
-      var q = sim.enRuta(ANCLA_IOT.s * sim.LARGO), x = q[0] + ANCLA_IOT.este, z = q[1], e = alturaEn(x, z);
-      return proyectar(x, (e + 400) * EXAG, z);
-    })(); if (!A) return;
-    var D = piezasTaco(); if (!D) return;
-    var esc = TACO_ANCHO / D.w, tw = TACO_ANCHO, th = D.h * esc, x0 = A[0] - tw / 2, y0 = A[1] - th / 2;
-    // el bus: el visible más cerca del tacógrafo; se mantiene mientras siga en pantalla
-    var fb = focos[busIot], cb = fb && proyectar(fb.centro[0], fb.centro[1], fb.centro[2]);
-    if (!cb || cb[0] < 0 || cb[0] > W || cb[1] < 0 || cb[1] > H || op < 0.05) {
-      busIot = -1; var mejor = Infinity;
-      focos.forEach(function (f, i) {
-        var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (!c || c[0] < 0 || c[0] > W || c[1] < 0 || c[1] > H) return;
-        var d = Math.hypot(c[0] - (x0 - 170), c[1] - (y0 + th * 0.74)); if (d < mejor) { mejor = d; busIot = i; }
-      });
-      fb = focos[busIot]; cb = fb && proyectar(fb.centro[0], fb.centro[1], fb.centro[2]); if (!cb) return;
-    }
+    if (!LUPA.ok) return;
+    var F = LUPA.F, cb = proyectar(F.centro[0], F.centro[1], F.centro[2]); if (!cb) return;
     var P = PULSO[tema], col = P.normal, borde = "rgba(" + P.borde + ",", t = quieto ? 0.35 : performance.now() / 1000;
     cr.save(); cr.globalAlpha = op; cr.lineCap = "round"; cr.lineJoin = "round";
-    // el bus destacado: un anillo cobre que late
+    // en el mapa grande: el bus destacado y la línea hasta la lupa
     cr.strokeStyle = "rgba(" + col + ",.95)"; cr.lineWidth = 1.8;
     cr.beginPath(); cr.arc(cb[0], cb[1], 10 + 2.5 * Math.sin(t * 4), 0, 7); cr.stroke();
-    // CAN bus: del bus baja y dobla hasta el costado izquierdo del tacógrafo (el mismo cable de Productos)
-    var entra = [x0 + 2, y0 + th * 0.74], codo = [cb[0], entra[1]], dd1 = Math.abs(entra[1] - cb[1]), dd2 = Math.abs(entra[0] - cb[0]);
-    var izq = cb[0] > entra[0];                   // si el bus queda a la derecha, entra por el costado derecho
-    if (izq) { entra = [x0 + tw - 2, y0 + th * 0.74]; codo = [cb[0], entra[1]]; dd2 = Math.abs(entra[0] - cb[0]); }
-    cr.beginPath(); cr.moveTo(cb[0], cb[1]); cr.lineTo(codo[0], codo[1]); cr.lineTo(entra[0], entra[1]);
-    cr.strokeStyle = P.caja; cr.lineWidth = 4; cr.stroke();            // halo, para que se lea sobre el relieve
-    cr.strokeStyle = borde + ".8)"; cr.lineWidth = 1.5; cr.stroke();
-    var largo = dd1 + dd2;
-    for (var j = 0; j < 3; j++) {                 // pulsos de cobre que corren hacia el tacógrafo
-      var f = (t * 0.45 + j / 3) % 1, s = f * largo, q = s <= dd1 ? [cb[0], cb[1] + (codo[1] - cb[1]) * s / (dd1 || 1)] : [codo[0] + (entra[0] - codo[0]) * (s - dd1) / (dd2 || 1), codo[1]];
-      var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], 7);
-      g.addColorStop(0, "rgba(" + col + "," + (0.95 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + col + ",0)");
-      cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1], 7, 0, 7); cr.fill();
-    }
-    // el tacógrafo, con su sombra
-    cr.save(); cr.translate(x0, y0); cr.scale(esc, esc);
-    cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.22)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 18; cr.shadowOffsetX = 8; cr.shadowOffsetY = 12;
-    D.piezas.forEach(function (pz, k) {
-      if (k > 1) { cr.shadowColor = "transparent"; }
-      cr.save(); if (pz.clip) cr.clip(pz.clip);
-      cr.globalAlpha = op * (isNaN(pz.op) ? 1 : pz.op);
-      if (pz.fill && pz.fill !== "none") { cr.fillStyle = pz.fill; cr.fill(pz.p); }
-      if (pz.stroke && pz.stroke !== "none") { cr.strokeStyle = pz.stroke; cr.lineWidth = Math.max(pz.ancho, 0.9 / esc); cr.stroke(pz.p); }
-      cr.restore();
-    });
-    cr.restore();
-    // GPS: un satélite pequeño sobre la cordillera; arcos de señal hacia el receptor del tacógrafo
-    var sat = [Math.min(W - 40, x0 + tw * 0.95), Math.max(H * 0.14, y0 - 230)], rec = [x0 + tw * 0.78, y0 + 2];
-    var ang = Math.atan2(rec[1] - sat[1], rec[0] - sat[0]), dist = Math.hypot(rec[0] - sat[0], rec[1] - sat[1]);
+    var ang = Math.atan2(cb[1] - LUPA.y, cb[0] - LUPA.x), bx = LUPA.x + Math.cos(ang) * LUPA.r, by = LUPA.y + Math.sin(ang) * LUPA.r;
+    cr.beginPath(); cr.moveTo(cb[0] - Math.cos(ang) * 12, cb[1] - Math.sin(ang) * 12); cr.lineTo(bx, by);
+    cr.strokeStyle = P.caja; cr.lineWidth = 4; cr.stroke(); cr.strokeStyle = borde + ".75)"; cr.lineWidth = 1.4; cr.stroke();
+    // el aro de la lupa, con su sombra
+    cr.save(); cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.25)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 16; cr.shadowOffsetY = 6;
+    cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke(); cr.restore();
+    // GPS: el satélite sobre la cordillera manda arcos al bus real
+    var sat = [Math.min(W - 40, LUPA.x + LUPA.r * 0.9), Math.max(H * 0.14, LUPA.y - 260)];
+    var a = Math.atan2(cb[1] - sat[1], cb[0] - sat[0]), dist = Math.hypot(cb[0] - sat[0], cb[1] - sat[1]);
     for (var k = 0; k < 3; k++) {
       var u = (t * 0.5 + k / 3) % 1, rr = 10 + u * (dist - 10);
       cr.strokeStyle = "rgba(" + col + "," + (0.7 * (1 - u)).toFixed(3) + ")"; cr.lineWidth = 1.4;
-      cr.beginPath(); cr.arc(sat[0], sat[1], rr, ang - 0.28, ang + 0.28); cr.stroke();
+      cr.beginPath(); cr.arc(sat[0], sat[1], rr, a - 0.22, a + 0.22); cr.stroke();
     }
-    cr.strokeStyle = borde + ".9)"; cr.fillStyle = P.caja; cr.lineWidth = 1.3;
-    cr.save(); cr.translate(sat[0], sat[1]); cr.rotate(-0.5); cr.scale(1.35, 1.35); cr.lineWidth = 1;
-    [[-4, -4, 8, 8], [-17, -3, 10, 6], [7, -3, 10, 6]].forEach(function (r) { cr.fillRect(r[0], r[1], r[2], r[3]); cr.strokeRect(r[0], r[1], r[2], r[3]); });
+    cr.strokeStyle = borde + ".9)"; cr.fillStyle = P.caja; cr.lineWidth = 1;
+    cr.save(); cr.translate(sat[0], sat[1]); cr.rotate(-0.5); cr.scale(1.35, 1.35);
+    [[-4, -4, 8, 8], [-17, -3, 10, 6], [7, -3, 10, 6]].forEach(function (q) { cr.fillRect(q[0], q[1], q[2], q[3]); cr.strokeRect(q[0], q[1], q[2], q[3]); });
     cr.beginPath(); cr.moveTo(-7, 0); cr.lineTo(-4, 0); cr.moveTo(4, 0); cr.lineTo(7, 0); cr.stroke();
     cr.restore();
-    cr.fillStyle = "rgba(" + col + ",.95)"; cr.beginPath(); cr.arc(rec[0], rec[1], 2.4, 0, 7); cr.fill();
-    // del tacógrafo sale un pulso de cobre a la nube del mapa (mismo arco que acelera de las tramas)
+    // del bus real sale un pulso de cobre a la nube (mismo arco que acelera de las tramas)
     var sw = posSwitch();
     if (sw && sw.vis > 0.05) {
-      var o = [x0 + tw * 0.5, y0], v = quieto ? 0.6 : (t % CADA_IOT) / CADA_IOT;
+      var v = quieto ? 0.6 : (t % CADA_IOT) / CADA_IOT, o = cb;
       var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
       var arco = function (u) { u = (Math.exp(6 * u) - 1) / (Math.exp(6) - 1); var m = 1 - u; return [m * m * o[0] + 2 * m * u * mx + u * u * sw.x, m * m * o[1] + 2 * m * u * my + u * u * sw.y]; };
       cr.lineWidth = 2;
@@ -850,14 +904,45 @@
         cr.strokeStyle = "rgba(" + col + "," + ((1 - e / 14) * Math.min(1, (1 - v) / 0.05)).toFixed(3) + ")";
         cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
       }
-      if (v < 0.25) { cr.strokeStyle = "rgba(" + col + "," + (0.8 * (1 - v / 0.25)).toFixed(3) + ")"; cr.lineWidth = 1.2; cr.beginPath(); cr.arc(o[0], o[1], 3 + v * 40, Math.PI, 0); cr.stroke(); }
     }
-    // rótulos, como en Productos
+    // dentro de la lupa: el contorno de la carrocería (rayos X) y el cable CAN del motor al equipo, con pulsos
+    cr.save(); cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r - 1, 0, 7); cr.clip();
+    var hl = 0.5, ha = 0.2, al = 0.34, esq = [[-hl, -ha, 0], [hl, -ha, 0], [hl, ha, 0], [-hl, ha, 0], [-hl, -ha, al], [hl, -ha, al], [hl, ha, al], [-hl, ha, al]].map(function (q) { return proyLupa(enBus(F, q[0], q[1], q[2])); });
+    if (esq.every(Boolean)) {
+      cr.strokeStyle = borde + ".55)"; cr.lineWidth = 1.1; cr.beginPath();
+      [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].forEach(function (ar) { cr.moveTo(esq[ar[0]][0], esq[ar[0]][1]); cr.lineTo(esq[ar[1]][0], esq[ar[1]][1]); });
+      cr.stroke();
+    }
+    var cam = [[-0.30, 0, 0.08], [-0.30, -0.12, 0.03], [0.36, -0.12, 0.03], [0.40, -0.07, 0.10]].map(function (q) { return proyLupa(enBus(F, q[0], q[1], q[2])); });
+    var antena = proyLupa(enBus(F, 0.30, 0, 0.37)), mastil = proyLupa(enBus(F, 0.30, 0, 0.47)), equipo = proyLupa(enBus(F, 0.40, -0.07, 0.18));
+    if (cam.every(Boolean)) {
+      cr.beginPath(); cam.forEach(function (q, i) { if (i) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]); });
+      cr.strokeStyle = borde + ".7)"; cr.lineWidth = 1.6; cr.stroke();
+      var tramos = [], largo = 0;
+      for (var i = 1; i < cam.length; i++) { var dl = Math.hypot(cam[i][0] - cam[i - 1][0], cam[i][1] - cam[i - 1][1]); tramos.push(dl); largo += dl; }
+      for (var j = 0; j < 3; j++) {               // pulsos de cobre del motor al equipo
+        var f = (t * 0.45 + j / 3) % 1, sq = f * largo, n = 0;
+        while (n < tramos.length - 1 && sq > tramos[n]) { sq -= tramos[n]; n++; }
+        var w = tramos[n] ? sq / tramos[n] : 0, q = [cam[n][0] + (cam[n + 1][0] - cam[n][0]) * w, cam[n][1] + (cam[n + 1][1] - cam[n][1]) * w];
+        var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+        g.addColorStop(0, "rgba(" + col + "," + (0.95 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + col + ",0)");
+        cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1], 6, 0, 7); cr.fill();
+      }
+    }
+    if (antena && mastil) {                       // el mástil de la antena y, cuando llega un arco, su onda
+      cr.strokeStyle = "rgba(" + col + ",.95)"; cr.lineWidth = 1.6; cr.beginPath(); cr.moveTo(antena[0], antena[1]); cr.lineTo(mastil[0], mastil[1]); cr.stroke();
+      var fo = (t * 0.5) % 1; cr.strokeStyle = "rgba(" + col + "," + (0.8 * (1 - fo)).toFixed(3) + ")"; cr.lineWidth = 1.2;
+      cr.beginPath(); cr.arc(mastil[0], mastil[1], 3 + fo * 12, Math.PI * 1.1, Math.PI * 1.9); cr.stroke();
+      if (equipo) { cr.setLineDash([2, 3]); cr.strokeStyle = borde + ".5)"; cr.beginPath(); cr.moveTo(antena[0], antena[1]); cr.lineTo(equipo[0], equipo[1]); cr.stroke(); cr.setLineDash([]); }
+    }
+    cr.restore();
+    // rótulos, con halo del papel
     cr.font = "500 11px 'Plex Mono', monospace"; cr.textBaseline = "middle"; cr.lineWidth = 3.5; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
-    function rotulo(txt, x, y, al) { cr.textAlign = al; cr.strokeText(txt, x, y); cr.fillText(txt, x, y); }   // con halo del papel
+    function rotulo(txt, x, y, al) { cr.textAlign = al; cr.strokeText(txt, x, y); cr.fillText(txt, x, y); }
     rotulo("GPS", sat[0] + 26, sat[1] - 14, "left");
-    rotulo("CAN bus", (codo[0] + entra[0]) / 2, entra[1] - 11, "center");
-    rotulo("simulación", x0 + tw / 2, y0 + th + 16, "center");
+    if (mastil) rotulo("GPS", mastil[0] + 8, mastil[1] - 8, "left");
+    if (cam.every(Boolean)) rotulo("CAN bus", (cam[1][0] + cam[2][0]) / 2, (cam[1][1] + cam[2][1]) / 2 + 13, "center");
+    rotulo("simulación", LUPA.x, LUPA.y + LUPA.r + 14, "center");
     cr.restore();
   }
 
