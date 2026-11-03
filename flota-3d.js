@@ -534,7 +534,7 @@
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
     if (pDatos > 0.01) chipsDatos();
-    if (aFlota > 0.01) redFlota();
+    if (aFlota > 0.01) { geocerca(); redFlota(); }
     if (aReporte > 0.01) panelReporte();
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
@@ -1033,6 +1033,62 @@
     });
     cr.restore();
   }
+  // en la fase 2, una geocerca sobre un tramo de la H-25, tendida sobre el relieve, con una ficha chica (Benjamin,
+  // 2026-11-03: «para darle mayor importancia a seguridad»). Los buses que están dentro se marcan; los datos (tramo, límite
+  // y buses dentro) salen de la simulación
+  var GEOCERCA = { s: 0.5, radio: 1900 }, geoCache = null;
+  function datosGeocerca() {
+    if (geoCache) return geoCache;
+    var c = sim.enRuta(GEOCERCA.s * sim.LARGO), s0 = Infinity, s1 = -Infinity;
+    for (var u = 0; u <= 1; u += 0.002) { var q = sim.enRuta(u * sim.LARGO); if (Math.hypot(q[0] - c[0], q[1] - c[1]) < GEOCERCA.radio) { s0 = Math.min(s0, u); s1 = Math.max(s1, u); } }
+    function km(u) { return (u * D.largo / 1000).toFixed(1).replace(".", ","); }
+    geoCache = { x: c[0], z: c[1], km: km(s0) + "–" + km(s1), lim: sim.limiteKmh(GEOCERCA.s * sim.LARGO) };
+    return geoCache;
+  }
+  function geocerca() {
+    var op = suave(aFlota) * (1 - suave(aReporte)); if (op <= 0.02) return;
+    var G = datosGeocerca(), P = PULSO[tema], claro = tema === "claro", t = quieto ? 0 : performance.now() / 1000;
+    // el borde, punto a punto sobre el relieve
+    var pts = [];
+    for (var k = 0; k <= 72; k++) {
+      var a = k / 72 * Math.PI * 2, x = G.x + Math.cos(a) * GEOCERCA.radio, z = G.z + Math.sin(a) * GEOCERCA.radio;
+      var q = proyectar(x, alturaEn(x, z) * EXAG + 20, z); if (!q) return; pts.push(q);
+    }
+    cr.save(); cr.globalAlpha = op;
+    cr.beginPath(); pts.forEach(function (q, k) { if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]); }); cr.closePath();
+    cr.fillStyle = "rgba(" + P.normal + "," + (claro ? 0.12 : 0.14) + ")"; cr.fill();
+    cr.setLineDash([6, 5]); cr.lineDashOffset = -t * 12; cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.8; cr.stroke(); cr.setLineDash([]);
+    // los buses dentro, con un anillo que late
+    var dentro = 0;
+    focos.forEach(function (f) {
+      var b = f.b, q = sim.enRuta(sim.posicion(b)); if (Math.hypot(q[0] - G.x, q[1] - G.z) > GEOCERCA.radio) return;
+      dentro++;
+      var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (!c) return;
+      cr.strokeStyle = "rgba(" + (sim.exceso(b) ? P.alerta : P.normal) + ",.95)"; cr.lineWidth = 1.6;
+      cr.beginPath(); cr.arc(c[0], c[1], 12 + 3 * Math.sin(t * 5), 0, 7); cr.stroke();
+    });
+    // la ficha, a la derecha de la geocerca, con su sombra tendida como las de «Rastreo de flotas»
+    var este = G.x + GEOCERCA.radio * 1.15, sur = G.z + GEOCERCA.radio * 0.2, e = alturaEn(este, sur), alto = NUBE.altura * 0.45;
+    var p = proyectar(este, (e + alto) * EXAG, sur); if (!p) { cr.restore(); return; }
+    var A = { p: p, x: este, z: sur, e: e, alto: alto * EXAG }, AN = 196, AL = 70;
+    var x = Math.min(p[0], W - AN - 16), y = p[1] - AL;
+    sombraFicha(A, AN);
+    var borde = pts.reduce(function (m, q) { return q[0] > m[0] ? q : m; });     // el punto del borde más a la derecha
+    cr.strokeStyle = "rgba(" + P.normal + ",.8)"; cr.lineWidth = 1.2; cr.beginPath(); cr.moveTo(borde[0], borde[1]); cr.lineTo(x, y + AL / 2); cr.stroke();
+    redondeado(x, y, AN, AL, 10);
+    cr.fillStyle = claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)"; cr.fill();
+    cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)"; cr.lineWidth = 1; cr.stroke();
+    cr.save(); redondeado(x, y, AN, AL, 10); cr.clip(); cr.fillStyle = claro ? "#8f5213" : "#d99a55"; cr.fillRect(x, y, 4, AL); cr.restore();
+    var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
+    cr.textAlign = "left"; cr.textBaseline = "alphabetic";
+    cr.font = "600 12.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta; cr.fillText("Geocerca · H-25, km " + G.km, x + 12, y + 20);
+    cr.font = "600 11.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta;
+    var lin = (dentro === 1 ? "1 bus dentro" : dentro + " buses dentro") + " · límite " + G.lim + " km/h";
+    cr.fillText(lin, x + 12, y + 39);
+    cr.font = "400 11px 'DM Sans', sans-serif"; cr.fillStyle = tinta2; cr.fillText("alerta al entrar o salir del tramo", x + 12, y + 57);
+    cr.restore();
+  }
+
   // 3) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
   var panelRect = null, BUSES_PANEL = 4, VENTANA_PANEL = 180;   // 180 s de animación × escala 5 = 15 min simulados
