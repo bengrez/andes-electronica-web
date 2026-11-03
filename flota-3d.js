@@ -508,13 +508,13 @@
     vida();
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
+    if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
-  var acumPc = 0, envioPc = -1;                // «Hardware e IoT»: señales juntadas en la nube y envío en curso
-  var RES = { flota: 0, nube: 0, bus: 0, pc: 0, ruta: 0 }, META = { flota: 0, nube: 0, bus: 0, pc: 0, ruta: 0 }, tRes = 0;
+    var RES = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0 }, META = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0 }, tRes = 0;
   [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
     var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
     function on() { ks.forEach(function (k) { META[k] = 1; }); paso(0); } function off() { ks.forEach(function (k) { META[k] = 0; }); paso(0); }
@@ -692,7 +692,7 @@
       // sale del bus que la envía, donde va ahora (Benjamin, 2026-10-30), no del punto de la ruta donde se generó
       var fb = focos[tr.bus]; if (!fb) return;
       var o = proyectar(fb.centro[0], fb.centro[1], fb.centro[2]); if (!o) return;
-      if (u > 0.97 && !tr.llego) { tr.llego = true; if (META.pc && envioPc < 0 && acumPc < 4 && ++acumPc === 4) { envioPc = sim.reloj; acumPc = 0; } var k = tr.bus % 6; puertos[k] = sim.reloj; estPuerto[k] = tr.estado; }
+      if (u > 0.97 && !tr.llego) { tr.llego = true; var k = tr.bus % 6; puertos[k] = sim.reloj; estPuerto[k] = tr.estado; }
       // arco: el control sobre el punto medio, más alto cuanto más lejos va
       var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
       var col = tr.estado === 2 ? P.alerta : P.normal;
@@ -741,60 +741,123 @@
       var hb = 3 + [3, 6, 4, 7][k] * (0.55 + 0.45 * brillo);
       cr.globalAlpha = aN * aN;
       cr.fillStyle = "rgba(" + (estPuerto[k] === 2 ? P.alerta : P.normal) + "," + (0.5 + 0.5 * brillo).toFixed(3) + ")";
-      if (RES.pc > 0.01) {                       // «Hardware e IoT»: cada señal que llega queda como una barra llena
-        var llena = k < acumPc; hb = llena ? 10 : 3;
-        cr.fillStyle = "rgba(" + P.normal + "," + (llena ? 1 : 0.3).toFixed(2) + ")";
-      }
       cr.fillRect(-8 + k * 4.6, 7 - hb, 3, hb);
     }
-    cr.globalAlpha = aN * (1 - RES.pc);                                      // con «Hardware e IoT», el computador en su lugar
+    cr.globalAlpha = aN;
     cr.fillStyle = P.texto; cr.font = "600 15.75px 'Plex Mono', monospace"; cr.textAlign = "right"; cr.textBaseline = "middle";
     cr.fillText("SACEL", -26, 2);
-    if (RES.pc > 0.01) computador(P, aN * RES.pc);                                            // 75 % más grande que el rótulo original (9 px)                                            // a la izquierda de la nube
     cr.restore();
     cr.globalAlpha = 1;
   }
 
-  // ─── «Hardware e IoT» (Benjamin, 2026-11-02): junto a la nube, un computador; los pulsos salen de la nube hacia él y
-  // de él hacia internet (un globo), como las tramas de los buses (mismo arco que acelera y estela). En coordenadas de la nube (cr ya trasladado y escalado) ───
-  function computador(P, a) {
-    cr.save(); cr.globalAlpha = a; cr.lineJoin = "round"; cr.lineCap = "round";
-    var x0 = -64, y0 = -7;                                                   // pantalla: 20 × 13, con pie
-    cr.fillStyle = PULSO[tema].caja; cr.strokeStyle = "rgba(" + P.borde + ",.9)"; cr.lineWidth = 1.3;
-    redondeado(x0, y0, 20, 13, 2); cr.fill(); cr.stroke();
-    cr.fillStyle = "rgba(" + P.normal + ",.55)"; cr.fillRect(x0 + 3, y0 + 3, 14, 7);
-    cr.beginPath(); cr.moveTo(x0 + 10, y0 + 13); cr.lineTo(x0 + 10, y0 + 17); cr.moveTo(x0 + 5, y0 + 17.5); cr.lineTo(x0 + 15, y0 + 17.5); cr.stroke();
-    // internet: un globo a la izquierda del computador
-    var gx = x0 - 26, gy = y0 + 6.5, gr = 7;
-    cr.fillStyle = PULSO[tema].caja; cr.beginPath(); cr.arc(gx, gy, gr, 0, 7); cr.fill(); cr.stroke();
-    cr.beginPath(); cr.ellipse(gx, gy, gr * 0.45, gr, 0, 0, 7); cr.moveTo(gx - gr, gy); cr.lineTo(gx + gr, gy); cr.stroke();
-    // envío (Benjamin, 2026-11-02): cuando la nube junta 4 señales, el paquete baja al computador (0,8 s) y de ahí sale
-    // por aire a internet (0,8 s), como ondas
-    var u = envioPc < 0 ? -1 : (sim.reloj - envioPc) / 0.8;
-    if (u >= 2) { envioPc = -1; u = -1; }
-    if (u >= 0 && u < 1) pulsoArco([-17, -2], [x0 + 20, y0 + 4], -16, u);
-    if (u >= 1 && u < 2) {
-      var v = u - 1, o = [x0, y0 + 5], z = [gx + gr, gy];
-      for (var w = 0; w < 3; w++) {             // ondas que viajan del computador al globo
-        var t = v - w * 0.18; if (t < 0 || t > 1) continue;
-        var cx = o[0] + (z[0] - o[0]) * t, cy = o[1] + (z[1] - o[1]) * t;
-        cr.strokeStyle = "rgba(" + P.normal + "," + (1 - t * 0.6).toFixed(3) + ")"; cr.lineWidth = 1.6;
-        cr.beginPath(); cr.arc(cx + 3, cy, 4 + w, Math.PI * 0.7, Math.PI * 1.3); cr.stroke();
+  // ─── «Hardware e IoT» (Benjamin, 2026-11-02, aprobado; reemplaza nube → computador → internet): se destaca un bus y,
+  // junto a él, el mismo dibujo de líneas del tacógrafo de Productos, unido al bus por el cable del CAN bus, con pulsos
+  // de cobre que llegan al equipo. Un satélite pequeño sobre la cordillera le manda arcos de señal (GPS) y del tacógrafo
+  // sale un pulso a la nube del mapa. Rótulo «simulación»: no son datos de un cliente ───
+  var ANCLA_IOT = { s: 0.40, este: 7000 }, TACO_ANCHO = 200, CADA_IOT = 2.6, busIot = -1, dibTaco = null, temaTaco = "";
+  function piezasTaco() {                       // el SVG de Productos (mismo index.html), con los colores de su tema
+    if (dibTaco && temaTaco === tema) return dibTaco;
+    var svg = document.querySelector(".ilus-tacografo"); if (!svg || typeof Path2D === "undefined") return null;
+    var vb = svg.viewBox.baseVal, clip = null, out = [];
+    [].forEach.call(svg.querySelectorAll("path, rect"), function (el) {
+      if (el.closest(".ilus-pulso") || el.closest("clipPath")) return;
+      var p = new Path2D(), cs = getComputedStyle(el);
+      if (el.tagName.toLowerCase() === "rect") {
+        var x = +el.getAttribute("x"), y = +el.getAttribute("y"), w = +el.getAttribute("width"), h = +el.getAttribute("height"), r = +el.getAttribute("rx") || 0;
+        if (p.roundRect) p.roundRect(x, y, w, h, r); else p.rect(x, y, w, h);
+      } else p.addPath(new Path2D(el.getAttribute("d")));
+      if (el.getAttribute("clip-path")) {         // las curvas de nivel, recortadas a la silueta del equipo
+        var c = svg.querySelector("clipPath rect");
+        if (c) { clip = new Path2D(); clip.rect(+c.getAttribute("x"), +c.getAttribute("y"), +c.getAttribute("width"), +c.getAttribute("height")); }
       }
+      out.push({ p: p, fill: cs.fill, stroke: cs.stroke, ancho: parseFloat(cs.strokeWidth) || 1, op: +cs.opacity, clip: el.getAttribute("clip-path") ? clip : null });
+    });
+    temaTaco = tema; dibTaco = { piezas: out, w: vb.width, h: vb.height };
+    return dibTaco;
+  }
+  function iot(op) {
+    var A = (function () {
+      var q = sim.enRuta(ANCLA_IOT.s * sim.LARGO), x = q[0] + ANCLA_IOT.este, z = q[1], e = alturaEn(x, z);
+      return proyectar(x, (e + 400) * EXAG, z);
+    })(); if (!A) return;
+    var D = piezasTaco(); if (!D) return;
+    var esc = TACO_ANCHO / D.w, tw = TACO_ANCHO, th = D.h * esc, x0 = A[0] - tw / 2, y0 = A[1] - th / 2;
+    // el bus: el visible más cerca del tacógrafo; se mantiene mientras siga en pantalla
+    var fb = focos[busIot], cb = fb && proyectar(fb.centro[0], fb.centro[1], fb.centro[2]);
+    if (!cb || cb[0] < 0 || cb[0] > W || cb[1] < 0 || cb[1] > H || op < 0.05) {
+      busIot = -1; var mejor = Infinity;
+      focos.forEach(function (f, i) {
+        var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (!c || c[0] < 0 || c[0] > W || c[1] < 0 || c[1] > H) return;
+        var d = Math.hypot(c[0] - (x0 - 170), c[1] - (y0 + th * 0.74)); if (d < mejor) { mejor = d; busIot = i; }
+      });
+      fb = focos[busIot]; cb = fb && proyectar(fb.centro[0], fb.centro[1], fb.centro[2]); if (!cb) return;
     }
-    function pulsoArco(o, z, alza, u) {
-      var mx = (o[0] + z[0]) / 2, my = Math.min(o[1], z[1]) + alza;
-      var arco = function (t) { var m = 1 - t; return [m * m * o[0] + 2 * m * t * mx + t * t * z[0], m * m * o[1] + 2 * m * t * my + t * t * z[1]]; };
-      cr.lineWidth = 2.2;
-      for (var j = 0; j < 10; j++) {
-        var t1 = Math.max(0, u - j * 0.04), t0 = Math.max(0, u - (j + 1) * 0.04); if (t1 <= 0) break;
+    var P = PULSO[tema], col = P.normal, borde = "rgba(" + P.borde + ",", t = quieto ? 0.35 : performance.now() / 1000;
+    cr.save(); cr.globalAlpha = op; cr.lineCap = "round"; cr.lineJoin = "round";
+    // el bus destacado: un anillo cobre que late
+    cr.strokeStyle = "rgba(" + col + ",.95)"; cr.lineWidth = 1.8;
+    cr.beginPath(); cr.arc(cb[0], cb[1], 10 + 2.5 * Math.sin(t * 4), 0, 7); cr.stroke();
+    // CAN bus: del bus baja y dobla hasta el costado izquierdo del tacógrafo (el mismo cable de Productos)
+    var entra = [x0 + 2, y0 + th * 0.74], codo = [cb[0], entra[1]], dd1 = Math.abs(entra[1] - cb[1]), dd2 = Math.abs(entra[0] - cb[0]);
+    var izq = cb[0] > entra[0];                   // si el bus queda a la derecha, entra por el costado derecho
+    if (izq) { entra = [x0 + tw - 2, y0 + th * 0.74]; codo = [cb[0], entra[1]]; dd2 = Math.abs(entra[0] - cb[0]); }
+    cr.beginPath(); cr.moveTo(cb[0], cb[1]); cr.lineTo(codo[0], codo[1]); cr.lineTo(entra[0], entra[1]);
+    cr.strokeStyle = P.caja; cr.lineWidth = 4; cr.stroke();            // halo, para que se lea sobre el relieve
+    cr.strokeStyle = borde + ".8)"; cr.lineWidth = 1.5; cr.stroke();
+    var largo = dd1 + dd2;
+    for (var j = 0; j < 3; j++) {                 // pulsos de cobre que corren hacia el tacógrafo
+      var f = (t * 0.45 + j / 3) % 1, s = f * largo, q = s <= dd1 ? [cb[0], cb[1] + (codo[1] - cb[1]) * s / (dd1 || 1)] : [codo[0] + (entra[0] - codo[0]) * (s - dd1) / (dd2 || 1), codo[1]];
+      var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], 7);
+      g.addColorStop(0, "rgba(" + col + "," + (0.95 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + col + ",0)");
+      cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1], 7, 0, 7); cr.fill();
+    }
+    // el tacógrafo, con su sombra
+    cr.save(); cr.translate(x0, y0); cr.scale(esc, esc);
+    cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.22)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 18; cr.shadowOffsetX = 8; cr.shadowOffsetY = 12;
+    D.piezas.forEach(function (pz, k) {
+      if (k > 1) { cr.shadowColor = "transparent"; }
+      cr.save(); if (pz.clip) cr.clip(pz.clip);
+      cr.globalAlpha = op * (isNaN(pz.op) ? 1 : pz.op);
+      if (pz.fill && pz.fill !== "none") { cr.fillStyle = pz.fill; cr.fill(pz.p); }
+      if (pz.stroke && pz.stroke !== "none") { cr.strokeStyle = pz.stroke; cr.lineWidth = Math.max(pz.ancho, 0.9 / esc); cr.stroke(pz.p); }
+      cr.restore();
+    });
+    cr.restore();
+    // GPS: un satélite pequeño sobre la cordillera; arcos de señal hacia el receptor del tacógrafo
+    var sat = [Math.min(W - 40, x0 + tw * 0.95), Math.max(H * 0.14, y0 - 230)], rec = [x0 + tw * 0.78, y0 + 2];
+    var ang = Math.atan2(rec[1] - sat[1], rec[0] - sat[0]), dist = Math.hypot(rec[0] - sat[0], rec[1] - sat[1]);
+    for (var k = 0; k < 3; k++) {
+      var u = (t * 0.5 + k / 3) % 1, rr = 10 + u * (dist - 10);
+      cr.strokeStyle = "rgba(" + col + "," + (0.7 * (1 - u)).toFixed(3) + ")"; cr.lineWidth = 1.4;
+      cr.beginPath(); cr.arc(sat[0], sat[1], rr, ang - 0.28, ang + 0.28); cr.stroke();
+    }
+    cr.strokeStyle = borde + ".9)"; cr.fillStyle = P.caja; cr.lineWidth = 1.3;
+    cr.save(); cr.translate(sat[0], sat[1]); cr.rotate(-0.5); cr.scale(1.35, 1.35); cr.lineWidth = 1;
+    [[-4, -4, 8, 8], [-17, -3, 10, 6], [7, -3, 10, 6]].forEach(function (r) { cr.fillRect(r[0], r[1], r[2], r[3]); cr.strokeRect(r[0], r[1], r[2], r[3]); });
+    cr.beginPath(); cr.moveTo(-7, 0); cr.lineTo(-4, 0); cr.moveTo(4, 0); cr.lineTo(7, 0); cr.stroke();
+    cr.restore();
+    cr.fillStyle = "rgba(" + col + ",.95)"; cr.beginPath(); cr.arc(rec[0], rec[1], 2.4, 0, 7); cr.fill();
+    // del tacógrafo sale un pulso de cobre a la nube del mapa (mismo arco que acelera de las tramas)
+    var sw = posSwitch();
+    if (sw && sw.vis > 0.05) {
+      var o = [x0 + tw * 0.5, y0], v = quieto ? 0.6 : (t % CADA_IOT) / CADA_IOT;
+      var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
+      var arco = function (u) { u = (Math.exp(6 * u) - 1) / (Math.exp(6) - 1); var m = 1 - u; return [m * m * o[0] + 2 * m * u * mx + u * u * sw.x, m * m * o[1] + 2 * m * u * my + u * u * sw.y]; };
+      cr.lineWidth = 2;
+      for (var e = 0; e < 14; e++) {
+        var t1 = Math.max(0, v - e * 0.015), t0 = Math.max(0, v - (e + 1) * 0.015); if (t1 <= 0) break;
         var p1 = arco(t1), p0 = arco(t0);
-        cr.strokeStyle = "rgba(" + P.normal + "," + (1 - j / 10).toFixed(3) + ")";
+        cr.strokeStyle = "rgba(" + col + "," + ((1 - e / 14) * Math.min(1, (1 - v) / 0.05)).toFixed(3) + ")";
         cr.beginPath(); cr.moveTo(p0[0], p0[1]); cr.lineTo(p1[0], p1[1]); cr.stroke();
       }
-      var h = arco(u); cr.fillStyle = "rgba(" + P.normal + ",1)";
-      for (var q = 0; q < 4; q++) cr.fillRect(h[0] - 4 + q * 2.2, h[1] - 2, 1.6, 4);   // el paquete: las 4 barras
+      if (v < 0.25) { cr.strokeStyle = "rgba(" + col + "," + (0.8 * (1 - v / 0.25)).toFixed(3) + ")"; cr.lineWidth = 1.2; cr.beginPath(); cr.arc(o[0], o[1], 3 + v * 40, Math.PI, 0); cr.stroke(); }
     }
+    // rótulos, como en Productos
+    cr.font = "500 11px 'Plex Mono', monospace"; cr.textBaseline = "middle"; cr.lineWidth = 3.5; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
+    function rotulo(txt, x, y, al) { cr.textAlign = al; cr.strokeText(txt, x, y); cr.fillText(txt, x, y); }   // con halo del papel
+    rotulo("GPS", sat[0] + 26, sat[1] - 14, "left");
+    rotulo("CAN bus", (codo[0] + entra[0]) / 2, entra[1] - 11, "center");
+    rotulo("simulación", x0 + tw / 2, y0 + th + 16, "center");
     cr.restore();
   }
 
@@ -1093,7 +1156,7 @@
     tSacel = ahora;
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
-    if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * RES.flota));
+    if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * Math.max(RES.flota, RES.iot)));
     if (listo === 2 && alturas) dibujar();
   }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
 
