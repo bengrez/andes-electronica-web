@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="base.css?v=20261104f">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -26,7 +26,6 @@
 </head>
 <body>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
-<div class="cabecera">
 <!-- barra -->
 <header class="barra">
   <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
@@ -40,8 +39,10 @@
     <li><a href="contacto.html">Contacto</a></li>
   </ul></nav>
   <button class="tema" type="button" aria-label="Cambiar a tema claro" title="Cambiar a tema claro"></button>
+  <p class="idioma" aria-label="Idioma"><span aria-current="true" lang="es">ES</span><a href="en/index.html" hreflang="en" lang="en" aria-label="English">EN</a></p>
 </header>
 <!-- /barra -->
+<div class="cabecera">
   <div class="titulo" role="region" aria-label="Presentación">
     <p class="sello">Empresa</p>
     <h1>Electrónica chilena <em>desde 1991.</em></h1>
@@ -54,7 +55,7 @@
     <div>
       <p class="sello">Historia</p>
       <h2 id="t-historia">Una empresa de servicios, <em>especializada en tecnología.</em></h2>
-      <p class="texto" style="margin-top:1.5rem">Andes Electrónica nació como Enrique Morchio y Cía. Ltda.; hoy es Andes Electrónica S.A. Inició sus actividades el 1° de diciembre de 1991, en desarrollo e investigación en electrónica, diseño de circuitos, instalación y mantenimiento de equipos, y fabricación de soluciones electrónicas.</p>
+      <p class="texto" style="margin-top:1.5rem">Andes Electrónica nació como Enrique Morchio y Cía. Ltda.; hoy es Andes Electrónica Limitada Inició sus actividades el 1° de diciembre de 1991, en desarrollo e investigación en electrónica, diseño de circuitos, instalación y mantenimiento de equipos, y fabricación de soluciones electrónicas.</p>
       <p class="texto">Se formó como una empresa de servicios especializada en soluciones tecnológicas, tanto para productos de clientes como para desarrollos propios, como los sistemas fiscales y los tacógrafos electrónicos. Hoy fabrica equipos electrónicos; diseña, fabrica y arma circuitos; da soporte técnico y asesorías; diseña sistemas de control automático y hace reingeniería. Un área se dedica a la instalación y puesta en marcha de centrales de telefonía fija y móvil y de equipos inalámbricos.</p>
     </div>
     <figure style="border-radius:14px;overflow:hidden"><img src="img/fotos/sede.webp" alt="Sede de Andes Electrónica en Ñuñoa, Santiago" width="920" height="520"></figure>
@@ -124,17 +125,15 @@
 
 <!-- pie -->
 <footer class="pie">
-  <div class="pie-fila">
-    <p>Andes Electrónica S.A. · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
-    <nav aria-label="Pie"><ul>
-      <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
-      <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
-    </ul></nav>
-  </div>
-  <p class="atribucion">Mapa y relieve: © colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL) · Terrain Tiles (Mapzen, AWS Open Data) · Quiscos, quillayes, cóndores y loros tricahue: especies y ubicaciones según observaciones de <a href="https://www.inaturalist.org">iNaturalist</a> (CC BY-NC, de sus autores).</p>
-  <p class="atribucion">Sitio diseñado y desarrollado por Benjamin Moreira-Grez.</p>
+  <p class="pie-datos">Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
+  <nav class="pie-nav" aria-label="Pie"><ul>
+    <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+    <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
+  </ul></nav>
+  <p class="atribucion">Sitio diseñado por BM-G y desarrollado por BM-G y Claude · Mapa y relieve: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL), Terrain Tiles (Mapzen, AWS) · Especies: registros de <a href="https://www.inaturalist.org">iNaturalist</a> (de sus autores, CC BY-NC y CC BY) · estado de conservación: MMA (RCE) y UICN</p>
 </footer>
 <!-- /pie -->
-<script src="sitio.js"></script>
+<script src="sitio.js?v=20261104f"></script>
+<script src="avance.js?v=20261104f"></script>
 </body>
 </html>

@@ -238,7 +238,7 @@
   if (boton) {
     if (quieto) boton.hidden = true;
     boton.addEventListener("click", function () {
-      pausado = !pausado; boton.setAttribute("aria-pressed", String(pausado));
+      pausado = !pausado;   // el estado lo dice el texto del botón; con aria-pressed además se anunciaría dos veces
       boton.textContent = pausado ? "Reanudar animación" : "Pausar animación";
       if (!pausado && visible && !raf) raf = requestAnimationFrame(cuadro);
     });
