@@ -506,7 +506,10 @@
       cr.strokeStyle = "rgba(" + PULSO[tema].normal + "," + (0.9 * RES.bus).toFixed(3) + ")"; cr.lineWidth = 1.5;
       cr.beginPath(); cr.arc(c[0], c[1], 9 + 3 * Math.sin(sim.reloj * 4), 0, 7); cr.stroke();
     });
+    pasoEsp();
     vida();
+    aguiluchos();
+    especies();
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
     if (RES.iot > 0.01) iot(RES.iot);
@@ -515,11 +518,20 @@
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
-    var RES = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0 }, META = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0 }, tRes = 0;
+    var RES = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0 }, META = { flota: 0, nube: 0, bus: 0, iot: 0, ruta: 0, especies: 0 }, tRes = 0;
   [].forEach.call(document.querySelectorAll("[data-resalta]"), function (el) {
     var ks = el.getAttribute("data-resalta").split(/\s+/);        // una etiqueta puede señalar varias cosas («flota nube»)
-    function on() { ks.forEach(function (k) { META[k] = 1; }); paso(0); } function off() { ks.forEach(function (k) { META[k] = 0; }); paso(0); }
-    el.addEventListener("mouseenter", on); el.addEventListener("mouseleave", off);
+    var espera = 0;
+    function activar() { espera = 0; if (ancladoEsp && ks.indexOf("especies") < 0) { ancladoEsp = false; META.especies = 0; } ks.forEach(function (k) { META[k] = 1; }); paso(0); }
+    // con «Diseño e investigación» anclado, cruzar otra etiqueta camino al mapa no la cambia: hay que detenerse 0,35 s
+    function on(ev) { if (ancladoEsp && ks.indexOf("especies") < 0 && ev && ev.type === "mouseenter") { espera = setTimeout(activar, 350); return; } activar(); }
+    function off() { if (espera) { clearTimeout(espera); espera = 0; return; } ks.forEach(function (k) { META[k] = 0; }); paso(0); }
+    el.addEventListener("mouseenter", on);
+    el.addEventListener("mouseleave", function (ev) {
+      // «Diseño e investigación»: si el cursor sale hacia el mapa, los detalles siguen y el rótulo lo acompaña
+      if (ks.indexOf("especies") >= 0 && ev.clientX > el.getBoundingClientRect().right - 4) { bordeEsp = el.getBoundingClientRect().right; ancladoEsp = true; paso(0); return; }
+      off();
+    });
     el.addEventListener("focus", on); el.addEventListener("blur", off);
   });
   // «Soporte técnico» (Benjamin, 2026-11-02): se destaca la H-25 entera, con un halo cobre y un brillo que la recorre
@@ -953,14 +965,16 @@
   var VIDA = { quiscos: 70, quillayes: 34 };   // sin fauna terrestre (Benjamin, 2026-10-30: fuera los zorros)
   // los simulados, en una zona acotada en torno al tramo medio de la ruta, que siempre queda a la vista (2026-10-30)
   var ZONA_VIDA = { cx: 13600, cz: 11200, rx: 4200, rz: 3400 };
-  // registros reales de iNaturalist con GPS dentro de la zona visible (verificables, sin coordenadas ocultas; consulta
-  // del 2026-10-30; x, z en metros del cuadro; los repetidos a menos de 80 m se juntan). Van en colores más vivos.
-  // Quisco (Trichocereus chiloensis), obs. 381755775, 357400086, 322230210, 314159521, 314018125, 314017375, 280061564,
-  // 252715341, 238014707, 238006260, 238006257, 186950714, 186950713, 186950711, 186950708, 186950700, 186950699,
-  // 167012766, 109999256, 106928893, 106890947. Quillay (Quillaja saponaria), obs. 399264022, 396667332, 381755762,
-  // 315916228, 239291696. https://www.inaturalist.org/observations/<n>
-  var INAT = { quiscos: [[4091,  14933],  [12934,  12325],  [5167,  9403],  [6178,  13070],  [17277,  16954],  [6510,  13094],  [5321,  13908],  [5379,  13830],  [5375,  14052],  [6274,  16300],  [7104,  9869],  [5225,  14140],  [5201,  13711]],
-               quillayes: [[3809,  16748],  [4301,  12131],  [4025,  14950],  [3892,  11366],  [5838,  13765]] };
+  // registros reales de iNaturalist (Benjamin, 2026-11-03: los datos de A10, handoff 019, en datos/especies-h25.js;
+  // sólo coordenadas abiertas). Los quiscos y quillayes reales se dibujan siempre, en colores más vivos; los repetidos a
+  // menos de 80 m se juntan. Las mismas coordenadas que la consulta del 30-oct (≤ 1 m), más los registros nuevos
+  var ESP = (window.ESPECIES_H25 && window.ESPECIES_H25.especies) || [];
+  function registrosDe(clave, junta) {
+    var e = ESP.filter(function (x) { return x.c === clave; })[0], out = [];
+    (e ? e.r : []).forEach(function (r) { if (!out.some(function (q) { return Math.hypot(q[0] - r[0], q[1] - r[1]) < junta; })) out.push([r[0], r[1]]); });
+    return out;
+  }
+  var INAT = { quiscos: registrosDe("quisco", 80), quillayes: registrosDe("quillay", 80) };
   var seres = null;
   function cercaDeRuta(x, z, d) {
     for (var i = 0; i < R.length; i++) if (Math.abs(R[i][0] - x) < d && Math.abs(R[i][1] - z) < d && Math.hypot(R[i][0] - x, R[i][1] - z) < d) return true;
@@ -995,6 +1009,13 @@
     }
     INAT.quiscos.forEach(function (q) { seres.push({ tipo: "quisco", x: q[0], z: q[1], t: 1.05, brazos: az() < 0.5 ? 1 : 2, real: true }); });
     INAT.quillayes.forEach(function (q) { seres.push({ tipo: "quillay", x: q[0], z: q[1], t: 1.1, real: true }); });
+    // «Diseño e investigación» (2026-11-03): las especies dibujadas de informe.md §5 que no estaban (7 plantas), en sus
+    // registros reales; aparecen de a poco al pasar el mouse (etapa b). El aguilucho vuela aparte (aguiluchos())
+    var orden = 0;
+    ["colliguay", "litre", "espino", "boldo", "peumo", "bollen", "chagual"].forEach(function (c) {
+      registrosDe(c, 60).forEach(function (q) { seres.push({ tipo: c, x: q[0], z: q[1], t: 0.9 + az() * 0.3, real: true, esp: 1, orden: orden++ }); });
+    });
+    seres.forEach(function (o) { if (o.esp) o.orden /= Math.max(1, orden); });
   }
   function aLaVista(x, y, z) {                     // ¿alguna loma tapa el punto? se recorre el rayo hacia la cámara
     for (var k = 1; k < 14; k++) {
@@ -1021,12 +1042,143 @@
     return "rgb(" + r.join(",") + ")";
   }
 
+  // ─── «Diseño e investigación» (Benjamin, 2026-11-03): al pasar el mouse, los detalles de la simulación aparecen de a poco,
+  // como señal del detalle que Andes pone en sus equipos: a) se encienden los puntos de los registros reales de especies;
+  // b) aparecen las siluetas de las especies dibujadas; c) un rótulo con el nombre común y científico de la especie más
+  // cercana al cursor y «registro iNaturalist · <fecha>». Al salir se apaga en orden inverso; con movimiento reducido,
+  // todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
+  var etapaEsp = 0, tEsp = 0, DUR_ETAPA_ESP = 0.9, cursor = null, ancladoEsp = false, bordeEsp = 0;
+  function aparece(e, orden) {                  // 0–1 para un elemento con su turno (orden 0–1) dentro de una etapa
+    return Math.max(0, Math.min(1, (e - orden * 0.75) / 0.25));
+  }
+  function pasoEsp() {
+    var t = performance.now(), dt = tEsp ? Math.min(0.1, (t - tEsp) / 1000) : 0; tEsp = t;
+    var meta = META.especies ? 3 : 0;
+    etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_ETAPA_ESP, meta - etapaEsp));
+  }
+  document.addEventListener("pointermove", function (ev) {
+    var b = lienzo.getBoundingClientRect(); cursor = [ev.clientX - b.left, ev.clientY - b.top];
+    // el resalte sigue mientras el cursor recorre el mapa; se suelta al volver a la columna del texto
+    if (ancladoEsp && (ev.clientX < bordeEsp - 4 || pCam > 0.1)) { ancladoEsp = false; META.especies = 0; paso(0); }
+  }, { passive: true });
+  document.addEventListener("pointerleave", function () { if (ancladoEsp) { ancladoEsp = false; META.especies = 0; paso(0); } });
+  function silueta(o, q, f, C, fn) {             // las 7 plantas nuevas, del mismo tamaño de juguete que quiscos y quillayes
+    var x = q[0], y = q[1], k = f * o.t, copa = comoMapa(C.copaVivo, fn), copa2 = comoMapa(C.copa2Vivo, fn), tronco = comoMapa(C.tronco, fn);
+    function grad(cx, cy, r) { var g = cr.createRadialGradient(cx - r * 0.3, cy - r * 0.4, r * 0.1, cx, cy, r * 1.1); g.addColorStop(0, copa2); g.addColorStop(1, copa); return g; }
+    function palo(h) { cr.strokeStyle = tronco; cr.lineWidth = 1.2 * f; cr.beginPath(); cr.moveTo(x, y); cr.lineTo(x, y - h); cr.stroke(); }
+    switch (o.tipo) {
+      case "colliguay":                          // mata redonda y baja, de a tres
+        cr.fillStyle = grad(x, y - 2.5 * k, 3.5 * k);
+        [[-3.2, 0, 2.6], [0, -0.6, 3.2], [3.2, 0, 2.4]].forEach(function (m) { cr.beginPath(); cr.arc(x + m[0] * k, y - 2.2 * k + m[1] * k, m[2] * k, Math.PI, 0); cr.fill(); });
+        break;
+      case "litre":                              // copa ancha, irregular y achaparrada
+        palo(3 * k); cr.fillStyle = grad(x, y - 5 * k, 6 * k);
+        cr.beginPath(); cr.ellipse(x, y - 5 * k, 6.2 * k, 3.2 * k, 0, 0, 7); cr.fill();
+        cr.beginPath(); cr.arc(x + 3 * k, y - 6.5 * k, 2.6 * k, 0, 7); cr.fill();
+        break;
+      case "espino":                             // copa aparasolada y rala sobre un tronco corto, con espinas
+        palo(5 * k); cr.fillStyle = copa;
+        cr.beginPath(); cr.ellipse(x, y - 6.2 * k, 6 * k, 1.8 * k, 0, 0, 7); cr.fill();
+        cr.strokeStyle = tronco; cr.lineWidth = 0.8 * f; cr.beginPath();
+        for (var s = -2; s <= 2; s++) { cr.moveTo(x + s * 2.2 * k, y - 6.2 * k); cr.lineTo(x + s * 2.6 * k, y - 4.6 * k); }
+        cr.stroke();
+        break;
+      case "boldo":                              // copa densa y ovalada
+        palo(2.5 * k); cr.fillStyle = grad(x, y - 6 * k, 4.2 * k);
+        cr.beginPath(); cr.ellipse(x, y - 6 * k, 3.8 * k, 4.2 * k, 0, 0, 7); cr.fill();
+        break;
+      case "peumo":                              // copa alta y ovalada, más alta que ancha
+        palo(3 * k); cr.fillStyle = grad(x, y - 8 * k, 5.5 * k);
+        cr.beginPath(); cr.ellipse(x, y - 8 * k, 3.4 * k, 5.6 * k, 0, 0, 7); cr.fill();
+        break;
+      case "bollen":                             // árbol pequeño de copa cónica
+        palo(2 * k); cr.fillStyle = grad(x, y - 6 * k, 5 * k);
+        cr.beginPath(); cr.moveTo(x, y - 11 * k); cr.lineTo(x + 3.6 * k, y - 2 * k); cr.lineTo(x - 3.6 * k, y - 2 * k); cr.closePath(); cr.fill();
+        break;
+      case "chagual":                            // roseta de hojas espinosas con una vara floral alta
+        cr.strokeStyle = copa; cr.lineWidth = 1.1 * f; cr.beginPath();
+        for (var h = -3; h <= 3; h++) { cr.moveTo(x, y); cr.lineTo(x + h * 1.3 * k, y - (3.2 - Math.abs(h) * 0.6) * k); }
+        cr.stroke();
+        cr.strokeStyle = tronco; cr.lineWidth = 1 * f; cr.beginPath(); cr.moveTo(x, y - 1 * k); cr.lineTo(x + 0.6 * k, y - 13 * k); cr.stroke();
+        cr.fillStyle = copa2; cr.beginPath(); cr.ellipse(x + 0.7 * k, y - 13.5 * k, 1.3 * k, 2.6 * k, 0, 0, 7); cr.fill();
+        break;
+    }
+  }
+  var puntosEsp = null;
+  function prepararPuntos() {                    // todos los registros, del valle (oeste) a la cordillera (este)
+    puntosEsp = [];
+    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2] }); }); });
+    puntosEsp.sort(function (a, b) { return a.x - b.x; });
+    puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
+  }
+  function especies() {
+    if (!alturas || etapaEsp <= 0.005 || !ESP.length) return;
+    if (!puntosEsp) prepararPuntos();
+    var C = COLORES_VIDA[tema], P = PULSO[tema], claro = tema === "claro", mejor = null, dMejor = Infinity;
+    var ref = cursor || [W * 0.72, H * 0.5];
+    cr.save();
+    puntosEsp.forEach(function (p) {
+      var ap = aparece(etapaEsp, p.orden); if (ap <= 0.01) return;
+      var y = alturaEn(p.x, p.z) * EXAG, q = proyectar(p.x, y, p.z); if (!q || q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
+      if (!aLaVista(p.x, y, p.z)) return;
+      var dc = Math.hypot(p.x - ojo[0], y - ojo[1], p.z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
+      var a = veloEn(q[0], q[1], y / EXAG) * (1 - 0.6 * fn) * opacVida * ap; if (a <= 0.02) return;
+      var col = "rgb(" + (p.e.i ? (claro ? "150,92,40" : "236,184,128") : (claro ? "40,128,52" : "130,214,140")) + ")";
+      cr.globalAlpha = a;
+      // el punto se enciende: un destello que se abre y queda un punto con borde de papel; las exóticas, huecas
+      if (ap < 1) { cr.strokeStyle = col; cr.lineWidth = 1; cr.beginPath(); cr.arc(q[0], q[1], 2 + 8 * ap, 0, 7); cr.globalAlpha = a * (1 - ap); cr.stroke(); cr.globalAlpha = a; }
+      cr.beginPath(); cr.arc(q[0], q[1], 2.6, 0, 7);
+      cr.fillStyle = P.caja; cr.fill();
+      cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7);
+      if (p.e.i) { cr.strokeStyle = col; cr.lineWidth = 1.1; cr.stroke(); } else { cr.fillStyle = col; cr.fill(); }
+      if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } }
+    });
+    // c) el rótulo de la especie más cercana al cursor
+    var al = Math.max(0, Math.min(1, etapaEsp - 2));
+    if (mejor && al > 0.01) {
+      var m = mejor, x = m.q[0], y0 = m.q[1];
+      cr.globalAlpha = al;
+      cr.strokeStyle = "rgba(" + P.borde + ",.9)"; cr.lineWidth = 1.4; cr.beginPath(); cr.arc(x, y0, 6, 0, 7); cr.stroke();
+      var tx = x + 12, ty = y0 - 30, l1 = m.p.e.n, l2 = m.p.e.s, l3 = "registro iNaturalist · " + m.p.fecha + (m.p.e.i ? " · introducida" : "");
+      cr.font = "600 13px 'DM Sans', sans-serif"; var w = cr.measureText(l1).width;
+      cr.font = "italic 12.5px 'Source Serif', serif"; w = Math.max(w, cr.measureText(l2).width);
+      cr.font = "500 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l3).width);
+      if (tx + w > W - 12) tx = x - 12 - w;
+      cr.beginPath(); cr.moveTo(x + (tx > x ? 5 : -5), y0 - 4); cr.lineTo(tx + (tx > x ? -3 : w + 3), ty + 4); cr.lineWidth = 1; cr.stroke();
+      cr.textBaseline = "middle"; cr.textAlign = "left"; cr.lineJoin = "round"; cr.lineWidth = 4; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
+      function linea(txt, fuente, yy, color) { cr.font = fuente; cr.strokeText(txt, tx, yy); cr.fillStyle = color || P.texto; cr.fillText(txt, tx, yy); }
+      var tinta = claro ? "#00104f" : "#f2ede3";
+      linea(l1, "600 13px 'DM Sans', sans-serif", ty, tinta);
+      linea(l2, "italic 12.5px 'Source Serif', serif", ty + 16, tinta);
+      linea(l3, "500 10.5px 'Plex Mono', monospace", ty + 31);
+    }
+    cr.restore();
+  }
+  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores (etapa b)
+  function aguiluchos() {
+    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
+    var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232";
+    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    regs.slice(0, 3).forEach(function (r, k) {
+      var a = t * 0.12 + k * 2.1, x = r[0] + Math.cos(a) * 500, z = r[1] + Math.sin(a) * 380;
+      var y = (alturaEn(x, z) + 300) * EXAG, q = proyectar(x, y, z); if (!q) return;
+      var al = veloEn(q[0], q[1], y / EXAG) * opacVida * ap; if (al <= 0.02) return;
+      var sp = 6 * Math.max(0.7, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100)));
+      cr.globalAlpha = al; cr.strokeStyle = "rgba(" + col + ",.9)"; cr.lineWidth = 1.6;
+      cr.beginPath(); cr.moveTo(q[0] - sp, q[1] + sp * 0.12); cr.quadraticCurveTo(q[0] - sp * 0.45, q[1] - sp * 0.28, q[0], q[1]);
+      cr.quadraticCurveTo(q[0] + sp * 0.45, q[1] - sp * 0.28, q[0] + sp, q[1] + sp * 0.12); cr.stroke();
+      cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] + sp * 0.35); cr.stroke();   // cola corta
+    });
+    cr.restore();
+  }
+
   function vida() {
     if (!alturas || opacVida <= 0.02) return;
     if (!seres) prepararVida();
     var C = COLORES_VIDA[tema], t = sim.reloj;
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     seres.forEach(function (o) {
+      var ap = o.esp ? aparece(etapaEsp - 1, o.orden) : 1; if (ap <= 0.01) return;
       var x = o.x, z = o.z, rumbo = 0;
       var y = alturaEn(x, z) * EXAG;
       var q = proyectar(x, y, z); if (!q || q[0] < -20 || q[0] > W + 20 || q[1] < -20 || q[1] > H + 20) return;
@@ -1038,7 +1190,8 @@
       var mv = medidasVelo(), izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
       var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja); if (a2 <= 0.02) return;
       var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
-      cr.globalAlpha = a2;
+      cr.globalAlpha = a2 * ap;
+      if (o.esp) { silueta(o, q, f * (0.7 + 0.3 * ap), C, fn); return; }
       if (o.tipo === "quisco") {                    // columna con uno o dos brazos
         var h = 8 * f * o.t;
         cr.strokeStyle = comoMapa(o.real ? C.cactusVivo : C.cactus, fn); cr.lineWidth = 1.6 * f;
