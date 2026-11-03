@@ -1052,6 +1052,10 @@
   // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» y,
   // si está amenazada, su categoría del RCE. Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
   // se apaga en orden inverso; con movimiento reducido, todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
+  // Más lenta y «rate-limited» (Benjamin, 2026-11-03): al subir, cada etapa dura DUR_SUBIDA_ESP y el color y los registros
+  // llegan por paquetes (PAQUETES_ESP por etapa), como datos que van llegando; al salir se apaga en DUR_ETAPA_ESP por etapa
+  var DUR_SUBIDA_ESP = 2.4, PAQUETES_ESP = 9;
+  function paquete(e) { return Math.floor(e * PAQUETES_ESP + 1e-6) / PAQUETES_ESP; }
   var etapaEsp = 0, tEsp = 0, DUR_ETAPA_ESP = 0.9, cursor = null, ancladoEsp = false, bordeEsp = 0;
   function aparece(e, orden) {                  // 0–1 para un elemento con su turno (orden 0–1) dentro de una etapa
     return Math.max(0, Math.min(1, (e - orden * 0.75) / 0.25));
@@ -1059,7 +1063,8 @@
   function pasoEsp() {
     var t = performance.now(), dt = tEsp ? Math.min(0.1, (t - tEsp) / 1000) : 0; tEsp = t;
     var meta = META.especies ? 3 : 0;
-    etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_ETAPA_ESP, meta - etapaEsp));
+    // sube despacio (DUR_SUBIDA_ESP por etapa) y baja rápido (DUR_ETAPA_ESP)
+    etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_SUBIDA_ESP, meta - etapaEsp));
   }
   document.addEventListener("pointermove", function (ev) {
     var b = lienzo.getBoundingClientRect(); cursor = [ev.clientX - b.left, ev.clientY - b.top];
@@ -1131,6 +1136,9 @@
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
+  var R_DISCO = 8, ALFA_FAUNA = 0.6;
+  // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
+  var ALFA_TEMA = { claro: { disco: 0.58, modelado: 0.3 }, oscuro: { disco: 0.42, modelado: 0.2 } };
   function especies() {
     if (!alturas || etapaEsp <= 0.005 || !ESP.length) { if (aCoord && !aCoord.hidden) { cajaEsp = null; enlaceCoord(null); } return; }
     if (!puntosEsp) prepararPuntos();
@@ -1138,7 +1146,7 @@
     var ref = cursor || [W * 0.72, H * 0.5], qFijo = null;
     cr.save();
     puntosEsp.forEach(function (p) {
-      var ap = aparece(etapaEsp - 1, p.orden); if (ap <= 0.01) return;
+      var ap = aparece(paquete(etapaEsp) - 1, p.orden); if (ap <= 0.01) return;
       var y = alturaEn(p.x, p.z) * EXAG, q = proyectar(p.x, y, p.z); if (!q || q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
       if (!aLaVista(p.x, y, p.z)) return;
       var dc = Math.hypot(p.x - ojo[0], y - ojo[1], p.z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
@@ -1147,9 +1155,11 @@
       cr.globalAlpha = a;
       // el punto se enciende: un destello que se abre y queda un punto con borde de papel; las exóticas, huecas
       if (ap < 1) { cr.strokeStyle = col; cr.lineWidth = 1; cr.beginPath(); cr.arc(q[0], q[1], 2 + 8 * ap, 0, 7); cr.globalAlpha = a * (1 - ap); cr.stroke(); cr.globalAlpha = a; }
-      cr.beginPath(); cr.arc(q[0], q[1], 2.6, 0, 7);
-      cr.fillStyle = P.caja; cr.fill();
-      cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7); cr.fillStyle = col; cr.fill();   // ● registro iNaturalist
+      // ● registro iNaturalist (Benjamin, 2026-11-03): un disco grande y translúcido del color de su grupo; los que se
+      // sobreponen suman color, así donde hay más registros el color se ve más sólido. Al centro, un punto chico
+      cr.globalAlpha = a * ALFA_TEMA[tema].disco * (GRUPO[p.e.c] || p.e.i || /cactus|árbol|arbusto|bromelia/.test(p.e.g) ? 1 : ALFA_FAUNA); cr.fillStyle = col;
+      cr.beginPath(); cr.arc(q[0], q[1], R_DISCO, 0, 7); cr.fill();
+      cr.globalAlpha = a * 0.9; cr.beginPath(); cr.arc(q[0], q[1], 1.3, 0, 7); cr.fill();
       if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } if (cajaEsp && p === cajaEsp.p) qFijo = q; }
     });
     // c) el rótulo de la especie más cercana al cursor; mientras el cursor esté sobre el rótulo (p. ej. camino al enlace de
@@ -1220,9 +1230,10 @@
       cr.fillStyle = tinta; cr.fillText(f[1], x0 + 20, y);
     });
     var y = y0 + filas.length * alto + 4, gris = "rgb(" + C.otras.join(",") + ")";
-    cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
+    cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].disco; cr.beginPath(); cr.arc(x0 + 6, y, 5.5, 0, 7); cr.fill();
+    cr.globalAlpha = al; cr.beginPath(); cr.arc(x0 + 6, y, 1.3, 0, 7); cr.fill();
     cr.fillStyle = tinta; cr.fillText("registro iNat", x0 + 20, y);
-    cr.strokeStyle = gris; cr.lineWidth = 1; cr.beginPath(); cr.arc(x0 + 122, y, 2.4, 0, 7); cr.stroke();
+    cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].modelado * 1.4; cr.beginPath(); cr.arc(x0 + 122, y, 5.5, 0, 7); cr.fill(); cr.globalAlpha = al;
     cr.fillText("modelado", x0 + 132, y);
     y += alto;
     cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
@@ -1265,7 +1276,7 @@
     if (!alturas || opacVida <= 0.02) return;
     if (!seres) prepararVida();
     var vp = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(5); }).join(",") : "";
-    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFauna().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
+    var clave = [vp, pCam.toFixed(4), paquete(etapaEsp).toFixed(3), opacVida.toFixed(3), opacFauna().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
     if (!lienzoVida) { lienzoVida = document.createElement("canvas"); crVida = lienzoVida.getContext("2d"); }
     if (clave !== claveVida) {
       claveVida = clave;
@@ -1279,7 +1290,7 @@
   function dibujarVida() {
     var C = COLORES_VIDA[tema], fa = opacFauna();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
-    var e2 = Math.max(0, Math.min(1, etapaEsp - 1));   // etapa 2: las modeladas quedan tenues y huecas
+    var e2 = Math.max(0, Math.min(1, paquete(etapaEsp) - 1));   // etapa 2: las modeladas quedan tenues y huecas
     var mv = medidasVelo();                        // una vez por cuadro (lee el estilo del documento)
     seres.forEach(function (o) {
       var x = o.x, z = o.z;
@@ -1293,14 +1304,14 @@
       var izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
       var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja); if (a2 <= 0.02) return;
       var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
-      var g = aparece(etapaEsp, o.orden), tenue = o.real ? 1 : 1 - 0.65 * e2;
+      var g = aparece(paquete(etapaEsp), o.orden), tenue = o.real ? 1 : 1 - 0.65 * e2;
       a2 = Math.min(1, a2 * fa);
       cr.globalAlpha = a2 * tenue;
       silueta(o, q, f, C, fn, g);
-      if (!o.real && e2 > 0.01) {                  // ○ modelado: un anillo del color del grupo al pie
-        cr.globalAlpha = Math.min(1, a2 * 1.6) * e2;
-        cr.strokeStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")"; cr.lineWidth = 1;
-        cr.beginPath(); cr.arc(q[0], q[1], 2.2, 0, 7); cr.stroke();
+      if (!o.real && e2 > 0.01) {                  // modelado: un disco del color del grupo, más tenue que el de un registro
+        cr.globalAlpha = Math.min(1, a2 * 1.6) * e2 * ALFA_TEMA[tema].modelado;
+        cr.fillStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")";
+        cr.beginPath(); cr.arc(q[0], q[1], R_DISCO, 0, 7); cr.fill();
       }
     });
     cr.restore();
