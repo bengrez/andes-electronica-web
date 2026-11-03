@@ -26,7 +26,7 @@
   // con chips de datos que salen de los buses hacia la nube; 2) la flota: cada bus de la ruta con su línea a la nube y
   // pulsos de cobre; 3) un panel que se despliega desde la nube con el registro de conducción y descanso de los buses
   // simulados. nivelMapa (0–3) lo elige el scroll; aFlota y aReporte se animan solos en DUR_NIVEL
-  var PARADAS_MAPA = 3, DUR_NIVEL = 1.3, nivelMapa = 0, aFlota = 0, aReporte = 0;
+  var PARADAS_MAPA = 3, DUR_NIVEL = 1.6, nivelMapa = 0, aFlota = 0, aReporte = 0;
   var VENTANA_REG = 360;
   var PASOS_PARADA = [[], [0], [1], [2]];        // la fase (.pasos li) de cada parada: captura y transmisión, registro, operación                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
@@ -1000,7 +1000,7 @@
   function chipsDatos() {
     var sw = posSwitch(); if (!sw || sw.vis < 0.3) return;
     var bs = busesEnPantalla(); if (!bs.length) return;
-    var op = pDatos * (1 - suave(aReporte)); if (op <= 0.02) return;
+    var op = pDatos * (1 - suave(aFlota)); if (op <= 0.02) return;
     var P = PULSO[tema], t = quieto ? 3.1 : performance.now() / 1000, n = Math.floor(t / CADA_CHIP);
     cr.save(); cr.font = "500 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
     for (var k = n - Math.ceil(VUELO_CHIP / CADA_CHIP); k <= n; k++) {
@@ -1014,10 +1014,11 @@
     }
     cr.restore();
   }
-  // 3) operación y seguridad: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
+  // 2) operación y seguridad: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
   function redFlota() {
     var sw = posSwitch(); if (!sw) return;
-    var P = PULSO[tema], op = suave(aFlota), t = quieto ? 0.6 : performance.now() / 1000;
+    var P = PULSO[tema], op = suave(aFlota) * (1 - suave(aReporte)), t = quieto ? 0.6 : performance.now() / 1000;
+    if (op <= 0.02) return;
     cr.save(); cr.lineCap = "round";
     busesEnPantalla().forEach(function (o, i) {
       cr.globalAlpha = op;
@@ -1032,7 +1033,7 @@
     });
     cr.restore();
   }
-  // 2) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
+  // 3) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
   // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
   var panelRect = null, BUSES_PANEL = 4, VENTANA_PANEL = 180;   // 180 s de animación × escala 5 = 15 min simulados
   var anclaCache = null, claveAncla = "";
@@ -1050,7 +1051,7 @@
   function panelReporte() {
     var sw = posSwitch(); if (!sw) return;
     // más chico (Benjamin, 2026-11-03): 4 buses y 15 min de línea de tiempo
-    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte) * (1 - suave(aFlota)), bs = sim.buses.slice(0, BUSES_PANEL), n = bs.length;
+    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte), bs = sim.buses.slice(0, BUSES_PANEL), n = bs.length;
     if (e <= 0.02) return;
     var pw = Math.min(330, W * 0.26), fila = 22, ph = 64 + fila * n + 26;
     // al costado derecho de la H-25 (Benjamin, 2026-11-03: para repartir la información en la página): a la altura del
@@ -1691,12 +1692,14 @@
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
     // flota y reporte, cuando SACEL ya está completo
-    // (2026-11-03, noche) orden de las fases: 2) registro y cumplimiento (el panel); 3) operación y seguridad (la flota)
-    var mR = nivelMapa >= 2 && aSacel > 0.98 ? 1 : 0, mF = nivelMapa >= 3 && aReporte > 0.98 ? 1 : 0;
-    if (quieto || (!dt && !window.FlotaCicloAndando)) { aReporte = nivelMapa >= 2 ? 1 : 0; aFlota = nivelMapa >= 3 ? 1 : 0; }
+    // orden de las fases (Benjamin, 2026-11-03, noche: se cambian 2 y 3): 2) operación y seguridad (la flota);
+    // 3) registro y cumplimiento (el panel). Para que fluya, la fase siguiente parte de inmediato y se funde con la
+    // anterior (sin esperar a que termine)
+    var mF = nivelMapa >= 2 && aSacel > 0.9 ? 1 : 0, mR = nivelMapa >= 3 && aSacel > 0.9 ? 1 : 0;
+    if (quieto || (!dt && !window.FlotaCicloAndando)) { aFlota = nivelMapa >= 2 ? 1 : 0; aReporte = nivelMapa >= 3 ? 1 : 0; }
     else {
-      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - (mF ? 0 : dReal / DUR_NIVEL));
-      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - dReal / DUR_NIVEL);
+      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - (mR ? 0 : dReal / DUR_NIVEL));
+      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - dReal / DUR_NIVEL);
     }
     if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * Math.max(RES.flota, RES.iot)));
     if (listo === 2 && alturas) dibujar();
@@ -1730,8 +1733,8 @@
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
     // en las paradas 2 y 3 se destaca su paso: Operación (la flota) y Registro y cumplimiento (el panel)
-    // cada parada destaca su fase, que muestra su texto: 1) captura y transmisión (los chips); 2) registro y cumplimiento
-    // (el panel); 3) operación y seguridad (la flota). Sin líneas que los unan: el texto y la animación van a la par
+    // cada parada destaca su fase, que muestra su texto: 1) captura y transmisión (los chips); 2) operación y seguridad
+    // (la flota); 3) registro y cumplimiento (el panel). Sin líneas que los unan: el texto y la animación van a la par
     var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || [];
     if (dest.join() !== pasoDestacado) {
       pasoDestacado = dest.join();

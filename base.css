@@ -205,11 +205,14 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .capa-sacel .acciones { margin-top: 1.75rem; }
 .sacel-datos { margin-top: 2.25rem; }
 .sacel-datos .pasos { grid-template-columns: 1fr; gap: .9rem; max-width: 34rem; }   /* 3 fases en una columna (2026-11-03) */
-.sacel-datos .pasos li.atenuado p { display: none; }   /* sólo la fase activa muestra su texto */
+/* sólo la fase activa muestra su texto; se abre y se cierra con una transición (2026-11-03: «más fluidas») */
+.sacel-datos .pasos li p { max-height: 7em; overflow: hidden; transition: max-height .7s ease, opacity .6s ease, margin-top .7s ease; }
+.sacel-datos .pasos li.atenuado p { max-height: 0; opacity: 0; margin-top: 0; }
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
 .sacel-datos .pasos p { margin-top: .3rem; }
-.sacel-datos .pasos li { transition: opacity .35s ease; }
+.sacel-datos .pasos li { transition: opacity .6s ease, border-color .6s ease; }
+.sacel-datos .pasos li h3 { transition: color .6s ease; }
 .sacel-datos .pasos li.atenuado { opacity: .5; }   /* paradas 2 y 3 del mapa: se destaca su paso (2026-11-03) */
 .sacel-datos .pasos li.destacado h3 { color: var(--acento); }
 .sacel-datos .pasos li.destacado { border-top-color: var(--acento); }
@@ -249,8 +252,8 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
 @media (max-height: 62rem) and (min-width: 47.5rem) {   /* pantallas bajas (hasta ~990 px de alto; antes 50 rem): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
-  .sacel-datos .pasos p { display: none; }
-  .sacel-datos .pasos li.destacado p { display: block; }   /* la fase activa sí muestra su texto (2026-11-03) */
+  .sacel-datos .pasos p { max-height: 0; opacity: 0; margin-top: 0; }
+  .sacel-datos .pasos li.destacado p { max-height: 7em; opacity: 1; margin-top: .3rem; }   /* la fase activa sí muestra su texto (2026-11-03) */
 }
 .pausa { position: relative; z-index: 2; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
 @media (max-width: 47.5rem) {
