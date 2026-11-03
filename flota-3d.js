@@ -588,9 +588,13 @@
     });
     cr.restore();
   }
+  function mapaQuieto() { return aSacel < 0.005 && Math.round(pAct * PARADAS_MAPA) === 0; }
   function resaltes() {                         // se acercan a su meta en ~0,3 s (de inmediato con movimiento reducido)
     var t = performance.now(), dt = tRes ? Math.min(0.1, (t - tRes) / 1000) : 0; tRes = t;
-    for (var k in RES) RES[k] = quieto ? META[k] : RES[k] + (META[k] - RES[k]) * Math.min(1, dt * 8);
+    // las animaciones de las 4 tarjetas sólo corren con el mapa quieto en el panorama (Benjamin, 2026-11-03): en cuanto la
+    // cámara se mueve (entra SACEL) se apagan, aunque el cursor siga sobre una tarjeta
+    var libre = mapaQuieto() ? 1 : 0;
+    for (var k in RES) RES[k] = quieto ? META[k] * libre : RES[k] + (META[k] * libre - RES[k]) * Math.min(1, dt * 8);
   }
 
   // ─── fichas de los buses (Benjamin, 2026-11-02): al pasar sobre «Rastreo de flotas», una tarjeta semitransparente a la
@@ -1293,7 +1297,7 @@
   function lejosDelTexto(x, mv) { return Math.max(0, Math.min(1, (x - (mv[0] + 230)) / 90)); }
   function pasoEsp() {
     var t = performance.now(), dt = tEsp ? Math.min(0.1, (t - tEsp) / 1000) : 0; tEsp = t;
-    var meta = META.especies ? 3 : 0;
+    var meta = META.especies && mapaQuieto() ? 3 : 0;
     // sube despacio (DUR_SUBIDA_ESP por etapa) y baja rápido (DUR_ETAPA_ESP)
     etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_SUBIDA_ESP, meta - etapaEsp));
   }
@@ -1371,13 +1375,22 @@
   // ladera, que en pantalla queda como una elipse inclinada según la pendiente y más chica con la distancia; sus ejes se
   // limitan a DISCO_PX px para que no se pierdan ni tapen
   var R_MUNDO = 400, DISCO_PX = [5, 14];
+  // (2026-11-03, después) Benjamin pidió descomponerla en subplanos: el borde se arma con LADOS_DISCO puntos, cada uno a
+  // la altura del relieve, así el disco se dobla sobre crestas y quebradas; luego se escala en pantalla para que su eje
+  // mayor quede entre DISCO_PX px
+  var LADOS_DISCO = 16, ANG_DISCO = [];
+  for (var kd = 0; kd < LADOS_DISCO; kd++) ANG_DISCO.push([Math.cos(kd / LADOS_DISCO * 6.2832), Math.sin(kd / LADOS_DISCO * 6.2832)]);
   function discoTerreno(c, x, z, q) {
-    var a = proyectar(x + R_MUNDO, alturaEn(x + R_MUNDO, z) * EXAG, z), b = proyectar(x, alturaEn(x, z + R_MUNDO) * EXAG, z + R_MUNDO);
+    var pts = [], m = 0;
+    for (var k = 0; k < LADOS_DISCO; k++) {
+      var px = x + ANG_DISCO[k][0] * R_MUNDO, pz = z + ANG_DISCO[k][1] * R_MUNDO, p = proyectar(px, alturaEn(px, pz) * EXAG, pz);
+      if (!p) { c.beginPath(); c.arc(q[0], q[1], R_DISCO, 0, 7); return; }
+      var d = [p[0] - q[0], p[1] - q[1]]; pts.push(d); m = Math.max(m, Math.hypot(d[0], d[1]));
+    }
+    var e = m > DISCO_PX[1] ? DISCO_PX[1] / m : (m < DISCO_PX[0] ? DISCO_PX[0] / Math.max(m, 0.01) : 1);
     c.beginPath();
-    if (!a || !b) { c.arc(q[0], q[1], R_DISCO, 0, 7); return; }
-    var u = [a[0] - q[0], a[1] - q[1]], v = [b[0] - q[0], b[1] - q[1]], m = Math.max(Math.hypot(u[0], u[1]), Math.hypot(v[0], v[1]));
-    var k = m > DISCO_PX[1] ? DISCO_PX[1] / m : (m < DISCO_PX[0] ? DISCO_PX[0] / Math.max(m, 0.01) : 1);
-    c.save(); c.transform(u[0] * k, u[1] * k, v[0] * k, v[1] * k, q[0], q[1]); c.arc(0, 0, 1, 0, 7); c.restore();
+    pts.forEach(function (d, k) { var X = q[0] + d[0] * e, Y = q[1] + d[1] * e; if (k) c.lineTo(X, Y); else c.moveTo(X, Y); });
+    c.closePath();
   }
   var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [];
   // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
