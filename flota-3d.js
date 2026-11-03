@@ -1510,10 +1510,9 @@
   // plausibles): el ritmo baja de 1 a 1/ESCALA_SIM a medida que aparecen las fichas (RES.flota)
   var ESCALA_SIM = ACELERACION_TIEMPO * VELOCIDAD_BUSES;
   function paso(dt) {
-    // la parada de SACEL (Benjamin, 2026-11-02: tres paradas en una). Desde el 3-nov la meta queda en 0: SACEL se cuenta
-    // en su propia sección (sacel-relato.js) y el mapa se queda en el panorama. Antes: el scroll elige la meta y la animación va sola
+    // la parada de SACEL (Benjamin, 2026-11-02: tres paradas en una): el scroll elige la meta y la animación va sola
     // con reloj propio (no el dt del ciclo, que se recorta a 50 ms por cuadro): dura DUR_SACEL aunque el equipo sea lento
-    var meta = 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
+    var meta = pAct >= 0.5 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
     tSacel = ahora;
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
