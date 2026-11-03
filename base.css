@@ -168,7 +168,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (prefers-reduced-motion: reduce) { .cordillera { height: auto; min-height: 100vh; min-height: 100svh; } }
 
 /* ─── mapa de inicio: queda fijo mientras se recorre .recorrido; la cámara baja según el avance ─── */
-.recorrido { height: 200vh; }   /* dos paradas: el panorama y SACEL, que se anima solo al llegar (2026-11-02; antes 900vh con tres paradas) */
+.recorrido { height: 100vh; height: 100svh; }   /* sólo el panorama (2026-11-03: SACEL pasó a .sacel-recorrido); antes 200vh con la parada SACEL */
 .portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
 .portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }
@@ -651,3 +651,27 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
   text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; padding: 2px 0;
   text-shadow: 0 0 3px var(--pagina), 0 0 3px var(--pagina), 0 0 2px var(--pagina); }
 .coord-esp:hover, .coord-esp:focus-visible { color: var(--tinta); }
+
+/* ─── SACEL y la flota (Benjamin y JI, 2026-11-03; sacel-relato.js): 5 paradas, texto a la izquierda y dibujo a la
+   derecha. Sin la clase relato-vivo (celular, movimiento reducido o sin JS) las paradas van apiladas ─── */
+.sacel-relato { display: grid; gap: 2rem; }
+.relato-lienzo { display: none; }
+.relato-paso + .relato-paso { margin-top: 3.5rem; }
+.relato-paso h2, .relato-paso h3 { font: 600 clamp(2rem, 3.6vw, 3.1rem)/1.08 var(--titulos); letter-spacing: -.03em; margin: .5rem 0 1rem; max-width: 18ch; }
+.relato-paso h2 { font-size: clamp(2.5rem, 4.8vw, 4.1rem); }
+.relato-paso h3 em { font-style: normal; color: var(--acento); }
+.relato-paso p { color: var(--tinta-2); max-width: 32rem; }
+.relato-paso p + p { margin-top: .8rem; }
+.relato-paso .entrada { font-size: clamp(1.15rem, 1.6vw, 1.4rem); color: var(--tinta-2); }
+.relato-paso .acciones { margin-top: 1.75rem; }
+.relato-nota { font-size: .92rem; }
+.relato-mini { display: block; width: 100%; max-width: 40rem; aspect-ratio: 4 / 3; margin-top: 1.25rem; }
+.relato-vivo .sacel-recorrido { height: 500vh; }
+.relato-vivo .sacel-relato { position: sticky; top: 0; height: 100vh; height: 100svh; padding-block: 5.5rem 1.5rem;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; }
+.relato-vivo .relato-texto { display: grid; }
+.relato-vivo .relato-paso { grid-area: 1 / 1; margin: 0; opacity: 0; transform: translateY(.8rem); visibility: hidden;
+  transition: opacity .35s ease, transform .35s ease, visibility 0s .35s; }
+.relato-vivo .relato-paso.activo { opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
+.relato-vivo .relato-lienzo { display: block; width: 100%; height: min(78vh, 46rem); }
+.relato-vivo .relato-mini { display: none; }
