@@ -900,6 +900,31 @@
     }
     return { mastil: [ax, ay - 0.16 * r], can: [(cam[1][0] + cam[2][0]) / 2, cam[1][1] - 9] };
   }
+  // el satélite GPS va en el cielo, sobre la silueta de las montañas, para que resalte (Benjamin, 2026-11-03): se busca
+  // la columna con más cielo cerca de la lupa y se pone 60 px sobre la cima de esa columna (la silueta se calcula
+  // proyectando la rejilla del relieve y se guarda mientras la cámara no cambie)
+  var perfilCimas = null, claveSil = "";
+  function siluetaCimas() {
+    var clave = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(4); }).join(",") + "|" + W + "|" + H : "";
+    if (clave === claveSil && perfilCimas) return perfilCimas;
+    claveSil = clave; perfilCimas = new Float32Array(Math.ceil(W / 20) + 1).fill(Infinity);
+    for (var j = 0; j < T.nz; j += 2) for (var i = 0; i < T.nx; i += 2) {
+      var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso, q = proyectar(x, alturas[j * T.nx + i] * EXAG, z);
+      if (!q || q[0] < 0 || q[0] > W) continue;
+      var b = Math.floor(q[0] / 20); if (q[1] < perfilCimas[b]) perfilCimas[b] = q[1];
+    }
+    return perfilCimas;
+  }
+  function posSatelite() {
+    var sil = siluetaCimas(), mejor = null, pref = LUPA.x + LUPA.r;
+    for (var x = Math.max(W * 0.5, LUPA.x - 200); x <= W - 50; x += 20) {
+      var b = Math.floor(x / 20), cima = Math.min(sil[b] || Infinity, sil[b - 1] || Infinity, sil[b + 1] || Infinity, sil[b + 2] || Infinity);
+      if (!isFinite(cima)) cima = H * 0.6;
+      var p = cima - 0.12 * Math.abs(x - pref);
+      if (!mejor || p > mejor.p) mejor = { p: p, x: x, cima: cima };
+    }
+    return [mejor.x, Math.max(96, Math.min(mejor.cima - 60, H * 0.32))];
+  }
   function iot(op) {
     if (!LUPA.ok) return;
     var F = LUPA.F, cb = proyectar(F.centro[0], F.centro[1], F.centro[2]); if (!cb) return;
@@ -915,7 +940,7 @@
     cr.save(); cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.25)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 16; cr.shadowOffsetY = 6;
     cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke(); cr.restore();
     // GPS: el satélite sobre la cordillera manda arcos al bus real
-    var sat = [Math.min(W - 40, LUPA.x + LUPA.r * 0.9), Math.max(H * 0.14, LUPA.y - 260)];
+    var sat = posSatelite();
     var a = Math.atan2(cb[1] - sat[1], cb[0] - sat[0]), dist = Math.hypot(cb[0] - sat[0], cb[1] - sat[1]);
     for (var k = 0; k < 3; k++) {
       var u = (t * 0.5 + k / 3) % 1, rr = 10 + u * (dist - 10);
