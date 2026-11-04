@@ -663,3 +663,14 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .servicios-continua .seccion { padding-top: 0; }
 .subtitulo-seccion { font: 600 clamp(1.5rem, 2.6vw, 2.1rem)/1.1 var(--titulos); letter-spacing: -.02em; max-width: 22ch; }
 .subtitulo-seccion em { font-style: normal; color: var(--acento); }
+
+/* la casona (Benjamin, 2026-11-03; casona.js): a todo el ancho, un cuarto más chica que la primera versión, y con el
+   texto de la sección encima, sobrelapándola un poco (el texto va sobre ella; no cambia el avance de la cámara, que
+   sigue el propio elemento) */
+.casona { position: relative; z-index: 0; width: 100vw; margin: -10rem 0 1.5rem calc(50% - 50vw); height: min(58svh, 42vw); min-height: 14rem; pointer-events: none; }
+.casona andes-casona { width: 100%; height: 100%; }
+.seccion:has(> .casona) > .cabeza { position: relative; z-index: 1; }
+.casona-completa { margin-top: -15rem; height: min(66svh, 46vw); }
+.cabecera:has(+ .casona) .titulo { position: relative; z-index: 2; }
+.casona-completa { z-index: 1; }
+@media (max-width: 47.5rem) { .casona { height: 48vw; min-height: 11rem; margin-top: -2rem; } .casona-completa { margin-top: -3rem; } }
