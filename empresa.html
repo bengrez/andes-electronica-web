@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261105f">
+<link rel="stylesheet" href="base.css?v=20261105g">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -48,8 +48,6 @@
     <p class="entrada">Diseñamos, fabricamos y mantenemos electrónica para nuestros clientes y para nuestros propios productos.</p>
   </div>
 </div>
-<!-- la casona (Benjamin, 2026-11-03): la vuelta completa de la cámara con el scroll, bajo el texto y a todo el ancho -->
-<figure class="casona casona-completa" aria-label="Nuestra casona, en Ñuñoa"><andes-casona escala="0.81"></andes-casona></figure>
 
 <main id="contenido">
   <section class="seccion llamada" aria-labelledby="t-historia">
@@ -59,7 +57,9 @@
       <p class="texto" style="margin-top:1.5rem">Andes Electrónica nació como Enrique Morchio y Cía. Ltda.; hoy es Andes Electrónica Limitada Inició sus actividades el 1° de diciembre de 1991, en desarrollo e investigación en electrónica, diseño de circuitos, instalación y mantenimiento de equipos, y fabricación de soluciones electrónicas.</p>
       <p class="texto">Se formó como una empresa de servicios especializada en soluciones tecnológicas, tanto para productos de clientes como para desarrollos propios, como los sistemas fiscales y los tacógrafos electrónicos. Hoy fabrica equipos electrónicos; diseña, fabrica y arma circuitos; da soporte técnico y asesorías; diseña sistemas de control automático y hace reingeniería. Un área se dedica a la instalación y puesta en marcha de centrales de telefonía fija y móvil y de equipos inalámbricos.</p>
     </div>
-    <figure style="border-radius:14px;overflow:hidden"><img src="img/fotos/sede.webp" alt="Sede de Andes Electrónica en Ñuñoa, Santiago" width="920" height="520"></figure>
+    <!-- la casona (Benjamin, 2026-11-04): reemplaza la foto de la sede; la vuelta completa de la cámara con el scroll, de día o
+         de noche según el tema -->
+    <figure class="casona-historia" aria-label="Nuestra casona, la sede de Andes Electrónica en Ñuñoa, Santiago"><andes-casona escala="1.4"></andes-casona></figure>
   </section>
 
   <div class="banda">
@@ -134,8 +134,8 @@
   <p class="atribucion">Sitio diseñado por BM-G y desarrollado por BM-G y Claude · Mapa y relieve: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL), Terrain Tiles (Mapzen, AWS) · Especies: registros de <a href="https://www.inaturalist.org">iNaturalist</a> (de sus autores, CC BY-NC y CC BY) · estado de conservación: MMA (RCE) y UICN</p>
 </footer>
 <!-- /pie -->
-<script src="sitio.js?v=20261105f"></script>
-<script src="avance.js?v=20261105f"></script>
-<script src="casona.js?v=20261105f"></script>
+<script src="sitio.js?v=20261105g"></script>
+<script src="avance.js?v=20261105g"></script>
+<script src="casona.js?v=20261105g"></script>
 </body>
 </html>
