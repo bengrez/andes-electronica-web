@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261104x">
+<link rel="stylesheet" href="base.css?v=20261104y">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -31,9 +31,8 @@
   <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
   <nav class="nav" aria-label="Principal"><ul>
     <li><a href="index.html">Inicio</a></li>
-    <li><a href="productos.html" aria-current="page">Productos</a></li>
+    <li><a href="productos.html" aria-current="page">Productos y servicios</a></li>
     <li><a href="sacel.html">SACEL</a></li>
-    <li><a href="servicios.html">Servicios</a></li>
     <li><a href="empresa.html">Empresa</a></li>
     <li><a href="iso.html">Certificado ISO</a></li>
     <li><a href="contacto.html">Contacto</a></li>
@@ -44,9 +43,10 @@
 <!-- /barra -->
 <div class="cabecera">
   <div class="titulo" role="region" aria-label="Presentación">
-    <p class="sello">Productos</p>
+    <p class="sello">Productos y servicios</p>
     <h1>El tacógrafo <em>y lo que se conecta a él.</em></h1>
     <p class="entrada">El Tacógrafo 4.0 y sus periféricos reúnen a bordo la información que necesita el Sistema SACEL y permiten cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes. Diseñados y fabricados en Chile.</p>
+    <p class="entrada entrada-2">Además instalamos y mantenemos nuestros sistemas, y ponemos nuestra ingeniería al servicio de los proyectos de cada cliente: <a href="#servicios">ver servicios</a>.</p>
   </div>
 </div>
 
@@ -155,7 +155,7 @@
         <p class="sello">Accesorios</p>
         <h3 id="t-peri">A la medida de cada flota</h3>
         <p class="texto">Desarrollamos periféricos específicos y una caja especial para el montaje del tacógrafo. Si necesita un equipo que no está en esta página, conversemos.</p>
-        <div class="acciones"><a class="enlace" href="servicios.html#id">Investigación y desarrollo</a></div>
+        <div class="acciones"><a class="enlace" href="productos.html#id">Investigación y desarrollo</a></div>
       </div>
     </section>
   </section>
@@ -187,8 +187,73 @@
     </section>
   </div>
 
+  <!-- Servicios (requerimiento de JI, 2026-11-03: Productos y Servicios en una sola página; antes servicios.html) -->
+  <div id="servicios">
+  <!-- I+D es el paraguas (revisión de Benjamin, msg-002 ítem 11): de ella cuelgan servicio técnico con instalación SACEL,
+       y diseño y fabricación. Textos de I+D: sitio antiguo (/servicios/investigacion-desarrollo/). -->
+  <section class="seccion" id="id" aria-labelledby="t-id">
+    <div class="cabeza">
+      <div><p class="sello">Investigación y desarrollo</p><h2 id="t-id">Problemas sin <em>respuesta de catálogo.</em></h2></div>
+      <p>Investigación y desarrollo para innovar y mejorar productos, servicios y procesos. Nuestro equipo colabora estrechamente con cada cliente para identificar oportunidades, desarrollar soluciones y aplicar los cambios que impulsen el crecimiento de su negocio.</p>
+    </div>
+    <ul class="fichas">
+      <li><h3>Análisis de mercado y tendencias</h3><p>Estudio de las dinámicas del mercado para identificar oportunidades de innovación.</p></li>
+      <li><h3>Tecnologías emergentes</h3><p>Exploración y evaluación de nuevas tecnologías que puedan aplicarse a productos y procesos.</p></li>
+      <li><h3>Prototipos y pruebas</h3><p>Creación y evaluación de prototipos para validar las soluciones antes de su implementación final.</p></li>
+    </ul>
+    <p class="subtitulo">Metodología</p>
+    <ol class="metodo">
+      <li>Definición del problema</li><li>Investigación y análisis</li><li>Diseño y desarrollo</li><li>Pruebas y validación</li><li>Implementación y seguimiento</li>
+    </ol>
+  </section>
+
+  <div class="banda">
+    <div class="ancho ramas">
+      <section class="seccion" id="servicio-tecnico" aria-labelledby="t-tec">
+        <div class="cabeza">
+          <div><p class="sello">I+D · Servicio técnico e instalación SACEL</p><h2 id="t-tec">Equipos que <em>siguen funcionando.</em></h2></div>
+          <p>Servicio técnico especializado para empresas, principalmente del transporte, con equipos de diagnóstico, software y bases de datos de fabricantes. Instalamos el Sistema SACEL en buses y camiones, con soporte posterior a la instalación.</p>
+        </div>
+        <div class="par">
+          <div>
+            <h3>Servicio técnico</h3>
+            <ul class="lista">
+              <li>Mantenimiento preventivo y correctivo.</li>
+              <li>Reparación de equipos electrónicos.</li>
+              <li>Instalación y configuración de sistemas.</li>
+              <li>Actualización y migración de tecnología.</li>
+            </ul>
+          </div>
+          <div id="instalaciones">
+            <h3>Instalación SACEL</h3>
+            <ol class="pasos">
+              <li><h4>Evaluación</h4><p>Del sitio y de los requisitos del cliente.</p></li>
+              <li><h4>Diseño</h4><p>Diseño y planificación de la instalación.</p></li>
+              <li><h4>Instalación</h4><p>Instalación y configuración de los equipos.</p></li>
+              <li><h4>Entrega</h4><p>Entrega y capacitación al cliente.</p></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="seccion" id="diseno" aria-labelledby="t-pcb">
+        <div class="cabeza">
+          <div><p class="sello">I+D · Diseño y fabricación</p><h2 id="t-pcb">Su idea, <em>en una placa.</em></h2></div>
+          <p>Diseñamos y fabricamos PCB adaptados a las necesidades de cada cliente, trabajando de cerca con él para convertir sus ideas en soluciones reales.</p>
+        </div>
+        <ul class="fichas">
+          <li><h3>Diseño de PCB</h3><p>Esquemas electrónicos y diseño del layout, en Altium Designer y KiCad.</p></li>
+          <li><h3>Fabricación de PCB</h3><p>De 1 a 32 capas, con fabricantes aliados en Asia.</p></li>
+          <li><h3>Ensamblaje de PCB</h3><p>Soldadura de componentes SMD y THT, inspección y pruebas de calidad.</p></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  </div>
+
   <section class="seccion llamada" aria-labelledby="t-cta">
-    <div><p class="sello">Contacto</p><h2 id="t-cta">¿Lo evaluamos <em>en su flota?</em></h2></div>
+    <div><p class="sello">Contacto</p><h2 id="t-cta">¿Lo evaluamos en su flota <em>o necesita un desarrollo?</em></h2></div>
     <div class="acciones"><a class="boton" href="contacto.html">Contactar</a></div>
   </section>
 </main>
@@ -197,16 +262,16 @@
 <footer class="pie">
   <p class="pie-datos">Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
   <nav class="pie-nav" aria-label="Pie"><ul>
-    <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+    <li><a href="productos.html">Productos y servicios</a></li><li><a href="sacel.html">SACEL</a></li>
     <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
   </ul></nav>
   <p class="atribucion">Sitio diseñado por BM-G y desarrollado por BM-G y Claude · Mapa y relieve: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL), Terrain Tiles (Mapzen, AWS) · Especies: registros de <a href="https://www.inaturalist.org">iNaturalist</a> (de sus autores, CC BY-NC y CC BY) · estado de conservación: MMA (RCE) y UICN</p>
 </footer>
 <!-- /pie -->
-<script src="sitio.js?v=20261104x"></script>
-<script src="avance.js?v=20261104x"></script>
-<script src="datos/tacografo-modelo.js?v=20261104x"></script>
-<script src="tacografo-3d.js?v=20261104x"></script>
-<script src="etapas.js?v=20261104x"></script>
+<script src="sitio.js?v=20261104y"></script>
+<script src="avance.js?v=20261104y"></script>
+<script src="datos/tacografo-modelo.js?v=20261104y"></script>
+<script src="tacografo-3d.js?v=20261104y"></script>
+<script src="etapas.js?v=20261104y"></script>
 </body>
 </html>

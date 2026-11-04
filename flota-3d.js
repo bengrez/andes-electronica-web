@@ -799,7 +799,7 @@
     cr.globalAlpha = 1;
   }
 
-  // ─── «Hardware e IoT», versión 3 (Benjamin, 2026-11-03): una LUPA circular fija sobre el relieve, unida por una línea
+  // ─── «Equipos electrónicos» (antes «Hardware e IoT»; requerimiento de JI, 2026-11-03), versión 3 (Benjamin, 2026-11-03): una LUPA circular fija sobre el relieve, unida por una línea
   // al bus destacado. Adentro, una versión simplificada en 2D (reemplaza la segunda cámara 3D de 033755c): el bus de
   // costado, en corte, sobre un fondo difuminado del mismo mapa (el relieve alrededor del bus, desenfocado), con lo
   // esencial: el equipo en el tablero, la antena GPS en el techo y el cable CAN del motor al equipo, con pulsos de cobre.
@@ -1533,10 +1533,17 @@
   // Transparencia de la flora y fauna (Benjamin, 2026-11-03): en reposo, más transparentes que antes; cuando el mapa se
   // activa (hover de cualquier tarjeta del panorama), más opacas, para que se integren al mapa como parte del mini mapa.
   // Multiplica el alfa de las plantas, el aguilucho, los loros y los cóndores
-  var FAUNA_REPOSO = 0.5, FAUNA_ACTIVO = 1.15;
+  // R4 de JI (2026-11-03, decidido por A7 a pedido de Benjamin): las plantas en reposo algo más patentes (0,5 → 0,75),
+  // con el mismo tono del relieve, y menos atenuadas en el valle de abajo a la izquierda (0,7 → 0,4); siguen sin color ni
+  // contraste hasta activar «Diseño e investigación», y el extremo junto al texto sigue vacío (lejosDelTexto)
+  var FAUNA_REPOSO = 0.5, FLORA_REPOSO = 0.75, FAUNA_ACTIVO = 1.15, ATENUA_VALLE = 0.4;   // la fauna sigue en 0,5
   function opacFauna() {
     var act = Math.min(1, Math.max(RES.flota, RES.nube, RES.bus, RES.iot, RES.ruta, etapaEsp));
     return FAUNA_REPOSO + (FAUNA_ACTIVO - FAUNA_REPOSO) * act;
+  }
+  function opacFlora() {
+    var act = Math.min(1, Math.max(RES.flota, RES.nube, RES.bus, RES.iot, RES.ruta, etapaEsp));
+    return FLORA_REPOSO + (FAUNA_ACTIVO - FLORA_REPOSO) * act;
   }
   // las plantas se dibujan en un lienzo aparte y se redibujan sólo cuando cambia algo que las mueve o las tiñe (cámara,
   // etapa, transparencias, tema, tamaño); el resto de los cuadros se copia de una vez (risk-006: el raster de ~200 siluetas
@@ -1546,7 +1553,7 @@
     if (!alturas || opacVida <= 0.02) return;
     if (!seres) prepararVida();
     var vp = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(5); }).join(",") : "";
-    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFauna().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
+    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFlora().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
     if (!lienzoVida) { lienzoVida = document.createElement("canvas"); crVida = lienzoVida.getContext("2d"); }
     if (clave !== claveVida) {
       claveVida = clave;
@@ -1558,7 +1565,7 @@
     cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoVida, 0, 0); cr.restore();
   }
   function dibujarVida() {
-    var C = COLORES_VIDA[tema], fa = opacFauna();
+    var C = COLORES_VIDA[tema], fa = opacFlora();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     var e2 = Math.max(0, Math.min(1, etapaEsp - 1));   // etapa 2: las modeladas quedan tenues y huecas
     var mv = medidasVelo();                        // una vez por cuadro (lee el estilo del documento)
@@ -1572,7 +1579,7 @@
       fn = fn * fn * (3 - 2 * fn);
       // abajo a la izquierda (inicio de la H-25, junto al texto) van más tenues, para que no resalten (2026-10-30)
       var izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
-      var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja) * lejosDelTexto(q[0], mv); if (a2 <= 0.02) return;
+      var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - ATENUA_VALLE * izq * baja) * lejosDelTexto(q[0], mv); if (a2 <= 0.02) return;
       var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
       var g = aparece(etapaEsp), tenue = o.real ? 1 : 1 - 0.65 * e2;
       a2 = Math.min(1, a2 * fa);

@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261104x">
+<link rel="stylesheet" href="base.css?v=20261104y">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -35,9 +35,8 @@
   <a class="marca" href="index.html" aria-label="Andes Electrónica, inicio"><img class="logo-claro" src="img/logo-andes.svg" alt="" width="38" height="34"><img class="logo-oscuro" src="img/logo-andes-oscuro.svg" alt="" width="38" height="34"></a>
   <nav class="nav" aria-label="Principal"><ul>
     <li><a href="index.html" aria-current="page">Inicio</a></li>
-    <li><a href="productos.html">Productos</a></li>
+    <li><a href="productos.html">Productos y servicios</a></li>
     <li><a href="sacel.html">SACEL</a></li>
-    <li><a href="servicios.html">Servicios</a></li>
     <li><a href="empresa.html">Empresa</a></li>
     <li><a href="iso.html">Certificado ISO</a></li>
     <li><a href="contacto.html">Contacto</a></li>
@@ -77,7 +76,7 @@
            SACEL, I+D) y de servicios.html. Las que tienen lugar en el mapa lo señalan al pasar o enfocar (data-resalta) -->
       <ul class="haceres">
         <li data-resalta="flota" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/></svg><span><b>Rastreo de flotas</b><small>Con <span class="marca-sacel">SACEL</span>, la conducción de buses interurbanos y camiones de carga pesada, en línea.</small></span></li>
-        <li data-resalta="iot nube" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="14" height="11" rx="1.5"/><rect class="ac" x="6" y="12" width="5" height="5" rx=".8"/><path d="M13 13h2M13 16h2M17 9V5"/><path class="ac" d="M19.5 3.5a3.5 3.5 0 0 1 0 4M21.5 2a6 6 0 0 1 0 7"/></svg><span><b>Hardware e IoT</b><small>Diseñamos y fabricamos hardware que se conecta a internet: del tacógrafo a bordo a la nube.</small></span></li>
+        <li data-resalta="iot nube" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="14" height="11" rx="1.5"/><rect class="ac" x="6" y="12" width="5" height="5" rx=".8"/><path d="M13 13h2M13 16h2M17 9V5"/><path class="ac" d="M19.5 3.5a3.5 3.5 0 0 1 0 4M21.5 2a6 6 0 0 1 0 7"/></svg><span><b>Equipos electrónicos</b><small>Diseñamos y fabricamos los equipos que van a bordo: el tacógrafo y sus periféricos.</small></span></li>
         <li data-resalta="ruta" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span><b>Soporte técnico</b><small>Soporte in situ, por nuestros técnicos capacitados, para empresas del transporte; instalamos SACEL en buses y camiones.</small></span></li>
         <li data-resalta="especies" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span><b>Diseño e investigación</b><small>Cuidamos cada detalle: investigamos y diseñamos nuestros equipos con el mismo rigor con que modelamos este pequeño pedazo de nuestro territorio.</small></span></li>
       </ul>
@@ -104,7 +103,7 @@
   <div class="productos-recorrido" data-etapas="0.3,0.5,0.8,0.96">
   <section class="seccion" aria-labelledby="t-productos">
     <div class="cabeza">
-      <div><p class="sello">Productos</p><h2 id="t-productos">Del vehículo <em>a la plataforma.</em></h2></div>
+      <div><p class="sello">Productos y servicios</p><h2 id="t-productos">Del vehículo <em>a la plataforma.</em></h2></div>
       <p>Hardware a bordo y una plataforma en línea, desarrollados en Chile para cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes.</p>
     </div>
     <!-- familia de productos (2026-10-30): a la izquierda el diagrama (el tacógrafo con profundidad y sus periféricos
@@ -217,17 +216,18 @@
   </section>
   </div>
 
-  <div class="banda">
+  <!-- Servicios, como continuación de Productos (requerimiento de JI, 2026-11-03: una sola sección y una sola página) -->
+  <div class="servicios-continua">
     <section class="seccion" aria-labelledby="t-servicios">
       <div class="cabeza">
-        <div><p class="sello">Servicios</p><h2 id="t-servicios">Ingeniería y servicio, <em>bajo el mismo techo.</em></h2></div>
+        <div><p class="sello">Productos y servicios · Servicios</p><h3 id="t-servicios" class="subtitulo-seccion">Ingeniería y servicio, <em>bajo el mismo techo.</em></h3></div>
         <p>Instalamos, mantenemos y diseñamos electrónica para nuestros clientes y para nuestros propios productos.</p>
       </div>
       <ul class="fichas">
-        <li><a href="servicios.html#instalaciones"><h3>Instalaciones SACEL</h3><p>Instalación del sistema en buses y camiones, con evaluación, diseño, instalación y capacitación.</p></a></li>
-        <li><a href="servicios.html#servicio-tecnico"><h3>Servicio técnico</h3><p>Mantenimiento preventivo y correctivo, reparación, instalación y actualización de equipos.</p></a></li>
-        <li><a href="servicios.html#diseno"><h3>Diseño y fabricación</h3><p>Diseño, fabricación y ensamblaje de PCB, adaptados a las necesidades de cada cliente.</p></a></li>
-        <li><a href="servicios.html#id"><h3>Investigación y desarrollo</h3><p>Prototipos, pruebas y soluciones a medida para innovar en productos y procesos.</p></a></li>
+        <li><a href="productos.html#instalaciones"><h3>Instalaciones SACEL</h3><p>Instalación del sistema en buses y camiones, con evaluación, diseño, instalación y capacitación.</p></a></li>
+        <li><a href="productos.html#servicio-tecnico"><h3>Servicio técnico</h3><p>Mantenimiento preventivo y correctivo, reparación, instalación y actualización de equipos.</p></a></li>
+        <li><a href="productos.html#diseno"><h3>Diseño y fabricación</h3><p>Diseño, fabricación y ensamblaje de PCB, adaptados a las necesidades de cada cliente.</p></a></li>
+        <li><a href="productos.html#id"><h3>Investigación y desarrollo</h3><p>Prototipos, pruebas y soluciones a medida para innovar en productos y procesos.</p></a></li>
       </ul>
     </section>
   </div>
@@ -288,22 +288,22 @@
 <footer class="pie">
   <p class="pie-datos">Andes Electrónica Limitada · Carmen Covarrubias N° 398, Ñuñoa, Santiago · <a href="tel:+56223478700">+56 2 2347 8700</a> · <a href="mailto:contacto@andeselec.com">contacto@andeselec.com</a></p>
   <nav class="pie-nav" aria-label="Pie"><ul>
-    <li><a href="productos.html">Productos</a></li><li><a href="sacel.html">SACEL</a></li><li><a href="servicios.html">Servicios</a></li>
+    <li><a href="productos.html">Productos y servicios</a></li><li><a href="sacel.html">SACEL</a></li>
     <li><a href="empresa.html">Empresa</a></li><li><a href="contacto.html">Contacto</a></li><li><a href="iso.html">Certificado ISO</a></li><li><a href="privacidad.html">Privacidad</a></li>
   </ul></nav>
   <p class="atribucion">Sitio diseñado por BM-G y desarrollado por BM-G y Claude · Mapa y relieve: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (ODbL), Terrain Tiles (Mapzen, AWS) · Especies: registros de <a href="https://www.inaturalist.org">iNaturalist</a> (de sus autores, CC BY-NC y CC BY) · estado de conservación: MMA (RCE) y UICN</p>
 </footer>
 <!-- /pie -->
 
-<script src="sitio.js?v=20261104x"></script>
-<script src="avance.js?v=20261104x"></script>
-<script src="datos/h25.js?v=20261104x"></script>
-<script src="flota-sim.js?v=20261104x"></script>
-<script src="flota-mapa.js?v=20261104x"></script>
-<script src="datos/especies-h25.js?v=20261104x"></script>
-<script src="flota-3d.js?v=20261104x"></script>
-<script src="clientes.js?v=20261104x"></script>
-<script src="productos-nube.js?v=20261104x"></script>
-<script src="etapas.js?v=20261104x"></script>
+<script src="sitio.js?v=20261104y"></script>
+<script src="avance.js?v=20261104y"></script>
+<script src="datos/h25.js?v=20261104y"></script>
+<script src="flota-sim.js?v=20261104y"></script>
+<script src="flota-mapa.js?v=20261104y"></script>
+<script src="datos/especies-h25.js?v=20261104y"></script>
+<script src="flota-3d.js?v=20261104y"></script>
+<script src="clientes.js?v=20261104y"></script>
+<script src="productos-nube.js?v=20261104y"></script>
+<script src="etapas.js?v=20261104y"></script>
 </body>
 </html>
