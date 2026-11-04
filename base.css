@@ -700,3 +700,17 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
   .empresa-sellos { justify-self: start; }
   .logos-casona { gap: .6rem 1.4rem; }
 }
+
+/* Productos y servicios en inicio (Benjamin, 2026-11-03): el tacógrafo arriba y 7 fichas en una fila, que un pulso de
+   cobre del tacógrafo enciende de a una (productos-nube.js) */
+.familia-siete { grid-column: 1 / -1; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1.5rem 1.1rem; margin-top: 4.5rem; }
+.familia-siete::before { left: 7.14%; right: 7.14%; }
+.familia:has(.familia-siete) .dg-taco::after { display: none; }   /* la dibuja productos-nube.js hasta la barra */
+.familia-siete .ilus { height: 4.2rem; }
+.familia-siete h3 { font-size: .98rem; }
+.familia-siete p:not(.sello) { font-size: .84rem; }
+.familia-siete li { transition: opacity .5s ease; }
+.familia-siete li.encendida .ilus-borde { stroke: var(--acento); }
+.familia-siete li.encendida::before { background: var(--acento); }
+@media (max-width: 75rem) { .familia-siete { grid-template-columns: repeat(4, minmax(0, 1fr)); } .familia-siete::before, .familia-siete li::before { display: none; } }
+@media (max-width: 47.5rem) { .familia-siete { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

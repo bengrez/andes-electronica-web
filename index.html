@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261105b">
+<link rel="stylesheet" href="base.css?v=20261105c">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -103,8 +103,8 @@
   <div class="productos-recorrido" data-etapas="0.3,0.5,0.8,0.96">
   <section class="seccion" aria-labelledby="t-productos">
     <div class="cabeza">
-      <div><p class="sello">Productos y servicios</p><h2 id="t-productos">Del vehículo <em>a la plataforma.</em></h2></div>
-      <p>Hardware a bordo y una plataforma en línea, desarrollados en Chile para cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes.</p>
+      <div><p class="sello">Productos y servicios</p><h2 id="t-productos">Del tacógrafo <em>a su flota.</em></h2></div>
+      <p>Hardware a bordo desarrollado en Chile para cumplir la normativa de la Dirección del Trabajo y del Ministerio de Transportes, con su instalación, su servicio técnico y nuestra ingeniería.</p>
     </div>
     <!-- familia de productos (2026-10-30): a la izquierda el diagrama (el tacógrafo con profundidad y sus periféricos
          en línea, unidos), a la derecha los textos; al pasar sobre un texto se marca su pieza en el diagrama -->
@@ -139,7 +139,17 @@
 <!-- /ilustracion-tacografo -->
           </div>
         </figure>
-        <ul class="familia-ramas">
+      </div>
+      <div class="familia-textos">
+      <a class="familia-item familia-principal" data-pieza="tacografo" href="productos.html#tacografo">
+        <span class="sello">A bordo</span>
+        <h3>Tacógrafo <span class="ver" aria-hidden="true">v.<span class="ver-paleta"><b>4</b><i>5</i><s>4</s></span><svg class="ver-dial" viewBox="0 0 48 48"><path class="perilla-marca" d="M11.3 36.7L9.2 38.8"/><path class="perilla-marca" d="M6.2 21.2L3.3 20.7"/><path class="perilla-marca" d="M15.8 8.0L14.5 5.3"/><path class="perilla-marca" d="M32.2 8.0L33.5 5.3"/><path class="perilla-marca perilla-cuatro" d="M41.8 21.2L44.7 20.7"/><path class="perilla-marca" d="M36.7 36.7L38.8 38.8"/><g class="perilla"><circle class="perilla-cuerpo" cx="24" cy="24" r="13"/><g class="perilla-estrias"><path d="M24.0 11.0L24.0 13.4"/><path d="M28.4 11.8L27.6 14.0"/><path d="M32.4 14.0L30.8 15.9"/><path d="M35.3 17.5L33.2 18.7"/><path d="M36.8 21.7L34.4 22.2"/><path d="M36.8 26.3L34.4 25.8"/><path d="M35.3 30.5L33.2 29.3"/><path d="M32.4 34.0L30.8 32.1"/><path d="M28.4 36.2L27.6 34.0"/><path d="M24.0 37.0L24.0 34.6"/><path d="M19.6 36.2L20.4 34.0"/><path d="M15.6 34.0L17.2 32.1"/><path d="M12.7 30.5L14.8 29.3"/><path d="M11.2 26.3L13.6 25.8"/><path d="M11.2 21.7L13.6 22.2"/><path d="M12.7 17.5L14.8 18.7"/><path d="M15.6 14.0L17.2 15.9"/><path d="M19.6 11.8L20.4 14.0"/></g><circle class="perilla-tapa" cx="24" cy="24" r="9"/><path class="perilla-indice" d="M24 14.5V21"/></g></svg></span><span class="logos-oculta">4.0</span></h3>
+        <p>Es el equipo que va a bordo de cada bus o camión. Registra la velocidad, los recorridos y la actividad del conductor, identificado con su tarjeta, y lo transmite en línea a SACEL por 4G.</p>
+        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p>
+      </a>
+      </div>
+        <!-- 7 fichas (2026-11-03): los periféricos y reportes, y los 4 servicios; un pulso de cobre del tacógrafo las enciende de a una -->
+        <ul class="familia-ramas familia-siete">
           <li><a class="familia-item" data-pieza="smartcard" href="productos.html#smartcard">
 <!-- ilustracion-smartcard -->
 <svg class="ilus ilus-smartcard" viewBox="0 0 290 230" role="img" aria-labelledby="ilus-smartcard-t">
@@ -199,37 +209,49 @@
 </svg>
 <!-- /ilustracion-reportes -->
             <span class="sello">Dashboard</span><h3>Reportes y análisis</h3><p>Viajes, jornadas, velocidad y alertas, en línea.</p></a></li>
+          <li><a class="familia-item" data-pieza="instalaciones" href="productos.html#instalaciones">
+<svg class="ilus ilus-instalaciones" viewBox="0 0 320 210" role="img" aria-labelledby="ilus-instalaciones-t">
+  <title id="ilus-instalaciones-t">Bus de costado con su tacógrafo en el tablero, dibujado en línea.</title>
+  <rect class="ilus-borde" x="22" y="62" width="276" height="104" rx="16"/>
+  <path class="ilus-linea" d="M40 80h40v34H40zM92 80h40v34H92zM144 80h40v34h-40zM196 80h40v34h-40z"/>
+  <rect class="ilus-pantalla" x="250" y="96" width="30" height="20" rx="3"/>
+  <circle class="ilus-pieza" cx="82" cy="166" r="18"/><circle class="ilus-pieza" cx="240" cy="166" r="18"/>
+  <path class="ilus-linea" d="M10 190h300"/>
+</svg>
+            <span class="sello">Servicio</span><h3>Instalaciones SACEL</h3><p>Instalación del sistema en buses y camiones.</p></a></li>
+          <li><a class="familia-item" data-pieza="tecnico" href="productos.html#servicio-tecnico">
+<svg class="ilus ilus-tecnico" viewBox="0 0 320 210" role="img" aria-labelledby="ilus-tecnico-t">
+  <title id="ilus-tecnico-t">Multímetro con su perilla y dos puntas de prueba, dibujado en línea.</title>
+  <rect class="ilus-borde" x="104" y="30" width="112" height="160" rx="14"/>
+  <rect class="ilus-pantalla" x="122" y="48" width="76" height="38" rx="4"/>
+  <circle class="ilus-pieza" cx="160" cy="128" r="26"/><path class="ilus-linea" d="M160 128l16-14M140 172h8M172 172h8"/>
+  <path class="ilus-linea" d="M144 190c-20 10-60 4-84-22M176 190c22 10 62 2 86-26"/>
+</svg>
+            <span class="sello">Servicio</span><h3>Servicio técnico</h3><p>Mantenimiento, reparación y actualización de equipos.</p></a></li>
+          <li><a class="familia-item" data-pieza="pcb" href="productos.html#diseno">
+<svg class="ilus ilus-pcb" viewBox="0 0 320 210" role="img" aria-labelledby="ilus-pcb-t">
+  <title id="ilus-pcb-t">Placa de circuito impreso con un chip y pistas, dibujada en línea.</title>
+  <rect class="ilus-borde" x="30" y="40" width="260" height="140" rx="10"/>
+  <rect class="ilus-pieza" x="128" y="78" width="64" height="64" rx="4"/>
+  <path class="ilus-linea" d="M128 92H70V62M128 110H52M128 128H70v26M192 92h58V62M192 110h46M192 128h58v26M146 78V56M174 78V56M146 142v22M174 142v22"/>
+  <circle class="ilus-pantalla" cx="70" cy="58" r="5"/><circle class="ilus-pantalla" cx="250" cy="58" r="5"/><circle class="ilus-pantalla" cx="70" cy="158" r="5"/><circle class="ilus-pantalla" cx="250" cy="158" r="5"/>
+</svg>
+            <span class="sello">Servicio</span><h3>Diseño y fabricación</h3><p>Diseño, fabricación y ensamblaje de PCB.</p></a></li>
+          <li><a class="familia-item" data-pieza="id" href="productos.html#id">
+<svg class="ilus ilus-id" viewBox="0 0 320 210" role="img" aria-labelledby="ilus-id-t">
+  <title id="ilus-id-t">Osciloscopio con una onda en pantalla, dibujado en línea.</title>
+  <rect class="ilus-borde" x="26" y="44" width="268" height="140" rx="12"/>
+  <rect class="ilus-pantalla" x="44" y="60" width="170" height="108" rx="6"/>
+  <path class="ilus-linea" d="M52 114c14 0 14-34 28-34s14 68 28 68 14-68 28-68 14 68 28 68 14-34 28-34"/>
+  <circle class="ilus-pieza" cx="250" cy="86" r="14"/><circle class="ilus-pieza" cx="250" cy="138" r="14"/>
+</svg>
+            <span class="sello">Servicio</span><h3>Investigación y desarrollo</h3><p>Prototipos, pruebas y soluciones a medida.</p></a></li>
         </ul>
-      </div>
-      <div class="familia-textos">
-      <a class="familia-item familia-principal" data-pieza="tacografo" href="productos.html#tacografo">
-        <span class="sello">A bordo</span>
-        <h3>Tacógrafo <span class="ver" aria-hidden="true">v.<span class="ver-paleta"><b>4</b><i>5</i><s>4</s></span><svg class="ver-dial" viewBox="0 0 48 48"><path class="perilla-marca" d="M11.3 36.7L9.2 38.8"/><path class="perilla-marca" d="M6.2 21.2L3.3 20.7"/><path class="perilla-marca" d="M15.8 8.0L14.5 5.3"/><path class="perilla-marca" d="M32.2 8.0L33.5 5.3"/><path class="perilla-marca perilla-cuatro" d="M41.8 21.2L44.7 20.7"/><path class="perilla-marca" d="M36.7 36.7L38.8 38.8"/><g class="perilla"><circle class="perilla-cuerpo" cx="24" cy="24" r="13"/><g class="perilla-estrias"><path d="M24.0 11.0L24.0 13.4"/><path d="M28.4 11.8L27.6 14.0"/><path d="M32.4 14.0L30.8 15.9"/><path d="M35.3 17.5L33.2 18.7"/><path d="M36.8 21.7L34.4 22.2"/><path d="M36.8 26.3L34.4 25.8"/><path d="M35.3 30.5L33.2 29.3"/><path d="M32.4 34.0L30.8 32.1"/><path d="M28.4 36.2L27.6 34.0"/><path d="M24.0 37.0L24.0 34.6"/><path d="M19.6 36.2L20.4 34.0"/><path d="M15.6 34.0L17.2 32.1"/><path d="M12.7 30.5L14.8 29.3"/><path d="M11.2 26.3L13.6 25.8"/><path d="M11.2 21.7L13.6 22.2"/><path d="M12.7 17.5L14.8 18.7"/><path d="M15.6 14.0L17.2 15.9"/><path d="M19.6 11.8L20.4 14.0"/></g><circle class="perilla-tapa" cx="24" cy="24" r="9"/><path class="perilla-indice" d="M24 14.5V21"/></g></svg></span><span class="logos-oculta">4.0</span></h3>
-        <p>Es el equipo que va a bordo de cada bus o camión. Registra la velocidad, los recorridos y la actividad del conductor, identificado con su tarjeta, y lo transmite en línea a SACEL por 4G.</p>
-        <p class="sello ilus-dato">A SACEL: velocidad y parámetros de conducción</p>
-      </a>
-      </div>
     </div>
     <div class="controles controles-productos">
       <button class="pausa pausa-productos" type="button">Pausar animación</button>
     </div>
   </section>
-  </div>
-
-  <!-- Servicios, como continuación de Productos (requerimiento de JI, 2026-11-03: una sola sección y una sola página) -->
-  <div class="servicios-continua">
-    <section class="seccion" aria-labelledby="t-servicios">
-      <div class="cabeza">
-        <div><p class="sello">Productos y servicios · Servicios</p><h3 id="t-servicios" class="subtitulo-seccion">Ingeniería y servicio, <em>bajo el mismo techo.</em></h3></div>
-        <p>Instalamos, mantenemos y diseñamos electrónica para nuestros clientes y para nuestros propios productos.</p>
-      </div>
-      <ul class="fichas">
-        <li><a href="productos.html#instalaciones"><h3>Instalaciones SACEL</h3><p>Instalación del sistema en buses y camiones, con evaluación, diseño, instalación y capacitación.</p></a></li>
-        <li><a href="productos.html#servicio-tecnico"><h3>Servicio técnico</h3><p>Mantenimiento preventivo y correctivo, reparación, instalación y actualización de equipos.</p></a></li>
-        <li><a href="productos.html#diseno"><h3>Diseño y fabricación</h3><p>Diseño, fabricación y ensamblaje de PCB, adaptados a las necesidades de cada cliente.</p></a></li>
-        <li><a href="productos.html#id"><h3>Investigación y desarrollo</h3><p>Prototipos, pruebas y soluciones a medida para innovar en productos y procesos.</p></a></li>
-      </ul>
-    </section>
   </div>
 
   <!-- Empresa, certificación y clientes en una sola sección (Benjamin, 2026-11-03): la casona de fondo, a todo el ancho y
@@ -322,16 +344,16 @@
 </footer>
 <!-- /pie -->
 
-<script src="sitio.js?v=20261105b"></script>
-<script src="avance.js?v=20261105b"></script>
-<script src="datos/h25.js?v=20261105b"></script>
-<script src="flota-sim.js?v=20261105b"></script>
-<script src="flota-mapa.js?v=20261105b"></script>
-<script src="datos/especies-h25.js?v=20261105b"></script>
-<script src="flota-3d.js?v=20261105b"></script>
-<script src="clientes.js?v=20261105b"></script>
-<script src="productos-nube.js?v=20261105b"></script>
-<script src="casona.js?v=20261105b"></script>
-<script src="etapas.js?v=20261105b"></script>
+<script src="sitio.js?v=20261105c"></script>
+<script src="avance.js?v=20261105c"></script>
+<script src="datos/h25.js?v=20261105c"></script>
+<script src="flota-sim.js?v=20261105c"></script>
+<script src="flota-mapa.js?v=20261105c"></script>
+<script src="datos/especies-h25.js?v=20261105c"></script>
+<script src="flota-3d.js?v=20261105c"></script>
+<script src="clientes.js?v=20261105c"></script>
+<script src="productos-nube.js?v=20261105c"></script>
+<script src="casona.js?v=20261105c"></script>
+<script src="etapas.js?v=20261105c"></script>
 </body>
 </html>
