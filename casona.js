@@ -1,8 +1,9 @@
-/* Casona de Andes Electrónica (Benjamin, 2026-11-03): componente <andes-casona> hecho con ChatGPT (casona-andes-v10.html),
-   sin dependencias ni conexiones externas. Dibuja la casona en WebGL (o en canvas 2D si no hay WebGL) y la cámara da
-   la vuelta según el scroll. Atributos: scroll-target (la sección cuyo avance mueve la cámara; por omisión el propio
-   elemento), progress (0–1, fijo), strength (0–2) y rango ("a,b", agregado aquí: el scroll recorre sólo esa parte de la
-   vuelta). Con movimiento reducido queda en la vista del medio. La ilustración fija de respaldo está en img/casona.svg. */
+/* Casona de Andes Electrónica (Benjamin, 2026-11-03): componente <andes-casona> hecho con ChatGPT (casona-andes-noche-v14.html,
+   que suma la versión de noche a la v10), sin dependencias ni conexiones externas. Dibuja la casona en WebGL (o en canvas 2D
+   si no hay WebGL) y la cámara da la vuelta según el scroll. Atributos: theme ("night" para la de noche; el sitio lo pone
+   según su tema, abajo), scroll-target, progress (0–1, fijo), strength (0–2) y, agregados aquí, rango ("a,b": el scroll
+   recorre sólo esa parte de la vuelta) y escala. Con movimiento reducido queda en la vista del medio. Las ilustraciones
+   fijas de respaldo están en img/casona.svg y img/casona-noche.svg. */
 /* Andes Casona — standalone component, no external dependencies. */
 (()=>{
 /* Casona Andes. Geometry reconstructed from the supplied facade photographs and
@@ -15,16 +16,42 @@ const PALETTE = {
   glass: '#dce6e5', glassAlt: '#e5ece8', green: '#7e9180', ground: '#e7ece4',
   paving: '#e1e5de', dark: '#c6d0cd', light: '#f1f3ee',
   roof: '#e3e8df', stone: '#ebece4', stoneShade: '#d5dbd2',
-  hardware: '#4d6267', bloom: '#b18570', glassBlue: '#d7e3e6', glassMint: '#dfe8de'
+  hardware: '#4d6267', bloom: '#b18570', glassBlue: '#d7e3e6', glassMint: '#dfe8de',
+  entryGlass: '#d1dbd5', windowBlue: '#d7e3e6', windowMint: '#dfe8de',
+  water: '#dce6e5', vent: '#dce6e5', gate: '#dce6e5', bulb: '#f1f3ee'
 };
+const NIGHT_PALETTE = {
+  paper:'#0a1321',wall:'#24364b',side:'#14263a',top:'#3b5165',underside:'#142338',
+  navy:'#a5b9c8',fine:'#688397',copper:'#c99b6c',metal:'#8da6b7',
+  glass:'#967348',glassAlt:'#ab8753',green:'#66867c',ground:'#11232b',
+  paving:'#213139',dark:'#16263a',light:'#3a5062',roof:'#23394b',
+  stone:'#72828b',stoneShade:'#405566',hardware:'#718794',bloom:'#bb927b',
+  glassBlue:'#284555',glassMint:'#28483f',entryGlass:'#9d7c50',
+  windowBlue:'#8d7756',windowMint:'#a28a5f',water:'#355967',vent:'#31495b',
+  gate:'#122538',bulb:'#fff0c9'
+};
+const NIGHT_LIGHT_GAIN=.62;
 const rgb = hex => {
   const n = parseInt(hex.replace('#', ''), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
 };
-function makeScene() {
-  const faces = [], lines = [], animated = [];
+function makeScene(theme='day',{flatLighting=false}={}) {
+  const night=theme==='night',palette=night?NIGHT_PALETTE:PALETTE;
+  const faces = [], lines = [], animated = [], lights=[],glows=[];
+  const emissive=new Set(['glass','glassAlt','entryGlass','windowBlue','windowMint','bulb']);
   const lightsForward=.8;
-  const color = key => PALETTE[key] || key;
+  const color = key => {
+    const hex=palette[key]||key;
+    if(!night||!emissive.has(key))return hex;
+    return '#'+rgb(hex).map(c=>Math.round(c*255*Math.sqrt(NIGHT_LIGHT_GAIN)).toString(16).padStart(2,'0')).join('');
+  };
+  function light(position,reach,power,radius=0,strength=.65,target=null,inner=24,outer=42) {
+    if(!night)return;
+    const delta=target?.map((v,i)=>v-position[i]),length=delta?Math.hypot(...delta):1;
+    lights.push({position,reach,power,...(target?{target,direction:delta.map(v=>v/length),
+      innerCos:Math.cos(inner*Math.PI/180),outerCos:Math.cos(outer*Math.PI/180)}:{})});
+    if(radius)glows.push({position,radius,color:'#ffd39a',strength:strength*NIGHT_LIGHT_GAIN});
+  }
   function line(a, b, ink = 'navy', width = 1, alpha = .88) {
     lines.push({ a, b, color: color(ink), width, alpha });
   }
@@ -33,7 +60,7 @@ function makeScene() {
     if (close) line(points.at(-1), points[0], ink, width, alpha);
   }
   function face(points, fill = 'wall', outline = false, ink = 'navy', width = 1) {
-    faces.push({ points, color: color(fill) });
+    faces.push({ points, color: color(fill),...(night&&emissive.has(fill)?{emissive:true}:{}) });
     if (outline) path(points, ink, width, .87, true);
   }
   function box(x0, y0, z0, x1, y1, z1, fill = 'wall', ink = 'navy', weight = 1, frontHole = null) {
@@ -68,7 +95,7 @@ function makeScene() {
   function opening(x,y,w,h,z,cols=1,rows=1,ink='metal',bars=0,glazing='glass') {
     const q=(xx,yy)=>[xx,yy,z+.035];
     face([q(x,y),q(x+w,y),q(x+w,y+h),q(x,y+h)],glazing);
-    for(let i=0;i<cols;i++) if(i%2===0&&glazing==='glass') {
+    for(let i=0;i<cols;i++) if(i%2===0&&(glazing==='glass'||(!night&&glazing==='gate'))) {
       const a=x+i*w/cols+.012,b=x+(i+1)*w/cols-.012;
       face([q(a,y+.01),q(b,y+.01),q(b,y+h-.01),q(a,y+h-.01)],'glassAlt');
     }
@@ -230,6 +257,10 @@ function makeScene() {
     tube([x,.08,z],[x,h-.1,z],.029,.023,'hardware');
     line([x,.09,z+.025],[x,h-.08,z+.025],'navy',1.1,.9);
     lathe(x,h-.19,z,[[0,.045],[.09,.17],[.12,.33],[.17,.35],[.19,.32]],'hardware',16,[2,4]);
+    if(night){
+      lathe(x,h-.195,z,[[0,.21],[.02,.25],[.035,.21]],'bulb',16);
+      light([x,h-.20,z+.025],7.4,3.7,.43,.96,[x+.15,.02,z+.2],22,43);
+    }
   }
   function doubleLamp(x,z,h=3.85) {
     lathe(x,0,z,[[0,.17],[.08,.17],[.14,.12]],'stone',12,[0,1]);
@@ -244,7 +275,8 @@ function makeScene() {
       path(curve,'hardware',1.65,.97);
       const bx=x+side*.47,by=h+offset-.48;
       lathe(bx,by-.06,z,[[0,.12],[.04,.14],[.08,.065],[.13,.035]],'hardware',12,[0,2]);
-      lathe(bx,by-.35,z,[[0,.045],[.06,.085],[.18,.072],[.26,.042],[.29,.042]],'light',12,[0,2]);
+      lathe(bx,by-.35,z,[[0,.045],[.06,.085],[.18,.072],[.26,.042],[.29,.042]],night?'bulb':'light',12,[0,2]);
+      light([bx,by-.20,z+.04],6.7,2.8,.36,.95,[bx+side*.25,.02,z+.2],23,44);
     }
   }
   function fountain(x,z) {
@@ -252,7 +284,7 @@ function makeScene() {
     lathe(x,0,z,[[0,.37],[.06,.39],[.11,.30],[.20,.24],[.48,.21],[.57,.33]],'stone',20,[0,1,3,5]);
     lathe(x,0,z,[[.55,.31],[.63,.43],[.74,.58],[.85,.66],[.93,.69],[.97,.70],[1.0,.69],[1.0,.63],[.92,.59],[.82,.43],[.80,.30]],'stone',24,[0,3,5,7]);
     const water=Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2;return [x+Math.cos(a)*.57,.915,z+Math.sin(a)*.57];});
-    face(water,'glass');ring(x,.925,z,.58,.58,'fine',.55,.65,24);
+    face(water,'water');ring(x,.925,z,.58,.58,'fine',.55,.65,24);
     lathe(x,.96,z,[[-.12,.18],[0,.23],[.07,.26],[.12,.22]],'stone',12,[1,2]);
     const figureFaceStart=faces.length,figureLineStart=lines.length;
     const robe=[[1.06,.20,.15,-.04],[1.17,.18,.14,-.05],[1.32,.155,.12,-.015],[1.48,.115,.105,.035],[1.62,.16,.1,.02],[1.71,.12,.085,0]];
@@ -323,7 +355,7 @@ function makeScene() {
   // A slender side wall seam visible in the photographs.
   line([-1.73,3.25,.001],[-1.73,6.19,.001],'fine',.6,.65);
 
-  opening(doorLeft,.17,doorWidth,2.60,-1.75,2,2,'copper',0,'side');
+  opening(doorLeft,.17,doorWidth,2.60,-1.75,2,2,'copper',0,'entryGlass');
   for(let y=.46;y<2.55;y+=.42)line([doorLeft+.06,y,-1.68],[doorRight-.06,y,-1.68],'copper',.65,.72);
   line([-5.20,1.20,-1.60],[-5.20,1.48,-1.60],'navy',.9);
   path([[doorLeft-.03,.15,-.56],[doorRight+.02,.15,-.56],[doorRight+.02,2.86,-.56],[doorLeft-.03,2.86,-.56]],'metal',.85,.85,true);
@@ -333,7 +365,7 @@ function makeScene() {
   opening(-3.94,2.10,1.12,3.13,-.29,2,6,'metal');
   for(let row=0;row<6;row++)for(let col=0;col<2;col++){
     const x=-3.94+col*.56,y=2.1+row*3.13/6;
-    face([[x+.025,y+.025,-.245],[x+.535,y+.025,-.245],[x+.535,y+3.13/6-.025,-.245],[x+.025,y+3.13/6-.025,-.245]],(row+col)%3===0?'glassMint':'glassBlue');
+    face([[x+.025,y+.025,-.245],[x+.535,y+.025,-.245],[x+.535,y+3.13/6-.025,-.245],[x+.025,y+3.13/6-.025,-.245]],(row+col)%3===0?'windowMint':'windowBlue');
   }
   inwardWindow(-3.94,.62,1.12,1.19,-.32);
   box(-4.04,1.88,-.36,-2.73,1.98,-.10,'light','fine',.65);
@@ -358,7 +390,7 @@ function makeScene() {
     path(loop,'metal',.44,.75,true);
   }
   // Small horizontal vent and the upper slit vent.
-  face([[-1.49,2.06,.02],[-.28,2.06,.02],[-.28,2.55,.02],[-1.49,2.55,.02]],'glass');
+  face([[-1.49,2.06,.02],[-.28,2.06,.02],[-.28,2.55,.02],[-1.49,2.55,.02]],'vent');
   path([[-1.49,2.06,.035],[-.28,2.06,.035],[-.28,2.55,.035],[-1.49,2.55,.035]],'metal',.65,.85,true);
   for(let y=2.17;y<2.55;y+=.12) line([-1.46,y,.055],[-.31,y,.055],'metal',.75,.86);
   opening(-.35,4.98,.25,.36,-.09,2,1,'fine');
@@ -402,7 +434,7 @@ function makeScene() {
   cylinder(-4.18,.04,.24,.21,.30,'paving');plant(-4.18,.34,.24,1.1,1.3);
   box(-2.91,.03,.40,-2.48,.22,.81,'paving','fine',.52);geranium(-2.70,.23,.61,.85,.5);
   // Small right return, side gate and the familiar red-roof garden kennel.
-  opening(5.79,.30,.70,2.26,-.74,1,1,'metal',5);
+  opening(5.79,.30,.70,2.26,-.74,1,1,'metal',5,'gate');
   box(5.64,.10,-1.5,5.77,2.84,-.67,'wall','fine',.65);
   box(6.48,.10,-1.5,6.59,2.84,-.67,'wall','fine',.65);
   box(5.24,.16,.45,5.88,.70,.98,'stone','fine',.51);
@@ -425,16 +457,102 @@ function makeScene() {
     line([x,-.015,z],[x+.055,.055,z+.02],'green',.43,.4);
     if(i%3===0){line([x-.045,.04,z+.025],[x+.045,.04,z+.025],'fine',.4,.35);line([x,.002,z+.025],[x,.08,z+.025],'fine',.4,.35);}
   }
-  for(const [x,z0]of [[-6.4,4.6],[4.35,3.6],[6.35,2.78]]){
+  for(const [x,z0,target,reach,power]of [
+    [-6.4,4.6,[-6.5,2.1,-1.1],10.8,4.1],
+    [4.35,3.6,[2.7,2.5,.15],8.7,3.6],
+    [6.35,2.78,[.85,1.45,6.3],10.2,4.4]
+  ]){
     const z=z0+lightsForward;
     tube([x,.01,z],[x,.23,z],.018,.018,'hardware',6);
     tube([x,.20,z],[x-.04,.34,z-.02],.06,.065,'hardware',7);
+    if(night){
+      ellipsoid(x-.045,.34,z+.025,.045,.044,.035,'bulb',8,4);
+      light([x-.045,.34,z+.04],reach,power,.10,.90,target,13,27);
+    }
+  }
+  if(night){
+    // Interior spill and the porch light share the same world-space scene as
+    // the exterior fixtures. Their surface illumination is baked only once.
+    light([doorLeft+doorWidth*.5,1.6,-1.35],3.8,.22);
+    light([-3.38,1.35,.03],2.2,.10);
+    light([-3.38,3.6,.05],2.5,.10);
+    for(const x of [1.75,3.6]){
+      light([x,4.2,.30],3.1,.14);
+      light([x,1.35,.35],3.5,.15);
+    }
+    lathe(doorLeft+doorWidth*.5,2.96,-.80,[[0,.13],[.025,.15]],'bulb',12);
+    light([doorLeft+doorWidth*.5,2.95,-.80],4.8,2.0,.24,.90,[doorLeft+doorWidth*.5,.12,-.65],22,43);
+    return {faces:illuminateFaces(faces,lights,flatLighting),lines,glows,lights,
+      animated:animated.map(part=>({...part,faces:illuminateFaces(part.faces,lights,flatLighting)}))};
   }
   return { faces, lines, animated };
 }
 
+// Subdivide broad surfaces for soft pools of light without introducing mesh
+// outlines, textures, a render loop, or a different camera for the night view.
+function illuminateFaces(faces,lights,flatLighting=false) {
+  const result=[],warm=rgb('#ffd49b');
+  const midpoint=(a,b)=>a.map((v,i)=>(v+b[i])*.5);
+  function touchesLight(points){
+    const min=[0,1,2].map(i=>Math.min(...points.map(p=>p[i]))),max=[0,1,2].map(i=>Math.max(...points.map(p=>p[i])));
+    const center=min.map((v,i)=>(v+max[i])*.5),radius=Math.hypot(...max.map((v,i)=>(v-min[i])*.5));
+    return lights.some(light=>{
+      if(Math.hypot(...light.position.map((v,i)=>Math.max(min[i]-v,0,v-max[i])))>=light.reach)return false;
+      if(!light.direction)return true;
+      const d=center.map((v,i)=>v-light.position[i]),along=d.reduce((s,v,i)=>s+v*light.direction[i],0);
+      const across=Math.sqrt(Math.max(0,d.reduce((s,v)=>s+v*v,0)-along*along));
+      const tangent=Math.sqrt(1-light.outerCos**2)/light.outerCos;
+      return along+radius>=0&&across<=Math.max(0,along)*tangent+radius/light.outerCos;
+    });
+  }
+  function shade(points,base,at){
+    const center=at||points[0].map((_,i)=>points.reduce((s,p)=>s+p[i],0)/points.length);
+    const u=points[1].map((v,i)=>v-points[0][i]),v=points[2].map((c,i)=>c-points[0][i]);
+    const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],length=Math.hypot(...n)||1;
+    let amount=0;
+    for(const light of lights){
+      const d=light.position.map((c,i)=>c-center[i]),distance=Math.hypot(...d);
+      if(distance>=light.reach)continue;
+      const cone=spotlightWeight(light,center);if(!cone)continue;
+      const facing=Math.abs(n.reduce((s,c,i)=>s+c*d[i],0))/(length*Math.max(.1,distance));
+      amount+=light.power*(1-distance/light.reach)**2*(.32+.68*facing)*cone;
+    }
+    amount=Math.min(.68,amount)*NIGHT_LIGHT_GAIN;
+    return '#'+base.map((c,i)=>Math.round(255*(c+(warm[i]-c)*amount)).toString(16).padStart(2,'0')).join('');
+  }
+  function triangle(a,b,c,base,depth=0){
+    if(!touchesLight([a,b,c])){result.push({points:[a,b,c],color:'#'+base.map(c=>Math.round(c*255).toString(16).padStart(2,'0')).join('')});return;}
+    const edges=[[a,b,c],[b,c,a],[c,a,b]].map(p=>({p,length:Math.hypot(...p[0].map((v,i)=>v-p[1][i]))}));
+    const longest=edges.sort((a,b)=>b.length-a.length)[0];
+    if(longest.length>1.15&&depth<6){
+      const [p,q,r]=longest.p,m=midpoint(p,q);
+      triangle(p,m,r,base,depth+1);triangle(m,q,r,base,depth+1);
+    }else{
+      const points=[a,b,c];
+      result.push({points,color:shade(points,base),vertexColors:points.map(p=>rgb(shade(points,base,p)))});
+    }
+  }
+  for(const face of faces){
+    if(face.emissive){result.push(face);continue;}
+    const base=rgb(face.color);
+    if(flatLighting){result.push({...face,color:shade(face.points,base)});continue;}
+    if(!touchesLight(face.points)){result.push(face);continue;}
+    const size=Math.max(...face.points.map(p=>Math.hypot(...p.map((v,i)=>v-face.points[0][i]))));
+    if(size<=1.15){result.push({...face,color:shade(face.points,base),vertexColors:face.points.map(p=>rgb(shade(face.points,base,p)))});continue;}
+    for(let i=1;i<face.points.length-1;i++)triangle(face.points[0],face.points[i],face.points[i+1],base);
+  }
+  return result;
+}
+
 const clamp = (v,min=0,max=1) => Math.min(max,Math.max(min,v));
 const smooth = t => t*t*(3-2*t);
+function spotlightWeight(light,point) {
+  if(!light.direction)return 1;
+  const d=point.map((v,i)=>v-light.position[i]),length=Math.hypot(...d);
+  if(length<1e-8)return 1;
+  const cosine=d.reduce((s,v,i)=>s+v*light.direction[i],0)/length;
+  return smooth(clamp((cosine-light.outerCos)/(light.innerCos-light.outerCos)));
+}
 function windowAngle(progress) {
   return smooth(clamp((progress-.12)/.68))*75*Math.PI/180;
 }
@@ -543,13 +661,23 @@ function project(point,mvp,width,height) {
     (mvp[2]*x+mvp[6]*y+mvp[10]*z+mvp[14])/w];
 }
 
-const FALLBACK_URL = "img/casona.svg";   // la ilustración fija (antes en base64 dentro del archivo)
+const FALLBACK_URL = "img/casona.svg";
+const FALLBACK_NIGHT_URL = "img/casona-noche.svg";
 
 const VERTEX = `
 attribute vec3 aPosition; attribute vec3 aColor;
 uniform mat4 uMVP; varying vec4 vColor;
 void main(){gl_Position=uMVP*vec4(aPosition,1.0);vColor=vec4(aColor,1.0);}`;
 const FRAGMENT = `precision mediump float;varying vec4 vColor;void main(){gl_FragColor=vColor;}`;
+const GLOW_VERTEX = `
+attribute vec3 aPosition;attribute float aRadius;attribute vec4 aColor;
+uniform mat4 uMVP;uniform float uScale;varying vec4 vGlow;
+void main(){vec4 p=uMVP*vec4(aPosition,1.0);p.z-=.00011*p.w;
+gl_Position=p;gl_PointSize=2.0*aRadius*uScale/p.w;vGlow=aColor;}`;
+const GLOW_FRAGMENT = `precision mediump float;varying vec4 vGlow;
+void main(){float r=length(gl_PointCoord*2.0-1.0);if(r>1.0)discard;
+float a=(pow(1.0-r,2.0)+.45*exp(-r*r*90.0))*vGlow.a;
+gl_FragColor=vec4(mix(vGlow.rgb,vec3(1.0,.96,.82),exp(-r*r*60.0)),a);}`;
 const LINE_VERTEX = `
 attribute vec3 aStart;attribute vec3 aEnd;attribute vec2 aCorner;attribute vec4 aColor;
 attribute float aWidth;uniform mat4 uMVP;uniform vec2 uResolution;uniform float uDPR;
@@ -582,6 +710,12 @@ class Drawing {
     this.gl=gl;this.canvas=canvas;
     this.fillProgram=program(gl,VERTEX,FRAGMENT);this.lineProgram=program(gl,LINE_VERTEX,FRAGMENT);
     this.groups=[{part:null,...this.geometry(scene)},...(scene.animated||[]).map(part=>({part,...this.geometry(part)}))];
+    this.glows=scene.glows||[];
+    if(this.glows.length){
+      this.glowProgram=program(gl,GLOW_VERTEX,GLOW_FRAGMENT);
+      this.glowBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.glowBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(this.glows.flatMap(g=>[...g.position,g.radius,...rgb(g.color),g.strength])),gl.STATIC_DRAW);
+    }
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(0,0,0,0);
     this.attributes=[];
   }
@@ -589,7 +723,7 @@ class Drawing {
     const gl=this.gl;
     const triangles=[];
     for(const f of scene.faces) for(let i=1;i<f.points.length-1;i++)
-      for(const point of [f.points[0],f.points[i],f.points[i+1]]) triangles.push(...point,...rgb(f.color));
+      for(const j of [0,i,i+1]) triangles.push(...f.points[j],...(f.vertexColors?.[j]||rgb(f.color)));
     const segments=[];
     for(const l of scene.lines) for(const corner of [[0,-1],[1,-1],[1,1],[0,-1],[1,1],[0,1]])
       segments.push(...l.a,...l.b,...corner,...rgb(l.color),l.alpha,l.width);
@@ -634,12 +768,21 @@ class Drawing {
       gl.uniformMatrix4fv(gl.getUniformLocation(this.lineProgram,'uMVP'),false,g.mvp);
       gl.drawArrays(gl.TRIANGLES,0,g.lineCount);
     }
+    if(this.glowProgram){
+      gl.useProgram(this.glowProgram);gl.bindBuffer(gl.ARRAY_BUFFER,this.glowBuffer);this.resetAttributes();
+      this.attribute(this.glowProgram,'aPosition',3,8,0);this.attribute(this.glowProgram,'aRadius',1,8,3);
+      this.attribute(this.glowProgram,'aColor',4,8,4);
+      gl.uniformMatrix4fv(gl.getUniformLocation(this.glowProgram,'uMVP'),false,cam.mvp);
+      gl.uniform1f(gl.getUniformLocation(this.glowProgram,'uScale'),h/(2*Math.tan(31*Math.PI/360)));
+      gl.drawArrays(gl.POINTS,0,this.glows.length);
+    }
     gl.depthMask(true);
     this.camera=cam;
   }
   destroy() {
-    const g=this.gl;for(const group of this.groups){g.deleteBuffer(group.fillBuffer);g.deleteBuffer(group.lineBuffer);}
+    const g=this.gl;this.resetAttributes();for(const group of this.groups){g.deleteBuffer(group.fillBuffer);g.deleteBuffer(group.lineBuffer);}
     g.deleteProgram(this.fillProgram);g.deleteProgram(this.lineProgram);
+    if(this.glowProgram){g.deleteProgram(this.glowProgram);g.deleteBuffer(this.glowBuffer);}
   }
 }
 
@@ -660,12 +803,19 @@ class SoftwareDrawing {
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
     const cam=camera(progress,width/height,strength),mvp=cam.mvp;
     const scene=posedScene(this.scene,progress);
-    const scale=Math.min(1,800/width),dw=Math.ceil(width*scale),dh=Math.ceil(height*scale);
+    const night=Boolean(this.scene.glows?.length);
+    const scale=Math.min(1,(night?1000:800)/width),dw=Math.ceil(width*scale),dh=Math.ceil(height*scale);
     if(this.depth?.length!==dw*dh)this.depth=new Float32Array(dw*dh);
     const depth=this.depth;depth.fill(Infinity);
+    if(night&&(!this.fillImage||this.fillImage.width!==dw||this.fillImage.height!==dh)){
+      this.fillImage=ctx.createImageData(dw,dh);this.fillCanvas=document.createElement('canvas');
+      this.fillCanvas.width=dw;this.fillCanvas.height=dh;this.fillContext=this.fillCanvas.getContext('2d');
+    }
+    const pixels=night?this.fillImage.data:null;if(pixels)pixels.fill(0);
     const faces=scene.faces.map(f=>{
       const p=f.points.map(v=>project(v,mvp,width,height));
-      return {p,color:f.color,z:p.reduce((s,v)=>s+v[2],0)/p.length};
+      const base=night?rgb(f.color):null;
+      return {p,color:f.color,colors:night?(f.vertexColors||p.map(()=>base)):null,z:p.reduce((s,v)=>s+v[2],0)/p.length};
     });
     for(const face of faces)for(let i=1;i<face.p.length-1;i++){
       const a=face.p[0],b=face.p[i],c=face.p[i+1];
@@ -674,6 +824,10 @@ class SoftwareDrawing {
       if(Math.abs(det)<1e-7)continue;
       const sign=Math.sign(det),zx=((b[2]-a[2])*dy2-(c[2]-a[2])*dy1)/det;
       const zy=(dx1*(c[2]-a[2])-dx2*(b[2]-a[2]))/det;
+      const channels=pixels?[0,1,2].map(k=>{
+        const start=face.colors[0][k]*255,d1=(face.colors[i][k]-face.colors[0][k])*255,d2=(face.colors[i+1][k]-face.colors[0][k])*255;
+        return {start,x:(d1*dy2-d2*dy1)/det,y:(dx1*d2-dx2*d1)/det};
+      }):null;
       const x0=Math.max(0,Math.floor(Math.min(ax,bx,cx))),x1=Math.min(dw-1,Math.ceil(Math.max(ax,bx,cx)));
       const y0=Math.max(0,Math.floor(Math.min(ay,by,cy))),y1=Math.min(dh-1,Math.ceil(Math.max(ay,by,cy)));
       for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
@@ -682,11 +836,18 @@ class SoftwareDrawing {
           sign*((cx-bx)*(py-by)-(cy-by)*(px-bx))<-.01 ||
           sign*((ax-cx)*(py-cy)-(ay-cy)*(px-cx))<-.01)continue;
         const z=a[2]+zx*(px-ax)+zy*(py-ay),idx=y*dw+x;
-        if(z<depth[idx])depth[idx]=z;
+        if(z<=depth[idx]+(night?1e-7:0)){
+          depth[idx]=z;
+          if(pixels){const n=idx*4;for(let k=0;k<3;k++)pixels[n+k]=channels[k].start+channels[k].x*(px-ax)+channels[k].y*(py-ay);pixels[n+3]=255;}
+        }
       }
     }
-    faces.sort((a,b)=>b.z-a.z);
-    for(const f of faces){ctx.beginPath();ctx.moveTo(f.p[0][0],f.p[0][1]);for(let i=1;i<f.p.length;i++)ctx.lineTo(f.p[i][0],f.p[i][1]);ctx.closePath();ctx.fillStyle=f.color;ctx.fill();}
+    if(pixels){
+      this.fillContext.putImageData(this.fillImage,0,0);ctx.drawImage(this.fillCanvas,0,0,width,height);
+    }else{
+      faces.sort((a,b)=>b.z-a.z);
+      for(const f of faces){ctx.beginPath();ctx.moveTo(f.p[0][0],f.p[0][1]);for(let i=1;i<f.p.length;i++)ctx.lineTo(f.p[i][0],f.p[i][1]);ctx.closePath();ctx.fillStyle=f.color;ctx.fill();}
+    }
     const groups=new Map();
     for(const l of scene.lines){
       const key=[l.color,l.width,l.alpha].join('|');
@@ -711,19 +872,30 @@ class SoftwareDrawing {
       }
       ctx.stroke();
     }
+    ctx.globalAlpha=1;
+    for(const glow of this.scene.glows||[]){
+      const p=project(glow.position,mvp,width,height),q=project([glow.position[0],glow.position[1]+glow.radius,glow.position[2]],mvp,width,height);
+      const ix=Math.floor(p[0]*scale),iy=Math.floor(p[1]*scale);
+      if(ix<0||ix>=dw||iy<0||iy>=dh||p[2]>depth[iy*dw+ix]+.00014)continue;
+      const radius=Math.max(glow.radius<=.1?1:2,Math.abs(q[1]-p[1])),gradient=ctx.createRadialGradient(p[0],p[1],0,p[0],p[1],radius);
+      gradient.addColorStop(0,'#fff0cf');gradient.addColorStop(.13,glow.color+'c0');
+      gradient.addColorStop(.45,glow.color+'48');gradient.addColorStop(1,glow.color+'00');
+      ctx.globalAlpha=glow.strength;ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(p[0],p[1],radius,0,Math.PI*2);ctx.fill();
+    }
     ctx.globalAlpha=1;this.camera=cam;
   }
-  destroy(){this.depth=null;}
+  destroy(){this.depth=null;this.fillImage=null;this.fillCanvas=null;this.fillContext=null;}
 }
 
 /** Reusable, dependency-free custom element. Set scroll-target to the section
  * whose document progress drives the camera. progress="0..1" overrides scroll. */
 class AndesCasona extends HTMLElement {
-  static observedAttributes=['progress','strength','scroll-target','rango','escala'];
+  static observedAttributes=['progress','strength','scroll-target','theme','rango','escala'];
   constructor() {
     super();this.attachShadow({mode:'open'});
     this.shadowRoot.innerHTML=`<style>
       :host{display:block;position:relative;width:100%;height:100%;min-height:240px;isolation:isolate}
+      :host([theme="night"]){background:transparent}
       canvas,img{display:block;width:100%;height:100%;object-fit:contain}
       img{position:absolute;inset:0}canvas{opacity:0} :host([ready]) canvas{opacity:1}
       :host([ready]) img{visibility:hidden}
@@ -757,7 +929,9 @@ class AndesCasona extends HTMLElement {
     this.initDrawing();this.measure();this.progress=this.desired;this.request();
   }
   initDrawing() {
-    const scene=makeScene();
+    const theme=this.getAttribute('theme')==='night'?'night':'day',scene=makeScene(theme);
+    this.dataset.theme=theme;this.dataset.lights=String(scene.glows?.length||0);
+    this.fallback.src=theme==='night'?FALLBACK_NIGHT_URL:FALLBACK_URL;
     try{this.drawing=new Drawing(this.canvas,scene);this.failed=false;this.dataset.renderer='webgl';}
     catch(e){
       try{this.drawing=new SoftwareDrawing(this.canvas,scene);this.failed=false;this.dataset.renderer='canvas';}
@@ -772,7 +946,11 @@ class AndesCasona extends HTMLElement {
     this.canvas.removeEventListener('webglcontextlost',this.onLost);this.canvas.removeEventListener('webglcontextrestored',this.onRestored);
     this.resizeObserver?.disconnect();this.intersectionObserver?.disconnect();this.drawing?.destroy();this.drawing=null;
   }
-  attributeChangedCallback(){if(this.active)this.onScroll();}
+  attributeChangedCallback(name,oldValue,newValue){
+    if(!this.active||oldValue===newValue)return;
+    if(name==='theme'){this.drawing?.destroy();this.initDrawing();}
+    this.onScroll();
+  }
   measure() {
     if(this.motion?.matches){this.desired=.5;return;}
     const fixed=this.getAttribute('progress');
@@ -812,4 +990,17 @@ class AndesCasona extends HTMLElement {
 }
 if(!customElements.get('andes-casona'))customElements.define('andes-casona',AndesCasona);
 
+})();
+
+// el tema del sitio (html[data-tema]) elige la casona de día o de noche (Andes, 2026-11-03)
+(function(){
+  function aplicar(){
+    var noche=document.documentElement.getAttribute('data-tema')!=='claro';
+    document.querySelectorAll('andes-casona').forEach(function(e){
+      if(noche&&e.getAttribute('theme')!=='night')e.setAttribute('theme','night');
+      else if(!noche&&e.hasAttribute('theme'))e.removeAttribute('theme');
+    });
+  }
+  aplicar();
+  new MutationObserver(aplicar).observe(document.documentElement,{attributes:true,attributeFilter:['data-tema']});
 })();
