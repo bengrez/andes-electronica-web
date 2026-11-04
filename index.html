@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261105a">
+<link rel="stylesheet" href="base.css?v=20261105b">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -232,19 +232,44 @@
     </section>
   </div>
 
-  <section class="seccion" aria-labelledby="t-empresa">
-    <div class="cabeza">
-      <div><p class="sello">Empresa</p><h2 id="t-empresa">Más de 30 años <em>de electrónica chilena.</em></h2></div>
-      <p>Andes Electrónica inició sus actividades el 1° de diciembre de 1991 en Santiago. Hoy atiende transporte, minería, retail, defensa, universidades y telecomunicaciones.</p>
+  <!-- Empresa, certificación y clientes en una sola sección (Benjamin, 2026-11-03): la casona de fondo, a todo el ancho y
+       de una pantalla de alto; encima, el texto (arriba a la izquierda), los sellos de la certificación ISO 9001 y las
+       resoluciones (arriba a la derecha) y una fila tenue de logos de clientes a los pies de la casona, como parte de la
+       ilustración. La sección «Clientes» sigue más abajo, como antes. -->
+  <section class="empresa-casona" aria-labelledby="t-empresa">
+    <div class="casona-fondo" aria-hidden="true"><andes-casona rango="0.335,0.665" escala="0.8"></andes-casona></div>
+    <div class="empresa-capas">
+      <div class="empresa-texto">
+        <p class="sello">Empresa</p><h2 id="t-empresa">Más de 30 años <em>de electrónica chilena.</em></h2>
+        <p>Andes Electrónica inició sus actividades el 1° de diciembre de 1991 en Santiago. Hoy atiende transporte, minería, retail, defensa, universidades y telecomunicaciones.</p>
+        <div class="acciones"><a class="enlace" href="empresa.html">Conocer la empresa</a></div>
+      </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="sello-anillos" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="96"/><circle class="anillo-2" cx="100" cy="100" r="89"/>
+      <path class="anillo-3" d="M182.7 100.0 183.0 104.3 182.6 108.7 181.6 112.9 180.2 117.0 178.5 121.0 176.6 124.9 174.6 128.6 172.7 132.4 170.7 136.0 168.8 139.7 166.6 143.3 164.3 146.7 161.7 150.0 158.9 153.0 155.8 155.8 152.5 158.3 149.1 160.6 145.7 162.9 142.3 165.2 139.0 167.5 135.7 170.0 132.3 172.6 128.9 175.2 125.2 177.6 121.4 179.8 117.3 181.4 113.1 182.5 108.7 182.9 104.3 182.7 100.0 181.9 95.8 180.8 91.7 179.4 87.7 178.0 83.7 176.6 79.8 175.3 75.9 174.2 72.0 173.0 68.1 171.7 64.2 170.3 60.4 168.5 56.8 166.5 53.4 164.1 50.2 161.5 47.1 158.8 44.1 155.9 41.1 153.0 38.1 150.1 35.1 147.2 32.1 144.1 29.1 140.9 26.4 137.5 24.1 133.8 22.3 129.8 21.1 125.6 20.5 121.3 20.4 116.9 20.8 112.5 21.4 108.3 22.1 104.1 22.7 100.0 23.2 96.0 23.4 92.0 23.6 87.9 23.7 83.8 23.9 79.6 24.4 75.4 25.3 71.3 26.5 67.3 28.2 63.4 30.2 59.7 32.5 56.1 34.9 52.7 37.4 49.3 40.0 46.0 42.6 42.6 45.4 39.4 48.4 36.3 51.6 33.4 55.2 31.0 59.0 28.9 63.0 27.4 67.2 26.4 71.5 25.8 75.8 25.4 80.0 25.2 84.0 24.9 88.0 24.5 92.0 23.8 96.0 22.9 100.0 21.9 104.1 21.0 108.4 20.3 112.7 19.9 117.0 20.1 121.2 20.8 125.3 22.0 129.3 23.6 133.1 25.6 136.8 27.7 140.4 30.0 144.0 32.3 147.5 34.7 150.9 37.2 154.2 39.9 157.2 42.8 160.0 45.9 162.5 49.4 164.5 53.1 166.2 57.0 167.7 60.9 169.0 64.9 170.3 68.7 171.7 72.5 173.2 76.2 175.0 79.9 176.9 83.7 178.8 87.5 180.5 91.5 181.9 95.7Z"/><path class="anillo-3" d="M172.9 100.0 172.3 103.8 171.9 107.6 171.6 111.3 171.3 115.2 170.6 118.9 169.4 122.6 167.6 125.9 165.2 129.0 162.5 131.8 159.7 134.5 157.1 137.1 154.9 139.9 153.0 142.9 151.3 146.2 149.6 149.6 147.7 152.9 145.3 156.0 142.5 158.6 139.4 160.6 136.0 162.4 132.5 163.9 129.1 165.4 125.8 167.2 122.5 169.2 119.1 171.4 115.6 173.3 111.9 174.9 108.0 175.7 104.0 175.7 100.0 175.0 96.1 173.7 92.4 172.2 88.8 170.7 85.2 169.5 81.7 168.5 78.0 167.7 74.4 166.8 70.8 165.5 67.5 163.8 64.5 161.6 61.8 158.9 59.3 156.0 56.9 153.2 54.5 150.6 51.7 148.3 48.7 146.2 45.4 144.2 42.1 142.1 39.0 139.6 36.3 136.8 34.2 133.5 32.7 130.0 31.6 126.3 30.7 122.5 29.7 118.8 28.6 115.2 27.3 111.5 26.0 107.8 24.9 103.9 24.4 100.0 24.6 96.0 25.6 92.2 27.3 88.5 29.4 85.0 31.5 81.7 33.5 78.4 35.1 75.1 36.5 71.7 37.6 68.2 38.9 64.7 40.5 61.4 42.6 58.3 45.1 55.6 48.0 53.2 51.0 51.0 53.9 48.8 56.6 46.4 59.1 43.7 61.5 40.8 64.0 37.6 66.7 34.6 69.7 31.9 73.1 29.9 76.8 28.6 80.7 27.9 84.6 27.6 88.5 27.5 92.4 27.4 96.2 27.0 100.0 26.5 103.9 26.1 107.8 26.0 111.7 26.4 115.4 27.6 118.9 29.4 122.2 31.8 125.2 34.3 128.1 36.8 131.1 39.0 134.2 40.8 137.5 42.3 140.9 43.7 144.3 45.3 147.5 47.2 150.4 49.6 152.8 52.4 155.0 55.5 156.9 58.7 158.8 61.8 161.0 64.8 163.5 67.7 166.2 70.5 168.9 73.6 171.3 76.8 173.2 80.4 174.3 84.2 174.6 88.2 174.3 92.2 173.6 96.1Z"/>
+      <path class="marca-cobre" d="M77 6.8A96 96 0 0 1 123 6.8"/>
+    </symbol></defs></svg>
+      <div class="empresa-sellos">
+        <ul class="sellos sellos-chicos" aria-label="Certificación y normativa">
+          <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Certificación</span><b>ISO 9001</b><span class="org">Bureau Veritas</span></p></li>
+          <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución N°</span><b>139 · 2009</b><span class="org">Dirección del Trabajo</span></p></li>
+          <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución Exenta N°</span><b>1081 · 2005</b><span class="org">Dirección del Trabajo</span></p></li>
+          <li><svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><use href="#sello-anillos"/></svg><p><span class="tipo">Resolución N° 100 · Decreto 80</span><b>MTT</b><span class="org">Ministerio de Transportes</span></p></li>
+        </ul>
+        <a class="enlace" href="iso.html">Ver el certificado ISO</a>
+      </div>
+      <ul class="logos-casona" aria-hidden="true">
+        <li><img src="img/clientes/turbus.svg" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/cruz-del-sur.svg" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/efe.svg" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/metro.svg" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/armada.webp" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/link-plus.svg" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/etm.png" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/transantin.png" alt="" loading="lazy"></li>
+        <li><img src="img/clientes/cormar.webp" alt="" loading="lazy"></li>
+      </ul>
     </div>
-    <!-- la casona (Benjamin, 2026-11-03): versión acotada, la cámara recorre sólo el tercio central de la vuelta -->
-    <figure class="casona" aria-label="Nuestra casona, en Ñuñoa"><andes-casona rango="0.335,0.665" escala="0.84"></andes-casona></figure>
-    <dl class="datos">
-      <div><dt>Calidad</dt><dd>Certificación ISO 9001</dd></div>
-      <div><dt>Dirección del Trabajo</dt><dd>Resolución Exenta N° 1081 (2005) · Resolución N° 139 (2009)</dd></div>
-      <div><dt>Ministerio de Transportes</dt><dd>Resolución N° 100 · Decreto 80</dd></div>
-    </dl>
-    <div class="acciones"><a class="enlace" href="empresa.html">Conocer la empresa</a></div>
   </section>
 
   <!-- Bloque de clientes: único y fácil de retirar. Los logos se usan sin autorización confirmada
@@ -297,16 +322,16 @@
 </footer>
 <!-- /pie -->
 
-<script src="sitio.js?v=20261105a"></script>
-<script src="avance.js?v=20261105a"></script>
-<script src="datos/h25.js?v=20261105a"></script>
-<script src="flota-sim.js?v=20261105a"></script>
-<script src="flota-mapa.js?v=20261105a"></script>
-<script src="datos/especies-h25.js?v=20261105a"></script>
-<script src="flota-3d.js?v=20261105a"></script>
-<script src="clientes.js?v=20261105a"></script>
-<script src="productos-nube.js?v=20261105a"></script>
-<script src="casona.js?v=20261105a"></script>
-<script src="etapas.js?v=20261105a"></script>
+<script src="sitio.js?v=20261105b"></script>
+<script src="avance.js?v=20261105b"></script>
+<script src="datos/h25.js?v=20261105b"></script>
+<script src="flota-sim.js?v=20261105b"></script>
+<script src="flota-mapa.js?v=20261105b"></script>
+<script src="datos/especies-h25.js?v=20261105b"></script>
+<script src="flota-3d.js?v=20261105b"></script>
+<script src="clientes.js?v=20261105b"></script>
+<script src="productos-nube.js?v=20261105b"></script>
+<script src="casona.js?v=20261105b"></script>
+<script src="etapas.js?v=20261105b"></script>
 </body>
 </html>
