@@ -15,7 +15,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 PARTES = {n: (RAIZ / "partes" / f"{n}.html").read_text().strip() for n in ("cabeza", "barra", "pie")}
 OPCIONALES = {f"ilustracion-{n}": (RAIZ / f"partes/ilustracion-{n}.svg").read_text().strip()
-              for n in ("tacografo", "smartcard", "display", "visor", "reportes")}
+              for n in ("tacografo", "smartcard", "display", "visor", "reportes", "bus")}
 OPCIONALES["dibujo-dashboard"] = (RAIZ / "partes/dibujo-dashboard.svg").read_text().strip()   # plano del tablero (dibujar_dashboard.py)
 
 CSP = ("default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "

@@ -190,6 +190,26 @@ def main():
   {rect(44, 76, 52, 10, 3, "ilus-pieza")}{rect(106, 76, 52, 10, 3, "ilus-pieza")}{rect(168, 76, 52, 10, 3, "ilus-pieza")}""",
         "Pantalla de reportes y análisis dibujada con las curvas de nivel de la ruta H-25; un pulso de cobre baja desde SACEL.", 160, False)
 
+    # bus de costado (Benjamin, 2026-11-03, «Productos y servicios» del inicio): la carrocería rellena con curvas de nivel,
+    # ventanas, ruedas y, en el tablero, el tacógrafo chico en cobre (clase ilus-taco), con la antena en el techo
+    c = (12, 40, 488, 118)
+    d, _ = curvas(D, c, 14000, usados)
+    ventanas = "".join(rect(34 + k * 54, 54, 44, 40, 5, "ilus-pieza") for k in range(7))
+    salida["bus"] = f"""<svg class="ilus ilus-bus" viewBox="0 0 520 196" role="img" aria-labelledby="ilus-bus-t">
+  <title id="ilus-bus-t">Bus de costado dibujado con las curvas de nivel de la ruta H-25, con el tacógrafo en el tablero.</title>
+  <defs><clipPath id="ilus-bus-silueta"><path d="M28 40H452Q484 40 492 70L500 132Q500 158 476 158H28Q12 158 12 142V56Q12 40 28 40Z"/></clipPath></defs>
+  <path class="ilus-curvas" clip-path="url(#ilus-bus-silueta)" d="{d}"/>
+  <path class="ilus-borde" d="M28 40H452Q484 40 492 70L500 132Q500 158 476 158H28Q12 158 12 142V56Q12 40 28 40Z"/>
+  {ventanas}
+  <path class="ilus-linea" d="M418 54h34q22 0 30 30M12 116h486"/>
+  {rect(432, 98, 44, 14, 3, "ilus-taco")}
+  <path class="ilus-taco-antena" d="M462 98V60M462 40V24"/>
+  <circle class="ilus-pieza" cx="104" cy="160" r="22"/><circle class="ilus-pieza" cx="104" cy="160" r="8"/>
+  <circle class="ilus-pieza" cx="404" cy="160" r="22"/><circle class="ilus-pieza" cx="404" cy="160" r="8"/>
+  <path class="ilus-linea" d="M0 184h520"/>
+</svg>
+"""
+
     for pieza, texto in salida.items():
         destino = RAIZ / f"partes/ilustracion-{pieza}.svg"
         destino.write_text(texto)
