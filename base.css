@@ -728,6 +728,8 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 /* el dashboard muestra los datos de la flota en su pantalla (productos-relato.js): se ocultan las barras de la ilustración */
 .esc-reportes .ilus-pieza, .esc-reportes .ilus-linea { opacity: 0; }
+.esc-bus.resaltado .ilus-borde { stroke: var(--acento); stroke-width: 2.6; }
+.puente-nube { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; }
 /* en el celular, la parada que muestra la escena en bucle */
 .prod-paso { transition: opacity .5s ease; }
 .prod-relato:not(.x) .prod-paso.en-ciclo .prod-num { text-decoration: underline; text-decoration-color: var(--acento); text-underline-offset: .3em; }

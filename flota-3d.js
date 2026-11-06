@@ -547,6 +547,19 @@
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
+    publicarEstado();
+  }
+  // para la sección «Productos y servicios» (productos-relato.js, 2026-11-05): dónde está la nube en la pantalla (para el
+  // puente que la lleva hasta allá) y el estado de los buses simulados (velocidad, exceso y si están en la geocerca)
+  function publicarEstado() {
+    var sw = posSwitch(), r = capa.getBoundingClientRect(), G = datosGeocerca();   // la nube se dibuja en la capa 2D
+    window.SACEL_MAPA = {
+      nube: sw ? { x: r.left + sw.x, y: r.top + sw.y, esc: sw.esc, vis: sw.vis } : null,
+      buses: sim.buses.map(function (b) {
+        var q = sim.enRuta(sim.posicion(b));
+        return { kmh: Math.round(b.v * 3.6), exceso: sim.exceso(b), detenido: b.v < 0.5, geocerca: Math.hypot(q[0] - G.x, q[1] - G.z) < GEOCERCA.radio };
+      })
+    };
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
@@ -767,7 +780,7 @@
     // a su turno, desenfocado al principio); adentro, un gráfico de barras que crece con cada trama que llega; a su
     // izquierda, el rótulo. Dibujada a la escala que le da la distancia
     cr.save();
-    var aN = veloEn(sw.x, sw.y + 20, altMax) * sw.vis;
+    var aN = veloEn(sw.x, sw.y + 20, altMax) * sw.vis * (window.SACEL_PUENTE ? 1 - window.SACEL_PUENTE : 1);   // la lleva el puente (productos-relato.js)
     if ("filter" in cr && sw.vis < 1) cr.filter = "blur(" + ((1 - sw.vis) * 4).toFixed(1) + "px)";
     cr.translate(sw.x, sw.y); cr.scale(sw.esc, sw.esc);
     var COPOS = [[-18, 5, 7], [-11, 0, 10], [-3, -5, 12], [6, -6, 10], [12, 0, 10], [19, 5, 7.5], [-8, 6, 9], [3, 5, 10], [12, 7, 8], [-1, 0, 11]];
