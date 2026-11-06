@@ -725,7 +725,13 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .prod-escena .ilus-pulso { display: none; }
 .prod-escena .ilus-taco { fill: var(--pagina); stroke: var(--acento); stroke-width: 2.2; }
 .prod-escena .ilus-taco-antena { fill: none; stroke: var(--acento); stroke-width: 2; stroke-linecap: round; }
-.prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+/* el dashboard muestra los datos de la flota en su pantalla (productos-relato.js): se ocultan las barras de la ilustración */
+.esc-reportes .ilus-pieza, .esc-reportes .ilus-linea { opacity: 0; }
+/* en el celular, la parada que muestra la escena en bucle */
+.prod-paso { transition: opacity .5s ease; }
+.prod-relato:not(.x) .prod-paso.en-ciclo .prod-num { text-decoration: underline; text-decoration-color: var(--acento); text-underline-offset: .3em; }
+@media (max-width: 47.5rem) { .prod-escena { height: 24rem; min-height: 0; margin: 1rem 0 1.5rem; } }
 /* «Tacógrafo v.N» sobre el taco: las letras giran como paletas al cambiar de versión */
 .esc-version { position: absolute; transform: translate(-50%, -50%); margin: 0; white-space: nowrap; font: 600 1.35rem/1 var(--titulos); letter-spacing: -.01em; color: var(--tinta); perspective: 400px; }
 .esc-version span { display: inline-block; transform-origin: 50% 50%; }
