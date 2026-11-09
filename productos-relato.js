@@ -118,6 +118,20 @@
     c.restore();
   }
 
+  // el texto en una matriz de 7 filas de puntos, con una letra de 5 × 7 propia (sólo los signos que se usan)
+  var LETRA = {"0": "01110100011001110101110011000101110", "1": "00100011000010000100001000010001110", "2": "01110100010000100010001000100011111", "3": "11110000010000101110000010000111110", "4": "00010001100101010010111110001000010", "5": "11111100001111000001000011000101110", "6": "00110010001000011110100011000101110", "7": "11111000010001000100010000100001000", "8": "01110100011000101110100011000101110", "9": "01110100011000101111000010001001100", "k": "10000100001001010100110001010010010", "m": "00000000001101010101101011010110101", "h": "10000100001011011001100011000110001", "/": "00001000100001000100010000100010000", "c": "00000000000111010000100001000101110", "o": "00000000000111010001100011000101110", "n": "00000000001011011001100011000110001", "d": "00001000010110110011100011000101111", "u": "00000000001000110001100011001101101", "i": "00100000000110000100001000010001110", "ó": "00010001000111010001100011000101110", "r": "00000000001011011001100001000010000", "t": "01000010001110001000010000100100110", "M": "10001110111010110101100011000110001", "R": "11110100011000111110101001001010001", "j": "00010000000011000010000101001001100", "a": "00000000000111000001011111000101111", "s": "00000000000111110000011100000111110", ".": "00000000000000000000000000110001100", ":": "00000011000110000000011000110000000", "·": "00000000000000001100011000000000000", " ": "00000000000000000000000000000000000"};
+  var cacheMatriz = {};
+  function matriz(txt) {
+    if (cacheMatriz[txt]) return cacheMatriz[txt];
+    var ancho = txt.length * 6, px = new Uint8Array(ancho * 7);
+    for (var n = 0; n < txt.length; n++) {
+      var g = LETRA[txt[n]] || LETRA[" "];
+      for (var y = 0; y < 7; y++) for (var x = 0; x < 5; x++) px[y * ancho + n * 6 + x] = g.charCodeAt(y * 5 + x) === 49 ? 1 : 0;
+    }
+    if (Object.keys(cacheMatriz).length > 40) cacheMatriz = {};
+    return (cacheMatriz[txt] = { px: px, ancho: ancho });
+  }
+
   // ─── la escena para un avance a (0–2) ───
   var posNube = null;
   function escena(a, t, fijo) {
@@ -135,9 +149,9 @@
     if (!fijo) placa(c, Math.max(4, tx - 122), ty - 70, t, 1 - k(a, 0.5, 0.9));
     // fase 2: los periféricos cuelgan del taco
     var vP = e2 * (1 - 0.75 * e3), pw = tw * 0.42, py = ty + th + H * 0.08;
-    var scX = cx - tw * 0.48, diX = cx + tw * 0.02;
-    poner(elSC, scX, py + (1 - e2) * 14, pw * 0.75, vP); poner(elDi, diX, py + pw * 0.1 + (1 - e2) * 14, pw * 1.1, vP);
-    if (vP > 0.01) [[scX + pw * 0.75 * 57 / 290, py + pw * 0.75 * 52 / 290], [diX + pw * 0.55, py + pw * 0.1 + pw * 1.1 * 56 / 480]].forEach(function (q, j) {
+    var scX = cx - tw * 0.56, diX = cx - tw * 0.06;
+    poner(elSC, scX, py + (1 - e2) * 14, pw * 0.75, vP); poner(elDi, diX, py + pw * 0.1 + (1 - e2) * 14, pw * 1.45, vP);
+    if (vP > 0.01) [[scX + pw * 0.75 * 57 / 290, py + pw * 0.75 * 52 / 290], [diX + pw * 0.725, py + pw * 0.1 + pw * 1.45 * 56 / 480]].forEach(function (q, j) {
       var my = (salida[1] + q[1]) / 2;
       c.save(); c.globalAlpha = vP; c.strokeStyle = "rgba(" + COL.tinta + ",.3)"; c.lineWidth = 1;
       c.beginPath(); c.moveTo(salida[0], salida[1]); c.lineTo(salida[0], my); c.lineTo(q[0], my); c.lineTo(q[0], q[1]); c.stroke();
@@ -150,17 +164,21 @@
       }
       c.restore();
     });
-    // el display muestra datos simulados (Benjamin, 2026-11-09: «para darle más realismo»): velocidad, tiempo de
-    // conducción y conductor, que se turnan en la pantalla de LED; la velocidad varía y el tiempo avanza
+    // el display muestra datos simulados (Benjamin, 2026-11-09): una matriz de puntitos dibujada aquí, sin fondo, con el
+    // texto que corre de derecha a izquierda (velocidad, tiempo de conducción y conductor). Los puntos apagados, tenues;
+    // los encendidos, en cobre
     if (vP > 0.01) {
-      var dw = pw * 1.1, dx0 = diX + dw * 28 / 480, dy0 = py + pw * 0.1 + dw * 66 / 480, dsw = dw * 424 / 480, dsh = dw * 64 / 480;
-      var seg = fijo ? 0 : Math.floor(t / 2.2) % 3, kmh = Math.round(62 + 9 * Math.sin(t * 0.6)), min = 135 + Math.floor(t / 4) % 60;
-      var txt = [kmh + " km/h", "conducción " + Math.floor(min / 60) + ":" + ("0" + min % 60).slice(-2), "conductor M. Rojas"][seg];
+      var dw = pw * 1.45, dx0 = diX + dw * 36 / 480, dy0 = py + pw * 0.1 + dw * 71.5 / 480, dsw = dw * 408 / 480, dsh = dw * 45 / 480;
+      var filas = 7, paso = dsh / filas, cols = Math.floor(dsw / paso), r = Math.max(0.6, paso * 0.32);
+      var kmh = Math.round(62 + 9 * Math.sin(t * 0.6)), min = 135 + Math.floor(t / 4) % 60;
+      var txt = "   " + kmh + " km/h   ·   conducción " + Math.floor(min / 60) + ":" + ("0" + min % 60).slice(-2) + "   ·   conductor M. Rojas   ";
+      var bits = matriz(txt), corr = fijo ? 0 : Math.floor(t * 14) % bits.ancho;
       c.save(); c.globalAlpha = vP;
-      c.fillStyle = COL.claro ? "#1b2236" : "#05070d"; c.fillRect(dx0, dy0, dsw, dsh);
-      c.font = "600 " + Math.max(9, dsh * 0.55).toFixed(1) + "px 'Plex Mono', monospace"; c.textAlign = "center"; c.textBaseline = "middle";
-      c.shadowColor = "rgba(255,170,60,.8)"; c.shadowBlur = 6; c.fillStyle = "rgb(255,176,72)";
-      c.fillText(txt, dx0 + dsw / 2, dy0 + dsh / 2 + 1);
+      for (var cx0 = 0; cx0 < cols; cx0++) for (var fy = 0; fy < filas; fy++) {
+        var on = bits.px[fy * bits.ancho + (cx0 + corr) % bits.ancho];
+        c.fillStyle = on ? "rgba(" + COL.cobre + ",.95)" : "rgba(" + COL.tinta + ",.12)";
+        c.beginPath(); c.arc(dx0 + (cx0 + 0.5) * paso, dy0 + (fy + 0.5) * paso, on ? r * 1.15 : r, 0, 7); c.fill();
+      }
       c.restore();
     }
     // fase 3: la flota detrás del taco, en la franja de abajo, tenue
