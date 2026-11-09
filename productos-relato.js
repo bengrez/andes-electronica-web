@@ -1,8 +1,8 @@
 /* Productos y servicios del inicio (Benjamin, 2026-11-09, plan aprobado). El mismo hilo que el mapa: el tacógrafo queda
    siempre al centro de la escena y, en 3 fases (una por paso de la rueda, flecha o AvPág; etapas.js da las muescas y la
    transición corre sola y se funde), aparecen sobre él:
-   1) Hecho en Andes: «Tacógrafo v.N» cambia como paletas de v.1 a v.4 y, en cada cambio, muestra su placa por dentro
-      (iguales por fuera, distintos por dentro);
+   1) Hecho en Andes: bajo el taco, una fila fina «v.1 · v.2 · v.3 · v.4» ilumina de a una la versión (2026-11-09:
+      más sutil; antes, paletas y la placa por dentro);
    2) Lo que se conecta: la SmartCard y el display cuelgan del taco, con pulsos de cobre;
    3) En sintonía con SACEL: el taco baja y se achica, arriba llega la nube de SACEL (la del mapa, por el puente), los
       datos suben (cobre) y el firmware baja (tinta), y detrás aparece la flota en 2.5D, cada bus con su pulso.
@@ -84,37 +84,28 @@
     el.style.opacity = op.toFixed(3); el.style.visibility = op > 0.01 ? "visible" : "hidden";
   }
 
-  // «Tacógrafo v.N» y su placa por dentro: cuenta de v.1 a v.4 al llegar a la fase 1
-  var verN = 0, verT = -1, placaN = 0, placaT = -9;
-  function version(t, fijo, a) {
-    if (!elVer) return;
-    var n = fijo || (verT < 0 && a > 0.9) ? 4 : (verT < 0 ? 1 : Math.min(4, 1 + Math.floor((t - verT) / 1.3)));   // fuera de la fase 1 queda en v.4
-    if (n === verN) return; verN = n; if (!fijo) { placaN = n; placaT = t; }
-    var txt = "Tacógrafo v." + n; elVer.innerHTML = "";
-    for (var i = 0; i < txt.length; i++) {
-      var sp = document.createElement("span"); sp.textContent = txt[i] === " " ? " " : txt[i];
-      if (i === txt.length - 1) sp.className = "num";
-      if (!fijo) { sp.style.animationDelay = (i * 35) + "ms"; sp.classList.add("paleta"); }
-      elVer.appendChild(sp);
-    }
+  if (elVer) elVer.innerHTML = 'Tacógrafo v.<span class="num">4</span>';
+  // la trayectoria de versiones (Benjamin, 2026-11-09: «más sutil»): el título queda fijo («Tacógrafo v.4») y bajo el
+  // taco una fila fina «v.1 · v.2 · v.3 · v.4» en la que se ilumina la actual; al llegar a la fase 1 avanza sola de v.1
+  // a v.4 (una cada 1,3 s), con un fundido de 0,4 s entre una y otra
+  var verN = 0, verT = -1, verCambio = -9, verAntes = 0;
+  function versionActual(t, fijo, a) {
+    var n = fijo || (verT < 0 && a > 0.9) ? 4 : (verT < 0 ? 1 : Math.min(4, 1 + Math.floor((t - verT) / 1.3)));
+    if (n !== verN) { verAntes = verN; verN = n; verCambio = fijo ? -9 : t; }
+    return n;
   }
-  var PLACAS = { 1: [[0.3, 0.5, 0.3, 0.5]], 2: [[0.25, 0.5, 0.22, 0.4], [0.68, 0.45, 0.2, 0.36]], 3: [[0.3, 0.52, 0.26, 0.5], [0.72, 0.3, 0.16, 0.24], [0.72, 0.72, 0.16, 0.22]],
-                 4: [[0.28, 0.5, 0.2, 0.42], [0.56, 0.32, 0.14, 0.22], [0.56, 0.7, 0.14, 0.22], [0.82, 0.5, 0.12, 0.46]] };
-  function placa(c, x, y, t, al) {
-    var e = t - placaT, a2 = al * cl(e / 0.2) * cl((1.5 - e) / 0.4); if (a2 <= 0.01 || !PLACAS[placaN]) return;
-    var w = 110, h = 56;
-    c.save(); c.globalAlpha = a2;
-    c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, 5); else c.rect(x, y, w, h);
-    c.fillStyle = COL.claro ? "rgba(255,255,255,.8)" : "rgba(10,14,26,.85)"; c.fill(); c.strokeStyle = "rgba(" + COL.tinta + ",.7)"; c.lineWidth = 1.2; c.stroke();
-    c.strokeStyle = "rgba(" + COL.tinta + ",.35)"; c.lineWidth = 1; c.beginPath();
-    PLACAS[placaN].forEach(function (q, i) { var px = x + q[0] * w, py = y + q[1] * h; c.moveTo(x + 6, py); c.lineTo(px - q[2] * w / 2, py); if (i) { c.moveTo(px, py - q[3] * h / 2); c.lineTo(px, y + 4); } });
-    c.stroke();
-    PLACAS[placaN].forEach(function (q, i) {
-      var cw = q[2] * w, ch = q[3] * h; c.fillStyle = i ? "rgba(" + COL.cobre + ",.25)" : "rgba(" + COL.tinta + ",.18)";
-      c.fillRect(x + q[0] * w - cw / 2, y + q[1] * h - ch / 2, cw, ch); c.strokeStyle = "rgba(" + COL.tinta + ",.7)"; c.strokeRect(x + q[0] * w - cw / 2, y + q[1] * h - ch / 2, cw, ch);
+  function filaVersiones(c, x, y, t, al) {
+    if (al <= 0.01) return;
+    var f = cl((t - verCambio) / 0.4), etiquetas = ["v.1", "v.2", "v.3", "v.4"];
+    c.save(); c.font = "500 10.5px 'Plex Mono', monospace"; c.textBaseline = "middle"; c.textAlign = "center";
+    var paso = 46, x0 = x - paso * 1.5;
+    etiquetas.forEach(function (et, i) {
+      var n = i + 1, brillo = n === verN ? f : (n === verAntes ? 1 - f : 0), xx = x0 + i * paso;
+      c.globalAlpha = al * (0.35 + 0.65 * brillo);
+      c.fillStyle = brillo > 0.02 ? "rgba(" + COL.cobre + ",1)" : COL.texto; c.fillText(et, xx, y);
+      if (i < 3) { c.globalAlpha = al * 0.3; c.fillStyle = COL.texto; c.fillText("·", xx + paso / 2, y); }
+      if (brillo > 0.02) { c.globalAlpha = al * brillo; c.fillStyle = "rgba(" + COL.cobre + ",1)"; c.beginPath(); c.arc(xx, y + 10, 1.8, 0, 7); c.fill(); }
     });
-    c.fillStyle = COL.texto; c.font = "500 10px 'Plex Mono', monospace"; c.textAlign = "left"; c.textBaseline = "bottom";
-    c.fillText("por dentro · v." + placaN, x, y - 4);
     c.restore();
   }
 
@@ -139,14 +130,15 @@
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     if (capa.width !== Math.round(W * dpr) || capa.height !== Math.round(H * dpr)) { capa.width = Math.round(W * dpr); capa.height = Math.round(H * dpr); }
     var c = capa.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
-    var e2 = k(a, 0.3, 1), e3 = k(a, 1.3, 2), cx = W / 2;
+    var e2 = k(a, 0.3, 1), e3 = k(a, 1.3, 2), cx = W < 600 ? W / 2 : W * 0.62;   // la animación cargada a la derecha (2026-11-09)
     // el taco: mediano (40 %), algo bajo la mitad; sube un poco con los periféricos; en la fase 3 baja y se achica (32 %)
-    var tw = lerp(W * 0.4, W * 0.32, e3), th = tw * 190 / 500, ty = lerp(lerp(H * 0.42, H * 0.3, e2), H * 0.5, e3), tx = cx - tw / 2;
+    var tw = Math.min(lerp(W * 0.4, W * 0.32, e3), 2 * (W - 16 - cx)), th = tw * 190 / 500, ty = lerp(lerp(H * 0.42, H * 0.3, e2), H * 0.5, e3), tx = cx - tw / 2;
     poner(elTaco, tx, ty, tw, 1); elTaco.style.zIndex = 4;
     if (elVer) { elVer.style.left = cx.toFixed(1) + "px"; elVer.style.top = (ty - 22).toFixed(1) + "px"; }
     var antena = [tx + tw * 380 / 500, ty + th * 52 / 190], salida = [cx, ty + th * 0.95];
-    // fase 1: la placa por dentro, a la izquierda del taco
-    if (!fijo) placa(c, Math.max(4, tx - 122), ty - 70, t, 1 - k(a, 0.5, 0.9));
+    // fase 1: la fila de versiones bajo el taco
+    versionActual(t, fijo, a);
+    filaVersiones(c, cx, ty + th + 22, t, 1 - k(a, 0.5, 0.9));
     // fase 2: los periféricos cuelgan del taco
     var vP = e2 * (1 - 0.75 * e3), pw = tw * 0.42, py = ty + th + H * 0.08;
     var scX = cx - tw * 0.56, diX = cx - tw * 0.06;
@@ -170,7 +162,7 @@
     if (vP > 0.01) {
       var dw = pw * 1.45, dx0 = diX + dw * 36 / 480, dy0 = py + pw * 0.1 + dw * 71.5 / 480, dsw = dw * 408 / 480, dsh = dw * 45 / 480;
       var filas = 7, paso = dsh / filas, cols = Math.floor(dsw / paso), r = Math.max(0.6, paso * 0.32);
-      var kmh = Math.round(62 + 9 * Math.sin(t * 0.6)), min = 135 + Math.floor(t / 4) % 60;
+      var vuelta = Math.floor(t / 6), kmh = fijo ? 62 : Math.round(62 + 6 * Math.sin(vuelta * 0.7)), min = 135 + vuelta % 60;   // cambia una vez por vuelta (~6 s)
       var txt = "   " + kmh + " km/h   ·   conducción " + Math.floor(min / 60) + ":" + ("0" + min % 60).slice(-2) + "   ·   conductor M. Rojas   ";
       var bits = matriz(txt), corr = fijo ? 0 : Math.floor(t * 14) % bits.ancho;
       c.save(); c.globalAlpha = vP;
@@ -182,7 +174,7 @@
       c.restore();
     }
     // fase 3: la flota detrás del taco, en la franja de abajo, tenue
-    var wF = Math.min(W * 0.2, 130), yF = H * 0.99;
+    var wF = Math.min(W * 0.2, 130, (W - 16 - cx) / 1.45), yF = H * 0.99;
     var FILAS = [{ s: 0.5, dy: -1.45, dx: 0.07, op: 0.35 }, { s: 0.72, dy: -0.8, dx: 0.035, op: 0.5 }, { s: 1, dy: 0, dx: -0.03, op: 0.65 }];
     var PUESTOS = [[2, 0], [0, -0.62], [1, -0.62], [2, -1.08], [2, 1.08], [1, 0.62], [0, 0.62]];
     var ants = [];
@@ -215,7 +207,6 @@
       rotulo(c, "datos ↑  ·  firmware ↓", Math.min((antena[0] + destino[0]) / 2 + 10, W - 140), (antena[1] + destino[1]) / 2, e3);
       if (puenteVis() > 0) { c.save(); c.globalAlpha = e3; nube(c, nx, ny, 1.6, brillo); c.restore(); }
     }
-    version(t, fijo, a);
   }
 
   // el puente: al entrar la sección, la nube del mapa baja hacia su lugar en la escena (lienzo fijo) y se desvanece; el
@@ -233,7 +224,7 @@
     var dpr = Math.min(window.devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight;
     if (puente.width !== Math.round(W * dpr) || puente.height !== Math.round(H * dpr)) { puente.width = Math.round(W * dpr); puente.height = Math.round(H * dpr); }
     var c = puente.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
-    if (!window.SACEL_PUENTE || !posNube) return;
+    if (!window.SACEL_PUENTE || !posNube || a < 1.3) return;   // la nube viajera sólo con la fase 3 (no asoma antes)
     var e = esc.getBoundingClientRect(), s = suave(pPuente);
     c.globalAlpha = 1 - s * 0.8;
     nube(c, lerp(mapaNube.x, e.left + posNube[0], s), lerp(mapaNube.y, e.top + posNube[1], s), lerp(mapaNube.esc, 1.6, s), 0.3);
@@ -261,7 +252,7 @@
     if (visible && !document.hidden && mqMov.matches) raf = requestAnimationFrame(cuadro); else tPrev = 0;
   }
   function arrancar() { if (!raf && visible && mqMov.matches) raf = requestAnimationFrame(cuadro); }
-  function quieta() { verN = 0; fases.forEach(function (li) { li.classList.remove("destacado", "atenuado"); }); escena(2, 0, true); }
+  function quieta() { fases.forEach(function (li) { li.classList.remove("destacado", "atenuado"); }); escena(2, 0, true); }
   var lista = sec.querySelector(".prod-fases");
   function modo() {
     var v = mqVivo.matches;
