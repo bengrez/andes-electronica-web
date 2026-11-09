@@ -150,6 +150,19 @@
       }
       c.restore();
     });
+    // el display muestra datos simulados (Benjamin, 2026-11-09: «para darle más realismo»): velocidad, tiempo de
+    // conducción y conductor, que se turnan en la pantalla de LED; la velocidad varía y el tiempo avanza
+    if (vP > 0.01) {
+      var dw = pw * 1.1, dx0 = diX + dw * 28 / 480, dy0 = py + pw * 0.1 + dw * 66 / 480, dsw = dw * 424 / 480, dsh = dw * 64 / 480;
+      var seg = fijo ? 0 : Math.floor(t / 2.2) % 3, kmh = Math.round(62 + 9 * Math.sin(t * 0.6)), min = 135 + Math.floor(t / 4) % 60;
+      var txt = [kmh + " km/h", "conducción " + Math.floor(min / 60) + ":" + ("0" + min % 60).slice(-2), "conductor M. Rojas"][seg];
+      c.save(); c.globalAlpha = vP;
+      c.fillStyle = COL.claro ? "#1b2236" : "#05070d"; c.fillRect(dx0, dy0, dsw, dsh);
+      c.font = "600 " + Math.max(9, dsh * 0.55).toFixed(1) + "px 'Plex Mono', monospace"; c.textAlign = "center"; c.textBaseline = "middle";
+      c.shadowColor = "rgba(255,170,60,.8)"; c.shadowBlur = 6; c.fillStyle = "rgb(255,176,72)";
+      c.fillText(txt, dx0 + dsw / 2, dy0 + dsh / 2 + 1);
+      c.restore();
+    }
     // fase 3: la flota detrás del taco, en la franja de abajo, tenue
     var wF = Math.min(W * 0.2, 130), yF = H * 0.99;
     var FILAS = [{ s: 0.5, dy: -1.45, dx: 0.07, op: 0.35 }, { s: 0.72, dy: -0.8, dx: 0.035, op: 0.5 }, { s: 1, dy: 0, dx: -0.03, op: 0.65 }];
