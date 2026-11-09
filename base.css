@@ -715,13 +715,24 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 @media (max-width: 75rem) { .familia-siete { grid-template-columns: repeat(4, minmax(0, 1fr)); } .familia-siete::before, .familia-siete li::before { display: none; } }
 @media (max-width: 47.5rem) { .familia-siete { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* ─── Productos y servicios en inicio (Benjamin, 2026-11-09; productos-relato.js): dos mitades, hardware y software ─── */
-.prod-mitades { display: grid; grid-template-columns: 46% 1fr 44%; margin-top: 2.5rem; }
-.prod-mitades .mitad-hw { grid-column: 1; text-align: center; }
-.prod-mitades .mitad-sw { grid-column: 3; text-align: center; }
-.prod-servicios { margin-top: 1.5rem; color: var(--tinta-2); text-align: center; }
-@media (max-width: 40rem) { .prod-mitades { display: none; } }
-.prod-escena { position: relative; height: min(76vh, 38rem); min-height: 30rem; margin-top: .5rem; }
+/* ─── Productos y servicios en inicio (Benjamin, 2026-11-09, plan aprobado; productos-relato.js): 3 fases sobre el
+   tacógrafo, con el reparto del mapa (texto a la izquierda, escena a la derecha). Sin .prod-vivo (celular, movimiento
+   reducido o sin JS), el texto con las 3 fases y la escena debajo ─── */
+.prod-relato h2 { margin-top: .9rem; }
+.prod-fases { margin-top: 2rem; display: grid; grid-template-columns: 1fr; gap: .9rem; max-width: 34rem; }
+.prod-fases li h3 { transition: color .6s ease; }
+.prod-fases li { transition: opacity .6s ease, border-color .6s ease; }
+.prod-fases li p { margin-top: .3rem; color: var(--tinta-2); max-height: 7em; overflow: hidden; transition: max-height .7s ease, opacity .6s ease, margin-top .7s ease; }
+.prod-fases li.destacado { border-top-color: var(--acento); }
+.prod-fases li.destacado h3 { color: var(--acento); }
+.prod-fases li.atenuado { opacity: .5; }
+.prod-fases li.atenuado p { max-height: 0; opacity: 0; margin-top: 0; }
+.prod-relato .acciones { margin-top: 1.75rem; }
+.prod-vivo .prod-recorrido { height: 300vh; }
+.prod-vivo .prod-relato { position: sticky; top: 0; height: 100vh; height: 100svh; padding-block: 5.5rem 1.5rem;
+  display: grid; grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); gap: 2rem; align-items: center; }
+.prod-escena { position: relative; height: min(70vh, 38rem); min-height: 24rem; margin-top: 1.5rem; }
+.prod-vivo .prod-escena { height: min(80vh, 46rem); margin-top: 0; }
 .prod-escena .esc { position: absolute; left: 0; top: 0; width: 10rem; will-change: left, top, width, opacity; }
 .prod-escena .esc svg { display: block; width: 100%; height: auto; }
 .prod-escena .ilus-pulso { display: none; }
@@ -729,7 +740,6 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .prod-escena .ilus-taco-antena { fill: none; stroke: var(--acento); stroke-width: 2; stroke-linecap: round; }
 .prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 /* el dashboard muestra los datos de la flota en su pantalla (productos-relato.js): se ocultan las barras de la ilustración */
-.esc-reportes .ilus-pieza, .esc-reportes .ilus-linea { opacity: 0; }
 .esc-bus.resaltado .ilus-borde { stroke: var(--acento); stroke-width: 2.6; }
 .puente-nube { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; }
 /* en el celular, la parada que muestra la escena en bucle */
