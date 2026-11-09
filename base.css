@@ -740,6 +740,9 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 .prod-escena .ilus-taco-antena { fill: none; stroke: var(--acento); stroke-width: 2; stroke-linecap: round; }
 /* el display: su matriz de puntos la dibuja productos-relato.js (con texto que corre); se ocultan los LED fijos del dibujo */
 .prod-escena .esc-display rect[fill^="url"] { opacity: 0; }
+/* las tarjetas apiladas: cada una tapa a la de atrás con el color del papel (el dibujo no tiene relleno) */
+.prod-escena .esc-smartcard { isolation: isolate; }
+.prod-escena .esc-smartcard::before { content: ""; position: absolute; left: 3.45%; top: 22.6%; width: 93.1%; height: 73.9%; border-radius: 8% / 10%; background: var(--pagina); z-index: -1; }
 .prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 /* el dashboard muestra los datos de la flota en su pantalla (productos-relato.js): se ocultan las barras de la ilustración */
 .esc-bus.resaltado .ilus-borde { stroke: var(--acento); stroke-width: 2.6; }

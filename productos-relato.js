@@ -31,6 +31,18 @@
     d.appendChild(s); esc.insertBefore(d, capa); flota.push(d);
   }
 
+  // 2 tarjetas más detrás de la principal (2.5D): escala, corrimiento (en anchos de la tarjeta), opacidad y desfase
+  var TARJETAS = [{ s: 0.82, dx: 0.14, dy: -0.22, op: 0.5, d: 0.1 }, { s: 0.66, dx: 0.26, dy: -0.4, op: 0.3, d: 0.2 }], tarjetas = [];
+  var svgSC = elSC && elSC.querySelector("svg");
+  TARJETAS.forEach(function () {
+    if (!svgSC) return;
+    var d = document.createElement("div"); d.className = "esc esc-smartcard esc-copia";
+    var s = svgSC.cloneNode(true); [].forEach.call(s.querySelectorAll("[id]"), function (n) { n.removeAttribute("id"); });
+    var t = s.querySelector("title"); if (t) t.remove(); var df = s.querySelector("defs"); if (df) df.remove();
+    s.removeAttribute("aria-labelledby"); s.setAttribute("aria-hidden", "true");
+    d.appendChild(s); esc.insertBefore(d, elSC); tarjetas.push(d);
+  });
+
   var COL = {};
   function colores() {
     var claro = document.documentElement.getAttribute("data-tema") === "claro";
@@ -141,14 +153,22 @@
     filaVersiones(c, cx, ty + th + 22, t, 1 - k(a, 0.5, 0.9));
     // fase 2: los periféricos cuelgan del taco
     var vP = e2 * (1 - 0.75 * e3), pw = tw * 0.42, py = ty + th + H * 0.08;
-    var scX = cx - tw * 0.56, diX = cx - tw * 0.06;
-    poner(elSC, scX, py + (1 - e2) * 14, pw * 0.75, vP); poner(elDi, diX, py + pw * 0.1 + (1 - e2) * 14, pw * 1.45, vP);
-    if (vP > 0.01) [[scX + pw * 0.75 * 57 / 290, py + pw * 0.75 * 52 / 290], [diX + pw * 0.725, py + pw * 0.1 + pw * 1.45 * 56 / 480]].forEach(function (q, j) {
+    // (2026-11-09) el display a la izquierda y la SmartCard a la derecha, con 2 tarjetas más detrás en 2.5D (varios
+    // conductores de la flota se identifican con el mismo sistema)
+    var scW = pw * 0.75, diX = cx - tw * 0.6, scX = Math.min(cx + tw * 0.18, W - 16 - scW * 1.26);
+    poner(elDi, diX, py + pw * 0.1 + (1 - e2) * 14, pw * 1.45, vP); poner(elSC, scX, py + (1 - e2) * 14, scW, vP); elSC.style.zIndex = 3;
+    var puntas = [[diX + pw * 0.725, py + pw * 0.1 + pw * 1.45 * 56 / 480, 1], [scX + scW * 57 / 290, py + scW * 52 / 290, 1]];
+    tarjetas.forEach(function (el, j) {
+      var q = TARJETAS[j], v = k(a, 0.4 + q.d, 1 + q.d) * (1 - 0.75 * e3), w = scW * q.s, x = scX + scW * q.dx, y = py + scW * q.dy;
+      poner(el, x, y + (1 - v) * 10, w, v * q.op); el.style.zIndex = 2 - j;
+      if (v > 0.05) puntas.push([x + w * 57 / 290, y + w * 52 / 290, 0.4 * v]);
+    });
+    if (vP > 0.01) puntas.forEach(function (q, j) {
       var my = (salida[1] + q[1]) / 2;
-      c.save(); c.globalAlpha = vP; c.strokeStyle = "rgba(" + COL.tinta + ",.3)"; c.lineWidth = 1;
+      c.save(); c.globalAlpha = vP * q[2]; c.strokeStyle = "rgba(" + COL.tinta + "," + (j > 1 ? ".15" : ".3") + ")"; c.lineWidth = 1;
       c.beginPath(); c.moveTo(salida[0], salida[1]); c.lineTo(salida[0], my); c.lineTo(q[0], my); c.lineTo(q[0], q[1]); c.stroke();
       if (!fijo) {
-        var f = (t * 0.4 + j * 0.5) % 1, L1 = Math.abs(my - salida[1]), L2 = Math.abs(q[0] - salida[0]), L3 = Math.abs(q[1] - my), sR = f * (L1 + L2 + L3), pp;
+        var f = (t * (j > 1 ? 0.22 : 0.4) + j * 0.37) % 1, L1 = Math.abs(my - salida[1]), L2 = Math.abs(q[0] - salida[0]), L3 = Math.abs(q[1] - my), sR = f * (L1 + L2 + L3), pp;
         if (sR < L1) pp = [salida[0], salida[1] + (my - salida[1]) * sR / L1];
         else if (sR < L1 + L2) pp = [salida[0] + (q[0] - salida[0]) * (sR - L1) / L2, my];
         else pp = [q[0], my + (q[1] - my) * (sR - L1 - L2) / L3];
