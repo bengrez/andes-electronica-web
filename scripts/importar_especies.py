@@ -2,8 +2,10 @@
 """Especies del mapa de inicio (2026-11-03, «Diseño e investigación»): convierte la lista curada de A10 (handoff 019,
 ~/LLM-devs/Andes/especies-h25/registros-curados.json) en datos/especies-h25.js, sin datos personales más que lo que
 iNaturalist publica (id de la observación, fecha). Sólo registros con coordenadas abiertas (la lista ya los filtra; aquí
-se vuelve a comprobar). Decisiones de Benjamin (3-nov): entran todas, exóticas incluidas; las 35 de «especies» llevan
-ficha y las 51 de «exoticas_otras» van sólo como puntos.
+se vuelve a comprobar). Decisiones de Benjamin (24-nov, cambian las del 3-nov): exóticas fuera del todo; 26 nativas de
+iNaturalist y 4 aves nativas que suma GBIF (loica, diucón, bandurria, torcaza): 30 especies, todas con rótulo. Los
+registros de GBIF (sólo conjuntos CC BY o CC0, sin las copias de iNaturalist) llevan el nombre corto de su conjunto
+(eBird, CAPES, un herbario) y cuántos registros se juntaron en ese punto.
 Uso: python3 scripts/importar_especies.py [ruta del json]"""
 import json, os, sys
 
@@ -18,7 +20,12 @@ def regs(e):
     for r in e['registros']:
         if r.get('oscurecida') or r.get('geoprivacy') not in (None, 'open'):
             continue
-        out.append([round(r['x']), round(r['z']), r['fecha'], r['id'], round(r['lat'], 5), round(r['lon'], 5)])
+        if r['fuente'] == 'gbif':
+            if not any(l in r['licencia'] for l in ('licenses/by/4.0', 'publicdomain/zero/1.0')):
+                sys.exit('registro de GBIF sin licencia CC BY o CC0: ' + str(r['id']))
+            out.append([round(r['x']), round(r['z']), r['fecha'] or '', r['id'], round(r['lat'], 5), round(r['lon'], 5), r['fuente_corta'], r.get('n_en_el_punto', 1)])
+        else:
+            out.append([round(r['x']), round(r['z']), r['fecha'], r['id'], round(r['lat'], 5), round(r['lon'], 5)])
     return out
 
 # modelo de hábitat (Benjamin, 3-nov): altura de los registros y pesos de exposición, para repartir las plantas modeladas
@@ -48,14 +55,19 @@ for e in d['especies']:
     if habitat(e.get('habitat')): x['h'] = habitat(e.get('habitat'))
     if conservacion(e): x['rce'] = conservacion(e)
     especies.append(x)
-for e in d['exoticas_otras']:
+if any(e.get('introducida') or e['origen'] == 'exótica' for e in d['especies']) or d.get('exoticas_otras'):
+    sys.exit('la lista trae exóticas: Benjamin las dejó fuera (24-nov)')
+for e in d.get('exoticas_otras', []):
     especies.append({'c': '', 'n': e['nombre_comun'], 's': e['nombre_cientifico'], 'g': e['grupo'],
                      'o': e['origen'], 'i': 1, 'f': 0, 'r': regs(e)})
-n = sum(len(e['r']) for e in especies)
+n = sum(len(e['r']) for e in especies); nr = sum(r[7] if len(r) > 6 else 1 for e in especies for r in e['r'])
 cab = ('/* Especies de la ruta H-25 para el mapa de inicio. Generado por scripts/importar_especies.py desde la lista curada '
-       'de A10 (handoff 019), ' + d['meta']['generado'][:10] + '. Registros de iNaturalist con coordenadas abiertas '
+       '(handoff 019 y 021), ' + d['meta']['generado'][:10] + '. Registros con coordenadas abiertas de iNaturalist y de GBIF '
        '(c: clave de la silueta, n: nombre común, s: científico, g: grupo, o: origen, i: introducida, f: lleva ficha, '
-       'r: [x, z, fecha, id de observación, lat, lon] (x, z en metros del cuadro; lat, lon WGS84); https://www.inaturalist.org/observations/<id>). '
-       + str(len(especies)) + ' especies, ' + str(n) + ' registros. */\n')
+       'r: [x, z, fecha, id, lat, lon] de iNaturalist (https://www.inaturalist.org/observations/<id>) o '
+       '[x, z, fecha, id, lat, lon, conjunto, n] de GBIF (https://www.gbif.org/occurrence/<id>; n: registros juntados en ese punto); '
+       'x, z en metros del cuadro; lat, lon WGS84). GBIF: sólo conjuntos CC BY 4.0 o CC0 (eBird, doi:10.15468/aomfnb; '
+       'CAPES, doi:10.15468/6rb3d3 y 10.15468/7bgr64; Pl@ntNet, doi:10.15468/gtebaa; herbarios VALPL, E, MU y Naturalis). '
+       + str(len(especies)) + ' especies, ' + str(nr) + ' registros en ' + str(n) + ' puntos. */\n')
 open(SALIDA, 'w').write(cab + 'window.ESPECIES_H25 = ' + json.dumps({'especies': especies}, ensure_ascii=False, separators=(',', ':')) + ';\n')
-print(len(especies), 'especies,', n, 'registros →', os.path.normpath(SALIDA))
+print(len(especies), 'especies,', nr, 'registros en', n, 'puntos →', os.path.normpath(SALIDA))
