@@ -1408,7 +1408,7 @@
     pts.forEach(function (d, k) { var X = q[0] + d[0] * e, Y = q[1] + d[1] * e; if (k) c.lineTo(X, Y); else c.moveTo(X, Y); });
     c.closePath();
   }
-  var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [];
+  var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [], nVisEsp = {};
   // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
   var ALFA_TEMA = { claro: { disco: 0.58, modelado: 0.3 }, oscuro: { disco: 0.42, modelado: 0.2 } };
   function especies() {
@@ -1441,11 +1441,16 @@
         crEsp.globalAlpha = a * 0.9; crEsp.beginPath(); crEsp.arc(q[0], q[1], 1.3, 0, 7); crEsp.fill();
         if (p.e.f && a > 0.3) visEsp.push({ p: p, q: q });
       });
+      // cuántos puntos a la vista tiene cada especie: el rótulo favorece a las escasas (abajo)
+      nVisEsp = {}; visEsp.forEach(function (v) { nVisEsp[v.p.e.s] = (nVisEsp[v.p.e.s] || 0) + 1; });
     }
     cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoEsp, 0, 0); cr.restore();
     cr.save();
+    // con GBIF (2026-11-24) hay puntos de eBird con decenas de registros en los mismos lugares (tricahue, tenca, loica):
+    // para que no tapen a las especies escasas, la distancia al cursor se castiga 0,25 px por cada punto a la vista de su
+    // especie (38 del tricahue: 9,5 px; 2 de la yaca: 0,5 px)
     visEsp.forEach(function (v) {
-      var d = Math.hypot(v.q[0] - ref[0], v.q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = v; }
+      var d = Math.hypot(v.q[0] - ref[0], v.q[1] - ref[1]) + 0.25 * (nVisEsp[v.p.e.s] || 0); if (d < dMejor) { dMejor = d; mejor = v; }
       if (cajaEsp && v.p === cajaEsp.p) qFijo = v.q;
     });
     // c) el rótulo de la especie más cercana al cursor; mientras el cursor esté sobre el rótulo (p. ej. camino al enlace de
