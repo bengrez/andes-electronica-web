@@ -539,6 +539,7 @@
     vida();
     aguiluchos();
     especies();
+    avesGbif();                                    // sobre los discos de los registros, para que se lean
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
     if (pDatos > 0.01) chipsDatos();
@@ -1294,9 +1295,10 @@
   // ─── «Diseño e investigación» (Benjamin, 2026-11-03): al pasar el mouse aparece la diversidad que en reposo no se
   // distingue, como señal del detalle que Andes pone en sus equipos: 1) las plantas toman el color de su grupo (cactus,
   // árboles esclerófilos, arbustos, bromelia), del valle a la cordillera; 2) se encienden los registros reales de
-  // iNaturalist (punto lleno; fauna y exóticas también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
-  // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» y,
-  // si está amenazada, su categoría del RCE. Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
+  // iNaturalist y GBIF (punto lleno; la fauna también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
+  // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» o
+  // «registro GBIF (eBird) · <fecha>» y, si está amenazada, su categoría del RCE. Desde el 24-nov: 30 especies nativas,
+  // sin exóticas, y 4 aves de GBIF (avesGbif). Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
   // se apaga en orden inverso; con movimiento reducido, todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
   // (2026-11-03, tarde) Benjamin: se veía con pocos fps y sin reactividad. Ahora todo aparece junto y rápido: sin
   // paquetes, sin turnos de oeste a este y sin destellos; las etapas son sólo el orden (color, registros, rótulo)
@@ -1380,7 +1382,8 @@
   var puntosEsp = null;
   function prepararPuntos() {                    // todos los registros, del valle (oeste) a la cordillera (este)
     puntosEsp = [];
-    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], lat: r[4], lon: r[5] }); }); });
+    // r[6], r[7]: conjunto de GBIF (eBird, CAPES, un herbario…) y registros juntados en ese punto; sin ellos, iNaturalist
+    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], lat: r[4], lon: r[5], conjunto: r[6] || "", n: r[7] || 1 }); }); });
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
@@ -1455,13 +1458,16 @@
       var m = mejor, x = m.q[0], y0 = m.q[1];
       cr.globalAlpha = al;
       cr.strokeStyle = "rgba(" + P.borde + ",.9)"; cr.lineWidth = 1.4; cr.beginPath(); cr.arc(x, y0, 6, 0, 7); cr.stroke();
-      var tx = x + 12, ty = y0 - 30, l1 = m.p.e.n, l2 = m.p.e.s, l3 = "registro iNaturalist · " + m.p.fecha + (m.p.e.i ? " · introducida" : "");
+      // la fuente del registro (Benjamin, 2026-11-24): iNaturalist o GBIF con su conjunto; si en ese punto se juntaron
+      // varios registros de GBIF (listas de eBird en el mismo lugar), cuántos, con la fecha del más reciente
+      var fuente = m.p.conjunto ? "registro GBIF (" + m.p.conjunto + ")" : "registro iNaturalist";
+      var tx = x + 12, ty = y0 - 30, l1 = m.p.e.n, l2 = m.p.e.s, l3 = fuente + (m.p.fecha ? " · " + m.p.fecha : "") + (m.p.n > 1 ? " · " + m.p.n + " aquí" : "");
       cr.font = "600 13px 'DM Sans', sans-serif"; var w = cr.measureText(l1).width;
       cr.font = "italic 12.5px 'Source Serif', serif"; w = Math.max(w, cr.measureText(l2).width);
       cr.font = "500 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l3).width);
       var l4 = m.p.e.rce || "";                  // p. ej. «NT · Casi amenazada (RCE)», sólo si está amenazada
       if (l4) { cr.font = "600 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l4).width); }
-      if (tx + w > W - 12) tx = x - 12 - w;
+      if (tx + w > W - 12) tx = Math.max(8, x - 12 - w);   // a la izquierda si no cabe, sin salirse de la pantalla (celular)
       cr.beginPath(); cr.moveTo(x + (tx > x ? 5 : -5), y0 - 4); cr.lineTo(tx + (tx > x ? -3 : w + 3), ty + 4); cr.lineWidth = 1; cr.stroke();
       cr.textBaseline = "middle"; cr.textAlign = "left"; cr.lineJoin = "round"; cr.lineWidth = 4; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
       function linea(txt, fuente, yy, color) { cr.font = fuente; cr.strokeText(txt, tx, yy); cr.fillStyle = color || P.texto; cr.fillText(txt, tx, yy); }
@@ -1515,30 +1521,82 @@
     var y = y0 + filas.length * alto + 4, gris = "rgb(" + C.otras.join(",") + ")";
     cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].disco; cr.beginPath(); cr.arc(x0 + 6, y, 5.5, 0, 7); cr.fill();
     cr.globalAlpha = al; cr.beginPath(); cr.arc(x0 + 6, y, 1.3, 0, 7); cr.fill();
-    cr.fillStyle = tinta; cr.fillText("registro iNat", x0 + 20, y);
+    cr.fillStyle = tinta; cr.fillText("registro real", x0 + 20, y);
     cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].modelado * 1.4; cr.beginPath(); cr.arc(x0 + 122, y, 5.5, 0, 7); cr.fill(); cr.globalAlpha = al;
     cr.fillText("modelado", x0 + 132, y);
     y += alto;
+    // sin exóticas desde el 24-nov (Benjamin): la fila queda para la fauna y las fuentes
     cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
     cr.fillStyle = tinta; cr.fillText("fauna", x0 + 20, y);
-    cr.fillStyle = "rgb(" + C.introducida.join(",") + ")"; cr.beginPath(); cr.arc(x0 + 122, y, 2.6, 0, 7); cr.fill();
-    cr.fillStyle = tinta; cr.fillText("introducida", x0 + 132, y);
+    cr.fillText("iNaturalist · GBIF", x0 + 82, y);
     cr.restore();
   }
-  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores (etapa 2, con los registros)
+  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores. Siempre
+  // dibujado de día, como el tricahue y el cóndor (Benjamin, 2026-11-24); de noche, sólo con «Diseño e investigación»
   function aguiluchos() {
-    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;   // con los registros (etapa 2)
-    var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232";
+    var ap = tema === "claro" ? 1 : Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
+    var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232", mv = medidasVelo();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     regs.slice(0, 3).forEach(function (r, k) {
       var a = t * 0.12 + k * 2.1, x = r[0] + Math.cos(a) * 500, z = r[1] + Math.sin(a) * 380;
       var y = (alturaEn(x, z) + 300) * EXAG, q = proyectar(x, y, z); if (!q) return;
-      var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna()); if (al <= 0.02) return;
+      var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna() * lejosDelTexto(q[0], mv)); if (al <= 0.02) return;
       var sp = 6 * Math.max(0.7, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100)));
       cr.globalAlpha = al; cr.strokeStyle = "rgba(" + col + ",.9)"; cr.lineWidth = 1.6;
       cr.beginPath(); cr.moveTo(q[0] - sp, q[1] + sp * 0.12); cr.quadraticCurveTo(q[0] - sp * 0.45, q[1] - sp * 0.28, q[0], q[1]);
       cr.quadraticCurveTo(q[0] + sp * 0.45, q[1] - sp * 0.28, q[0] + sp, q[1] + sp * 0.12); cr.stroke();
       cr.beginPath(); cr.moveTo(q[0], q[1]); cr.lineTo(q[0], q[1] + sp * 0.35); cr.stroke();   // cola corta
+    });
+    cr.restore();
+  }
+  // las 4 aves que suma GBIF (Benjamin, 2026-11-24): loica, diucón, bandurria y torcaza, sólo con «Diseño e investigación»
+  // (etapa 2, con los registros), en hasta 3 de sus registros a la vista, separados por 1,5 km. Siluetas de trazo como el aguilucho y
+  // el cóndor; la loica lleva su pecho rojo como único color. Las tres posadas van en el suelo de su registro; la torcaza
+  // vuela en círculos cortos sobre su quebrada
+  var AVES_GBIF = ["loica", "diucon", "bandurria", "torcaza"];
+  function avesGbif() {
+    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
+    var t = sim.reloj, claro = tema === "claro", col = claro ? "28,26,34" : "214,218,232", rojo = claro ? "184,44,36" : "240,120,104", mv = medidasVelo();
+    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
+    AVES_GBIF.forEach(function (c, ka) {
+      var dibujadas = 0;
+      registrosDe(c, 1500).forEach(function (r, k) {
+        if (dibujadas >= 3) return;
+        var x = r[0], z = r[1], vuela = c === "torcaza";
+        if (vuela) { var a = t * 0.2 + k * 2.4 + ka; x += Math.cos(a) * 260; z += Math.sin(a) * 200; }
+        var y = (alturaEn(x, z) + (vuela ? 140 : 0)) * EXAG, q = proyectar(x, y, z); if (!q) return;
+        if (!vuela && !aLaVista(x, y, z)) return;
+        if (q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
+        var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna() * lejosDelTexto(q[0], mv)); if (al <= 0.3 * ap) return;
+        dibujadas++;
+        var s = 6.5 * Math.max(0.8, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100))), X = q[0], Y = q[1];
+        cr.globalAlpha = al; cr.strokeStyle = cr.fillStyle = "rgba(" + col + ",.95)"; cr.lineWidth = 1.5;
+        function elip(cx, cy, rx, ry, g) { cr.moveTo(cx + rx * Math.cos(g), cy + rx * Math.sin(g)); cr.ellipse(cx, cy, rx, ry, g, 0, 6.2832); }
+        cr.beginPath();
+        if (c === "loica") {                       // posada en un palo, cola corta; el pecho rojo
+          cr.moveTo(X, Y); cr.lineTo(X, Y - s * 1.1);
+          elip(X + s * 0.1, Y - s * 1.55, s * 0.55, s * 0.42, -0.3);
+          cr.moveTo(X - s * 0.4, Y - s * 1.35); cr.lineTo(X - s * 0.95, Y - s * 1.05);
+          cr.stroke(); cr.fillStyle = "rgba(" + rojo + ",.95)"; cr.beginPath(); cr.arc(X + s * 0.35, Y - s * 1.5, s * 0.26, 0, 7); cr.fill();
+        } else if (c === "diucon") {               // erguido en la punta de una rama, cola larga hacia abajo
+          cr.moveTo(X - s * 0.7, Y - s * 0.5); cr.lineTo(X + s * 0.6, Y - s * 0.9);
+          elip(X, Y - s * 1.6, s * 0.34, s * 0.62, 0.1);
+          cr.moveTo(X - s * 0.05, Y - s * 1.0); cr.lineTo(X - s * 0.2, Y - s * 0.1);
+          cr.moveTo(X + s * 0.05, Y - s * 2.2); cr.lineTo(X + s * 0.4, Y - s * 2.15);
+          cr.stroke();
+        } else if (c === "bandurria") {            // de pie en el pasto: patas largas, cuello y pico largo y curvo
+          cr.moveTo(X - s * 0.2, Y); cr.lineTo(X - s * 0.1, Y - s * 0.9); cr.moveTo(X + s * 0.3, Y); cr.lineTo(X + s * 0.2, Y - s * 0.9);
+          elip(X + s * 0.05, Y - s * 1.3, s * 0.9, s * 0.42, -0.15);
+          cr.moveTo(X + s * 0.75, Y - s * 1.55); cr.lineTo(X + s * 1.0, Y - s * 2.3);
+          cr.quadraticCurveTo(X + s * 1.75, Y - s * 2.25, X + s * 1.9, Y - s * 1.45);
+          cr.stroke();
+        } else {                                   // torcaza en vuelo: alas anchas y rectas, con un aleteo lento
+          var b = Math.sin(t * 6 + k) * 0.25;
+          cr.moveTo(X - s * 1.2, Y - s * b); cr.lineTo(X, Y + s * 0.15); cr.lineTo(X + s * 1.2, Y - s * b);
+          cr.moveTo(X, Y + s * 0.15); cr.lineTo(X, Y + s * 0.6);
+          cr.stroke();
+        }
+      });
     });
     cr.restore();
   }
