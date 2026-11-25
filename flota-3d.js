@@ -539,7 +539,6 @@
     vida();
     aguiluchos();
     especies();
-    avesGbif();                                    // sobre los discos de los registros, para que se lean
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
     if (pDatos > 0.01) chipsDatos();
@@ -1298,7 +1297,7 @@
   // iNaturalist y GBIF (punto lleno; la fauna también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
   // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» o
   // «registro GBIF (eBird) · <fecha>» y, si está amenazada, su categoría del RCE. Desde el 24-nov: 30 especies nativas,
-  // sin exóticas, y 4 aves de GBIF (avesGbif). Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
+  // sin exóticas, incluidas 4 aves de GBIF. Una leyenda chica aparece en la esquina libre del mapa. Al salir
   // se apaga en orden inverso; con movimiento reducido, todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
   // (2026-11-03, tarde) Benjamin: se veía con pocos fps y sin reactividad. Ahora todo aparece junto y rápido: sin
   // paquetes, sin turnos de oeste a este y sin destellos; las etapas son sólo el orden (color, registros, rótulo)
@@ -1554,58 +1553,6 @@
     });
     cr.restore();
   }
-  // las 4 aves que suma GBIF (Benjamin, 2026-11-24): loica, diucón, bandurria y torcaza, sólo con «Diseño e investigación»
-  // (etapa 2, con los registros), en hasta 3 de sus registros a la vista, separados por 1,5 km. Siluetas de trazo como el aguilucho y
-  // el cóndor; la loica lleva su pecho rojo como único color. Las tres posadas van en el suelo de su registro; la torcaza
-  // vuela en círculos cortos sobre su quebrada
-  var AVES_GBIF = ["loica", "diucon", "bandurria", "torcaza"];
-  function avesGbif() {
-    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
-    var t = sim.reloj, claro = tema === "claro", col = claro ? "28,26,34" : "214,218,232", rojo = claro ? "184,44,36" : "240,120,104", mv = medidasVelo();
-    cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
-    AVES_GBIF.forEach(function (c, ka) {
-      var dibujadas = 0;
-      registrosDe(c, 1500).forEach(function (r, k) {
-        if (dibujadas >= 3) return;
-        var x = r[0], z = r[1], vuela = c === "torcaza";
-        if (vuela) { var a = t * 0.2 + k * 2.4 + ka; x += Math.cos(a) * 260; z += Math.sin(a) * 200; }
-        var y = (alturaEn(x, z) + (vuela ? 140 : 0)) * EXAG, q = proyectar(x, y, z); if (!q) return;
-        if (!vuela && !aLaVista(x, y, z)) return;
-        if (q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
-        var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna() * lejosDelTexto(q[0], mv)); if (al <= 0.3 * ap) return;
-        dibujadas++;
-        var s = 6.5 * Math.max(0.8, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100))), X = q[0], Y = q[1];
-        cr.globalAlpha = al; cr.strokeStyle = cr.fillStyle = "rgba(" + col + ",.95)"; cr.lineWidth = 1.5;
-        function elip(cx, cy, rx, ry, g) { cr.moveTo(cx + rx * Math.cos(g), cy + rx * Math.sin(g)); cr.ellipse(cx, cy, rx, ry, g, 0, 6.2832); }
-        cr.beginPath();
-        if (c === "loica") {                       // posada en un palo, cola corta; el pecho rojo
-          cr.moveTo(X, Y); cr.lineTo(X, Y - s * 1.1);
-          elip(X + s * 0.1, Y - s * 1.55, s * 0.55, s * 0.42, -0.3);
-          cr.moveTo(X - s * 0.4, Y - s * 1.35); cr.lineTo(X - s * 0.95, Y - s * 1.05);
-          cr.stroke(); cr.fillStyle = "rgba(" + rojo + ",.95)"; cr.beginPath(); cr.arc(X + s * 0.35, Y - s * 1.5, s * 0.26, 0, 7); cr.fill();
-        } else if (c === "diucon") {               // erguido en la punta de una rama, cola larga hacia abajo
-          cr.moveTo(X - s * 0.7, Y - s * 0.5); cr.lineTo(X + s * 0.6, Y - s * 0.9);
-          elip(X, Y - s * 1.6, s * 0.34, s * 0.62, 0.1);
-          cr.moveTo(X - s * 0.05, Y - s * 1.0); cr.lineTo(X - s * 0.2, Y - s * 0.1);
-          cr.moveTo(X + s * 0.05, Y - s * 2.2); cr.lineTo(X + s * 0.4, Y - s * 2.15);
-          cr.stroke();
-        } else if (c === "bandurria") {            // de pie en el pasto: patas largas, cuello y pico largo y curvo
-          cr.moveTo(X - s * 0.2, Y); cr.lineTo(X - s * 0.1, Y - s * 0.9); cr.moveTo(X + s * 0.3, Y); cr.lineTo(X + s * 0.2, Y - s * 0.9);
-          elip(X + s * 0.05, Y - s * 1.3, s * 0.9, s * 0.42, -0.15);
-          cr.moveTo(X + s * 0.75, Y - s * 1.55); cr.lineTo(X + s * 1.0, Y - s * 2.3);
-          cr.quadraticCurveTo(X + s * 1.75, Y - s * 2.25, X + s * 1.9, Y - s * 1.45);
-          cr.stroke();
-        } else {                                   // torcaza en vuelo: alas anchas y rectas, con un aleteo lento
-          var b = Math.sin(t * 6 + k) * 0.25;
-          cr.moveTo(X - s * 1.2, Y - s * b); cr.lineTo(X, Y + s * 0.15); cr.lineTo(X + s * 1.2, Y - s * b);
-          cr.moveTo(X, Y + s * 0.15); cr.lineTo(X, Y + s * 0.6);
-          cr.stroke();
-        }
-      });
-    });
-    cr.restore();
-  }
-
   // Transparencia de la flora y fauna (Benjamin, 2026-11-03): en reposo, más transparentes que antes; cuando el mapa se
   // activa (hover de cualquier tarjeta del panorama), más opacas, para que se integren al mapa como parte del mini mapa.
   // Multiplica el alfa de las plantas, el aguilucho, los loros y los cóndores
