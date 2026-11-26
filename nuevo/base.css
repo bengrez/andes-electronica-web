@@ -136,9 +136,9 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 .cordillera { position: relative; min-height: 70vh; min-height: 70svh;   /* mínimo: crece si el texto no cabe */ display: flex; flex-direction: column; background: var(--cordillera-cielo); }
 .cordillera-texto { width: min(100% - 2.5rem, 80rem); margin: 0 auto; padding: clamp(8rem, 24vh, 15rem) 0 2rem; }
 .cordillera h1 { margin-top: 0; max-width: none; font-size: clamp(2.6rem, min(7vw, 11vh), 6rem); }
-.cordillera .entrada { margin-top: 1.5rem; font-size: clamp(1.25rem, 2vw, 1.65rem); max-width: 40rem; }   /* +18 % (Benjamin, 2026-11-02) */
+.cordillera .entrada { margin-top: 1.5rem; max-width: 40rem; }   /* tamaño de .entrada, como el resto del sitio (Benjamin, 2026-11-03: estandarizar; antes hasta 1,65 rem) */
 /* segunda línea (Benjamin, 2026-11-02): subordinada a la bajada, más chica y en la tinta secundaria */
-.cordillera .alcance { margin-top: 1rem; max-width: 40rem; font-size: clamp(1.1rem, 1.4vw, 1.28rem); line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
+.cordillera .alcance { margin-top: 1rem; max-width: 40rem; font-size: 1rem; line-height: 1.5; color: var(--tinta-3); text-wrap: pretty; }
 .bajar { position: absolute; left: 50%; bottom: .75rem; transform: translateX(-50%); display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; color: var(--tinta-3); }
 .bajar svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .bajar:hover { color: var(--tinta); }
@@ -168,7 +168,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (prefers-reduced-motion: reduce) { .cordillera { height: auto; min-height: 100vh; min-height: 100svh; } }
 
 /* ─── mapa de inicio: queda fijo mientras se recorre .recorrido; la cámara baja según el avance ─── */
-.recorrido { height: 200vh; }   /* dos paradas: el panorama y SACEL, que se anima solo al llegar (2026-11-02; antes 900vh con tres paradas) */
+.recorrido { height: 400vh; }   /* panorama y 3 paradas: SACEL con datos, la flota y el registro (2026-11-03; antes 200vh) */
 .portada { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: var(--cielo); }
 .portada canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .portada::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--velo); }
@@ -201,15 +201,21 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 .capa-empresa h1 { max-width: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
 .capa-empresa .lugar { margin-top: 2rem; font: 500 .85rem/1.4 "Plex Mono", monospace; color: var(--tinta-3); letter-spacing: .02em; }
-.capa-sacel h2 { margin-top: 1rem; font-size: clamp(2.5rem, 4.8vw, 4.1rem); }
-.capa-sacel .entrada { font-size: clamp(1.2rem, 1.75vw, 1.45rem); }
-.sacel-datos .pasos h3 { font-size: 1.12rem; }
+.capa-sacel h2 { margin-top: 1rem; }   /* h2 y .entrada del sitio (2026-11-03: estandarizar; antes hasta 4,1 rem y 1,45 rem) */
 .capa-sacel .acciones { margin-top: 1.75rem; }
 .sacel-datos { margin-top: 2.25rem; }
-.sacel-datos .pasos { grid-template-columns: 1fr 1fr; gap: 1.1rem 2rem; }
+.sacel-datos .pasos { grid-template-columns: 1fr; gap: .9rem; max-width: 34rem; }   /* 3 fases en una columna (2026-11-03) */
+/* sólo la fase activa muestra su texto; se abre y se cierra con una transición (2026-11-03: «más fluidas») */
+.sacel-datos .pasos li p { max-height: 7em; overflow: hidden; transition: max-height .7s ease, opacity .6s ease, margin-top .7s ease; }
+.sacel-datos .pasos li.atenuado p { max-height: 0; opacity: 0; margin-top: 0; }
 .sacel-datos .pasos li { padding-top: .8rem; }
 .sacel-datos .pasos li::before { margin-bottom: .45rem; }
-.sacel-datos .pasos p { font-size: 1.02rem; margin-top: .3rem; }
+.sacel-datos .pasos p { margin-top: .3rem; }
+.sacel-datos .pasos li { transition: opacity .6s ease, border-color .6s ease; }
+.sacel-datos .pasos li h3 { transition: color .6s ease; }
+.sacel-datos .pasos li.atenuado { opacity: .5; }   /* paradas 2 y 3 del mapa: se destaca su paso (2026-11-03) */
+.sacel-datos .pasos li.destacado h3 { color: var(--acento); }
+.sacel-datos .pasos li.destacado { border-top-color: var(--acento); }
 @media all {   /* también con movimiento reducido (2026-11-03): --sacel salta de 0 a 1 sin animar */
   .con-mapa:not(.sin-3d) .heroe { display: grid; align-content: start; }
   .con-mapa:not(.sin-3d) .heroe .capa { grid-area: 1 / 1; }
@@ -222,13 +228,15 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 }
 /* mapa (2026-11-02): «Andes Electrónica» arriba (fila 1, bajo la barra fija) y, debajo, el panorama y SACEL en la misma
    celda, turnándose con --sacel */
-.panorama.entrada, .panorama { font-size: clamp(1.35rem, 2.15vw, 1.85rem); line-height: 1.3; color: var(--tinta); max-width: 30rem; margin-top: 0; font-weight: 500; }
+.panorama.entrada, .panorama { line-height: 1.4;   /* tamaño de .entrada (2026-11-03; antes hasta 1,85 rem) */
+   color: var(--tinta); max-width: 30rem; margin-top: 0; font-weight: 500; }
 /* qué hace Andes: etiquetas con un dibujo de línea (2 columnas) */
 .haceres { list-style: none; margin: clamp(2.75rem, 8vh, 5.5rem) 0 0;   /* más aire bajo la frase (Benjamin, 2026-11-02) */
    padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 7vh, 4.5rem) 1.75rem; max-width: 40rem; }   /* filas repartidas hacia abajo (Benjamin, 2026-11-02) */
-.haceres li { display: flex; align-items: flex-start; gap: .8rem; font: 500 clamp(1rem, 1.2vw, 1.12rem)/1.25 "DM Sans", sans-serif; color: var(--tinta); border-radius: .8rem; }
-.haceres b { display: block; font-weight: 600; }
-.haceres small { display: block; margin-top: .2rem; font: 400 .9rem/1.35 "DM Sans", sans-serif; color: var(--tinta-2); }
+.haceres li { display: flex; align-items: flex-start; gap: .8rem; font: 400 1rem/1.5 "DM Sans", sans-serif; color: var(--tinta); border-radius: .8rem; }
+.haceres b { display: block; font: 600 1.35rem/1.2 var(--titulos); letter-spacing: -.012em; }   /* como un h3 del sitio (2026-11-03) */
+.haceres .marca-sacel { font-family: var(--titulos); font-weight: 600; color: var(--acento); letter-spacing: -.01em; }   /* como el título «a SACEL.» (Benjamin, 2026-11-03) */
+.haceres small { display: block; margin-top: .35rem; font: 400 1rem/1.5 "DM Sans", sans-serif; color: var(--tinta-2); }   /* texto del sitio (antes .9 rem) */
 .haceres li[data-resalta] { cursor: default; }
 .heroe[data-capa="empresa"] .capa-sacel, .heroe[data-capa="sacel"] .capa-empresa { pointer-events: none; }   /* comparten celda: sólo la visible recibe el mouse */
 .haceres li[data-resalta]:hover svg, .haceres li[data-resalta]:focus-visible svg { border-color: var(--acento); }
@@ -244,7 +252,8 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
 @media (min-width: 47.51rem) { .con-mapa:not(.sin-3d) .heroe .mapa-marca { margin-top: clamp(3.5rem, 10vh, 6.5rem); } }
 @media (max-height: 62rem) and (min-width: 47.5rem) {   /* pantallas bajas (hasta ~990 px de alto; antes 50 rem): los pasos sólo con su título */
   .sacel-datos { margin-top: 1.5rem; }
-  .sacel-datos .pasos p { display: none; }
+  .sacel-datos .pasos p { max-height: 0; opacity: 0; margin-top: 0; }
+  .sacel-datos .pasos li.destacado p { max-height: 7em; opacity: 1; margin-top: .3rem; }   /* la fase activa sí muestra su texto (2026-11-03) */
 }
 .pausa { position: relative; z-index: 2; font: 500 .56rem/1 "Plex Mono", monospace; color: var(--tinta-2); background: var(--pagina); border: 1px solid var(--linea); border-radius: 999px; padding: .25rem .45rem; cursor: pointer; }
 @media (max-width: 47.5rem) {
@@ -252,8 +261,7 @@ body:has(.cordillera) > .barra { position: absolute; top: 0; left: 0; right: 0; 
   .heroe { padding-top: 1rem; }
   .con-mapa:not(.sin-3d) .capa-empresa { padding-top: 1.5rem; }
   .capa-empresa h1 { font-size: clamp(2.2rem, 10vw, 3rem); }
-  .capa-sacel h2 { font-size: clamp(1.8rem, 8vw, 2.4rem); }
-  .capa-sacel .entrada { font-size: 1rem; margin-top: 1rem; }
+  .capa-sacel .entrada { margin-top: 1rem; }
   .sacel-datos { margin-top: 1.25rem; }
   .sacel-datos .pasos p { display: none; }
   .sin-3d .heroe { padding-bottom: 26rem; }
@@ -644,3 +652,138 @@ h4, .pasos h3, .tiempo h3 { font: 600 1rem/1.3 "DM Sans", sans-serif; letter-spa
 @media (max-width: 47.5rem) { .avance { top: 0; bottom: 0; width: 6px; } .avance ol { display: none; } }
 @media (prefers-reduced-motion: reduce) { .avance-marca, .avance-titulo { transition: none; } }
 @media print { .avance { display: none; } }
+
+/* «Diseño e investigación» (2026-11-03): coordenadas del registro del rótulo, enlace a Google Maps sobre el mapa */
+.coord-esp { position: absolute; z-index: 3; transform: translateY(-50%); font: 500 10.5px/1.2 "Plex Mono", monospace; color: var(--acento);
+  text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; padding: 2px 0;
+  text-shadow: 0 0 3px var(--pagina), 0 0 3px var(--pagina), 0 0 2px var(--pagina); }
+.coord-esp:hover, .coord-esp:focus-visible { color: var(--tinta); }
+
+/* Servicios como continuación de Productos en inicio (requerimiento de JI, 2026-11-03) */
+.servicios-continua .seccion { padding-top: 0; }
+.subtitulo-seccion { font: 600 clamp(1.5rem, 2.6vw, 2.1rem)/1.1 var(--titulos); letter-spacing: -.02em; max-width: 22ch; }
+.subtitulo-seccion em { font-style: normal; color: var(--acento); }
+
+/* la casona (Benjamin, 2026-11-03; casona.js): a todo el ancho, un cuarto más chica que la primera versión, y con el
+   texto de la sección encima, sobrelapándola un poco (el texto va sobre ella; no cambia el avance de la cámara, que
+   sigue el propio elemento) */
+.casona { position: relative; z-index: 0; width: 100vw; margin: -10rem 0 1.5rem calc(50% - 50vw); height: min(58svh, 42vw); min-height: 14rem; pointer-events: none; }
+.casona andes-casona { width: 100%; height: 100%; }
+.seccion:has(> .casona) > .cabeza { position: relative; z-index: 1; }
+/* empresa (2026-11-04): la casona va en la sección Historia, en lugar de la foto de la sede */
+.casona-historia { margin: 0; height: clamp(18rem, 34vw, 32rem); }
+.casona-historia andes-casona { width: 100%; height: 100%; }
+@media (max-width: 47.5rem) { .casona { height: 48vw; min-height: 11rem; margin-top: -2rem; } }
+
+/* Empresa + certificación + clientes en inicio (Benjamin, 2026-11-03): la casona de fondo, una pantalla de alto */
+.empresa-casona { position: relative; min-height: 100vh; min-height: 100svh; overflow: hidden; }
+.casona-fondo { position: absolute; inset: 15% 0 3.5rem; z-index: 0; pointer-events: none; }   /* más abajo: el texto la sobrelapa apenas */
+.casona-fondo andes-casona { width: 100%; height: 100%; }
+.empresa-capas { position: relative; z-index: 1; width: min(100% - 2.5rem, 80rem); min-height: 100vh; min-height: 100svh; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr auto; padding: clamp(4rem, 9vh, 6.5rem) 0 1.5rem; gap: 1rem 3rem; }
+.empresa-texto { max-width: 34rem; }
+.empresa-texto h2 { margin-top: .9rem; }
+.empresa-resena details { border-top: 1px solid var(--linea); }
+.empresa-resena summary { display: grid; grid-template-columns: 4ch 1fr auto; gap: .85rem;
+  align-items: baseline; padding: .65rem 0; font-weight: 600; cursor: pointer; }
+.empresa-resena summary::-webkit-details-marker { display: none; }
+.empresa-resena summary b { font-family: "Plex Mono", monospace; color: var(--acento); }
+.empresa-resena summary::after { content: "+"; color: var(--acento); }
+.empresa-resena details[open] summary::after { content: "−"; }
+.empresa-resena details p { padding: 0 1rem .85rem 0; margin: 0; color: var(--tinta-2); }
+.empresa-texto .acciones { margin-top: 1.25rem; }
+.empresa-sellos { justify-self: end; display: grid; justify-items: center; gap: .6rem; }
+.sellos-chicos { grid-template-columns: repeat(2, 7.6rem); gap: .4rem .6rem; }
+.sellos-chicos svg { width: 7.6rem; }
+.sellos-chicos p { max-width: 5.6rem; gap: .1rem; }
+.sellos-chicos .tipo { font-size: .5rem; }
+.sellos-chicos b { font-size: .95rem; }
+.sellos-chicos .org { font-size: .58rem; }
+@media (min-width: 47.51rem) {
+  .empresa-casona { overflow: visible; }
+  .empresa-escena { position: relative; min-height: 100svh; overflow: hidden; }
+  .casona-fondo { inset: 49% 2% auto auto; width: 39.5%; height: 45.5%; }
+  .empresa-capas { grid-template-columns: 1.1fr 1fr; grid-template-rows: auto auto auto;
+    align-content: center; align-items: start; gap: .8rem clamp(1.5rem, 4vw, 4rem); }
+  .empresa-texto { display: contents; }
+  .empresa-texto > .sello { grid-area: 1 / 1; }
+  .empresa-texto h2 { grid-area: 2 / 1; margin-top: 0; max-width: 18ch; }
+  .empresa-resena { grid-area: 3 / 1; max-width: 56ch; }
+  .empresa-resena p:first-child { margin-top: 0; }
+  .empresa-sellos { grid-area: 2 / 2; justify-self: end; }
+  .sellos-chicos { grid-template-columns: repeat(4, minmax(0, 6.4rem)); gap: .4rem; }
+  .sellos-chicos svg { width: 100%; }
+  .sellos-chicos p { max-width: 4.9rem; }
+}
+@media (min-width: 47.51rem) and (prefers-reduced-motion: no-preference) {
+  .empresa-casona { min-height: 175svh; }
+  .empresa-escena { position: sticky; top: 0; }
+}
+@media (max-width: 47.5rem) {
+  .empresa-capas { grid-template-columns: 1fr; padding-top: 3rem; }
+  .empresa-sellos { justify-self: start; }
+}
+
+/* Productos y servicios en inicio (Benjamin, 2026-11-03): el tacógrafo arriba y 7 fichas en una fila, que un pulso de
+   cobre del tacógrafo enciende de a una (productos-nube.js) */
+.familia-siete { grid-column: 1 / -1; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1.5rem 1.1rem; margin-top: 4.5rem; }
+.familia-siete::before { left: 7.14%; right: 7.14%; }
+.familia:has(.familia-siete) .dg-taco::after { display: none; }   /* la dibuja productos-nube.js hasta la barra */
+.familia-siete .ilus { height: 4.2rem; }
+.familia-siete h3 { font-size: .98rem; }
+.familia-siete p:not(.sello) { font-size: .84rem; }
+.familia-siete li { transition: opacity .5s ease; }
+.familia-siete li.encendida .ilus-borde { stroke: var(--acento); }
+.familia-siete li.encendida::before { background: var(--acento); }
+@media (max-width: 75rem) { .familia-siete { grid-template-columns: repeat(4, minmax(0, 1fr)); } .familia-siete::before, .familia-siete li::before { display: none; } }
+@media (max-width: 47.5rem) { .familia-siete { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ─── Productos y servicios en inicio (Benjamin, 2026-11-09, plan aprobado; productos-relato.js): 3 fases sobre el
+   tacógrafo, con el reparto del mapa (texto a la izquierda, escena a la derecha). Sin .prod-vivo (celular, movimiento
+   reducido o sin JS), el texto con las 3 fases y la escena debajo ─── */
+.prod-relato h2 { margin-top: .9rem; }
+.prod-fases { margin-top: 2rem; display: grid; grid-template-columns: 1fr; gap: .9rem; max-width: 34rem; }
+.prod-fases li h3 { transition: color .6s ease; }
+.prod-fases li { transition: opacity .6s ease, border-color .6s ease; }
+.prod-fases li p { margin-top: .3rem; color: var(--tinta-2); max-height: 7em; overflow: hidden; transition: max-height .7s ease, opacity .6s ease, margin-top .7s ease; }
+.prod-fases li.destacado { border-top-color: var(--acento); }
+.prod-fases li.destacado h3 { color: var(--acento); }
+.prod-fases li.atenuado { opacity: .5; }
+.prod-fases li.atenuado p { max-height: 0; opacity: 0; margin-top: 0; }
+.prod-relato .acciones { margin-top: 1.75rem; }
+.prod-vivo .prod-recorrido { height: 300vh; }
+.prod-vivo .prod-relato { position: sticky; top: 0; height: 100vh; height: 100svh; padding-block: 5.5rem 1.5rem;
+  display: grid; grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); gap: 2rem; align-items: center; }
+.prod-escena { position: relative; height: min(70vh, 38rem); min-height: 24rem; margin-top: 1.5rem; }
+.prod-vivo .prod-escena { height: min(80vh, 46rem); margin-top: 0; }
+.prod-escena .esc { position: absolute; left: 0; top: 0; width: 10rem; will-change: left, top, width, opacity; }
+.prod-escena .esc svg { display: block; width: 100%; height: auto; }
+.prod-escena .ilus-pulso { display: none; }
+.prod-escena .ilus-taco { fill: var(--pagina); stroke: var(--acento); stroke-width: 2.2; }
+.prod-escena .ilus-taco-antena { fill: none; stroke: var(--acento); stroke-width: 2; stroke-linecap: round; }
+/* el display: su matriz de puntos la dibuja productos-relato.js (con texto que corre); se ocultan los LED fijos del dibujo */
+.prod-escena .esc-display rect[fill^="url"] { opacity: 0; }
+/* las tarjetas apiladas: cada una tapa a la de atrás con el color del papel (el dibujo no tiene relleno) */
+.prod-escena .esc-smartcard { isolation: isolate; }
+.prod-escena .esc-smartcard::before { content: ""; position: absolute; left: 3.45%; top: 22.6%; width: 93.1%; height: 73.9%; border-radius: 8% / 10%; background: var(--pagina); z-index: -1; }
+.prod-capa { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+/* el dashboard muestra los datos de la flota en su pantalla (productos-relato.js): se ocultan las barras de la ilustración */
+.esc-bus.resaltado .ilus-borde { stroke: var(--acento); stroke-width: 2.6; }
+.puente-nube { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 8; }
+/* en el celular, la parada que muestra la escena en bucle */
+@media (max-width: 40rem) { .prod-escena { height: 46rem; } }
+/* «Tacógrafo v.N» sobre el taco: las letras giran como paletas al cambiar de versión */
+.esc-version { position: absolute; transform: translate(-50%, -50%); margin: 0; white-space: nowrap; font: 600 1.35rem/1 var(--titulos); letter-spacing: -.01em; color: var(--tinta); perspective: 400px; }
+.esc-version span { display: inline-block; transform-origin: 50% 50%; }
+.esc-version .num { color: var(--acento); }
+
+
+.cuaderno {
+  position: absolute; z-index: 4; width: 180px; box-sizing: border-box;
+  padding: 8px 10px 8px 12px; color: var(--tinta-2);
+  font: 400 11.5px/1.3 "DM Sans", sans-serif;
+}
+.cuaderno h3 { margin: 2px 0; color: var(--tinta); font: 600 20px/1.1 "DM Sans", sans-serif; }
+.cuaderno small { color: var(--tinta); font: 600 12.5px/1.3 "DM Sans", sans-serif; }
+.cuaderno p { margin: 2px 0; }
+.cuaderno a { color: inherit; text-decoration: underline; }

@@ -21,7 +21,14 @@
   // (2026-11-02, tarde) SACEL es una sola parada: al llegar, la animación corre sola (aSacel, DUR_SACEL) y el panorama
   // sale y SACEL entra en el primer 35 %
   var SACEL_ENTRA = [0, 0.35];
-  var DUR_SACEL = 2.5, aSacel = 0, tSacel = 0;               // s; 0 = panorama, 1 = SACEL completo
+  var DUR_SACEL = 2.5, aSacel = 0, tSacel = 0;
+  // (2026-11-03) Benjamin: el relato de SACEL va dentro del mapa, en 3 paradas tras el panorama: 1) SACEL (la de antes)
+  // con chips de datos que salen de los buses hacia la nube; 2) la flota: cada bus de la ruta con su línea a la nube y
+  // pulsos de cobre; 3) un panel que se despliega desde la nube con el registro de conducción y descanso de los buses
+  // simulados. nivelMapa (0–3) lo elige el scroll; aFlota y aReporte se animan solos en DUR_NIVEL
+  var PARADAS_MAPA = 3, DUR_NIVEL = 1.6, nivelMapa = 0, aFlota = 0, aReporte = 0;
+  var VENTANA_REG = 360;
+  var PASOS_PARADA = [[], [0], [1], [2]];        // la fase (.pasos li) de cada parada: captura y transmisión, registro, operación                         // s de animación (× escala 5 = 30 min simulados)               // s; 0 = panorama, 1 = SACEL completo
   document.documentElement.classList.add("con-mapa");   // con JS, los textos se turnan (base.css)
   function despues(fn) {                        // tras pintar: con la página cargada y el navegador libre
     function ya() { (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(fn, { timeout: 600 }); }
@@ -85,7 +92,8 @@
   if (!gl) { fallar(); return; }
   var cr = capa.getContext("2d");
   var sim = window.FlotaSim(D, {
-    escala: ACELERACION_TIEMPO * VELOCIDAD_BUSES, periodo: 9, vuelo: 3.2,   // una trama cada 9 s por bus (2026-10-30; antes 2,6) ventana: 80,
+    escala: ACELERACION_TIEMPO * VELOCIDAD_BUSES, periodo: 9, vuelo: 3.2,   // una trama cada 9 s por bus (2026-10-30; antes 2,6)
+    ventana: VENTANA_REG,                         // el registro guarda 30 min simulados, para el panel de la parada 3 (2026-11-03)
     descanso: [10 * 60 / ACELERACION_TIEMPO, 25 * 60 / ACELERACION_TIEMPO],
     parada: [2 * 60 / ACELERACION_TIEMPO, 5 * 60 / ACELERACION_TIEMPO]
   });
@@ -273,8 +281,29 @@
     var r = recorrido.getBoundingClientRect(), largo = r.height - window.innerHeight;
     return largo > 0 ? Math.max(0, Math.min(1, -r.top / largo)) : 0;
   }
+  // pan y tilt ligeros en cada parada del relato de SACEL (Benjamin, 2026-11-03): la cámara gira alrededor del objetivo
+  // (grados por parada: [giro, elevación]) a medida que entran la flota y el registro
+  var PAN_TILT = [[-5, 4], [-5, -3]];
+  var ZOOM_GEO = { centro: 1, acerca: 0.5 };      // fase 2: el objetivo pasa a la geocerca y la distancia baja a la mitad
+  function panTilt(q) {
+    var eF = suave(aFlota), eR = suave(aReporte);
+    var giro = (PAN_TILT[0][0] * eF + PAN_TILT[1][0] * eR) * Math.PI / 180, elev = (PAN_TILT[0][1] * eF + PAN_TILT[1][1] * eR) * Math.PI / 180;
+    if (!giro && !elev) return q;
+    // en la fase 2 (operación y seguridad) la cámara además se acerca y se centra en la geocerca (Benjamin, 2026-11-03);
+    // en la fase 3 vuelve a la vista amplia
+    var w2 = eF * (1 - eR), obj = q.obj;
+    if (w2 > 0) {
+      var G = datosGeocerca(), gy = alturaEn(G.x, G.z) * EXAG;
+      obj = [q.obj[0] + (G.x - q.obj[0]) * w2 * ZOOM_GEO.centro, q.obj[1] + (gy - q.obj[1]) * w2 * ZOOM_GEO.centro, q.obj[2] + (G.z - q.obj[2]) * w2 * ZOOM_GEO.centro];
+    }
+    var v = [q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]], L = Math.hypot(v[0], v[1], v[2]) * (1 - ZOOM_GEO.acerca * w2);
+    var cg = Math.cos(giro), sg = Math.sin(giro), x = v[0] * cg - v[2] * sg, z = v[0] * sg + v[2] * cg;
+    var hz = Math.hypot(x, z), ang = Math.atan2(v[1], hz) + elev;
+    var o = [obj[0] + x / hz * Math.cos(ang) * L, obj[1] + Math.sin(ang) * L, obj[2] + z / hz * Math.cos(ang) * L];
+    return { ojo: o, obj: obj, arriba: q.arriba };
+  }
   function camara(p) {
-    var q = pose(p);
+    var q = panTilt(pose(p));
     ojo = q.ojo;
     var dist = Math.hypot(q.ojo[0] - q.obj[0], q.ojo[1] - q.obj[1], q.ojo[2] - q.obj[2]);
     var P = perspectiva(FOV * Math.PI / 180, W / H, Math.max(30, dist * 0.004), dist * 6);
@@ -512,9 +541,25 @@
     especies();
     if (RES.flota > 0.01) fichas(RES.flota);
     pulsos();
+    if (pDatos > 0.01) chipsDatos();
+    if (aFlota > 0.01) { geocerca(); redFlota(); }
+    if (aReporte > 0.01) panelReporte();
     if (RES.iot > 0.01) iot(RES.iot);
     condores();
     loros();
+    publicarEstado();
+  }
+  // para la sección «Productos y servicios» (productos-relato.js, 2026-11-05): dónde está la nube en la pantalla (para el
+  // puente que la lleva hasta allá) y el estado de los buses simulados (velocidad, exceso y si están en la geocerca)
+  function publicarEstado() {
+    var sw = posSwitch(), r = capa.getBoundingClientRect(), G = datosGeocerca();   // la nube se dibuja en la capa 2D
+    window.SACEL_MAPA = {
+      nube: sw ? { x: r.left + sw.x, y: r.top + sw.y, esc: sw.esc, vis: sw.vis } : null,
+      buses: sim.buses.map(function (b) {
+        var q = sim.enRuta(sim.posicion(b));
+        return { kmh: Math.round(b.v * 3.6), exceso: sim.exceso(b), detenido: b.v < 0.5, geocerca: Math.hypot(q[0] - G.x, q[1] - G.z) < GEOCERCA.radio };
+      })
+    };
   }
 
   // ─── etiquetas del panorama que señalan en el mapa (index.html, .haceres [data-resalta]): flota, nube o bus ───
@@ -556,24 +601,49 @@
     });
     cr.restore();
   }
+  function mapaQuieto() { return aSacel < 0.005 && Math.round(pAct * PARADAS_MAPA) === 0; }
   function resaltes() {                         // se acercan a su meta en ~0,3 s (de inmediato con movimiento reducido)
     var t = performance.now(), dt = tRes ? Math.min(0.1, (t - tRes) / 1000) : 0; tRes = t;
-    for (var k in RES) RES[k] = quieto ? META[k] : RES[k] + (META[k] - RES[k]) * Math.min(1, dt * 8);
+    // las animaciones de las 4 tarjetas sólo corren con el mapa quieto en el panorama (Benjamin, 2026-11-03): en cuanto la
+    // cámara se mueve (entra SACEL) se apagan, aunque el cursor siga sobre una tarjeta
+    var libre = mapaQuieto() ? 1 : 0;
+    for (var k in RES) RES[k] = quieto ? META[k] * libre : RES[k] + (META[k] * libre - RES[k]) * Math.min(1, dt * 8);
   }
 
   // ─── fichas de los buses (Benjamin, 2026-11-02): al pasar sobre «Rastreo de flotas», una tarjeta semitransparente a la
   // derecha de cada uno de los 3 buses más cerca de la cámara, unida a él por una línea y con su sombra sobre el mapa.
   // Datos de la simulación (no son de un cliente): velocidad y límite del tramo, altitud, km de la ruta, sentido y estado ───
+  function fondoFicha(punto, x, y, ancho, alto, arriba) {
+    var claro = tema === "claro", borde = punto[0] > x + ancho ? x + ancho : x;
+    sombraCard(x, y, ancho, alto, 10);
+    var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
+    cr.strokeStyle = azul; cr.lineWidth = 1.4;
+    cr.beginPath(); cr.moveTo(punto[0], punto[1]); cr.lineTo(borde, y + alto / 2); cr.stroke();
+    cr.fillStyle = azul; cr.beginPath(); cr.arc(punto[0], punto[1], 3, 0, 7); cr.fill();
+    cr.beginPath(); cr.arc(borde, y + alto / 2, 2.2, 0, 7); cr.fill();
+    var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
+    var franja = arriba ? (claro ? "#8f5213" : "#d99a55") : (claro ? "#2f5fb3" : "#8fb0f0");
+    cr.fillStyle = tinte;
+    cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
+    redondeado(x, y, ancho, alto, 10); cr.fill(); cr.stroke();
+    cr.save(); redondeado(x, y, ancho, alto, 10); cr.clip(); cr.fillStyle = franja; cr.fillRect(x, y, 4, alto); cr.restore();
+    return franja;
+  }
   function fichas(op) {
     var cerca = focos.map(function (f, i) {
       return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
     }).filter(function (o) { return o.c && o.c[0] > 0 && o.c[0] < W && o.c[1] > 0 && o.c[1] < H; })
       .sort(function (a, b) { return a.d - b.d; });
-    // dos fichas fijas (Benjamin, 2026-11-02): cada una muestra el bus de su sentido que está más cerca de ella en pantalla
+    // dos fichas fijas (Benjamin, 2026-11-02): cada una muestra el bus más cercano a ella en pantalla (2026-11-03: sin
+    // importar el sentido, para no elegir uno lejano; y nunca uno del extremo izquierdo, junto al texto)
+    var mvF = medidasVelo(), usados = [];
+    cerca = cerca.filter(function (o) { return lejosDelTexto(o.c[0], mvF) > 0.5; });
     function masCerca(sube) {
       var A = anclaFicha(sube); if (!A) return null;
-      return cerca.filter(function (o) { return (o.f.b.dir > 0) === sube; })
+      var o = cerca.filter(function (o) { return usados.indexOf(o) < 0; })
         .sort(function (a, b) { return Math.hypot(a.c[0] - A.p[0], a.c[1] - A.p[1]) - Math.hypot(b.c[0] - A.p[0], b.c[1] - A.p[1]); })[0];
+      if (o) { usados.push(o); o.ancla = sube; }
+      return o;
     }
     var sube1 = masCerca(true), baja1 = masCerca(false);
     cerca = [sube1, baja1].filter(Boolean).sort(function (a, b) { return a.c[1] - b.c[1]; });
@@ -587,24 +657,9 @@
       var sube = (b.dir > 0) ? "subiendo" : "bajando";
       // fija en el mapa (Benjamin, 2026-11-02): flota sobre un punto del relieve a la derecha de la ruta, uno para la
       // ficha de subida y otro para la de bajada; sólo la línea sigue al bus
-      var A = anclaFicha(b.dir > 0); if (!A) return;
+      var A = anclaFicha(o.ancla); if (!A) return;   // la ficha de su lugar (no la de su sentido)
       var x = Math.min(A.p[0], W - ANCHO - 12), y = A.p[1] - ALTO;
-      // su sombra sobre el terreno, como la de la nube de SACEL
-      sombraFicha(A, ANCHO);
-      // conexión con el bus, en azul Andes
-      var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
-      cr.strokeStyle = azul; cr.lineWidth = 1.4;
-      cr.beginPath(); cr.moveTo(o.c[0], o.c[1]); cr.lineTo(x, y + ALTO / 2); cr.stroke();
-      cr.fillStyle = azul; cr.beginPath(); cr.arc(o.c[0], o.c[1], 3, 0, 7); cr.fill();
-      cr.beginPath(); cr.arc(x, y + ALTO / 2, 2.2, 0, 7); cr.fill();
-      // tarjeta, con color por sentido (Benjamin, 2026-11-02: «un poco de color»): cálida (cobre) si sube, fría (azul) si baja
-      var arriba = b.dir > 0;
-      var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
-      var franja = arriba ? (claro ? "#8f5213" : "#d99a55") : (claro ? "#2f5fb3" : "#8fb0f0");
-      cr.fillStyle = tinte;
-      cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
-      redondeado(x, y, ANCHO, ALTO, 10); cr.fill(); cr.stroke();
-      cr.save(); redondeado(x, y, ANCHO, ALTO, 10); cr.clip(); cr.fillStyle = franja; cr.fillRect(x, y, 4, ALTO); cr.restore();
+      var franja = fondoFicha(o.c, x, y, ANCHO, ALTO, b.dir > 0);
       var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
       var alerta = estado === "Sobre el límite", acento = claro ? "#8f5213" : "#d99a55";
       cr.textBaseline = "alphabetic";
@@ -628,22 +683,17 @@
     var e = alturaEn(x, z), y = (e + NUBE.altura * 0.55) * EXAG, p = proyectar(x, y, z);
     return p ? { p: p, x: x, z: z, e: e, alto: y - e * EXAG } : null;
   }
-  function sombraFicha(A, anchoPx) {           // rectángulo redondeado tendido sobre el terreno, corrido como la sombra de la nube
-    var wm = tamPantalla(A.x, A.e * EXAG, A.z, anchoPx), hm = wm * 0.42;
-    // corrida al sur (hacia quien mira), así asoma bajo la tarjeta como la sombra de la nube bajo la nube
-    var d = A.alto * NUBE.sombra, cx = A.x + d * 0.25 - wm * 0.08, cz = A.z + d + hm * 1.1;
-    cr.save();
-    if ("filter" in cr) cr.filter = "blur(3px)";
-    cr.fillStyle = tema === "claro" ? "rgba(40,30,10,.4)" : "rgba(0,0,6,.5)";   // más transparente (Benjamin, 2026-11-02)
-    cr.beginPath();
-    for (var k = 0; k <= 48; k++) {
-      var t = k / 48 * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
-      var sx = Math.sign(c) * Math.pow(Math.abs(c), 0.35), sz = Math.sign(s) * Math.pow(Math.abs(s), 0.35);   // casi rectángulo
-      var x = cx + wm * 0.5 + sx * wm * 0.5, z = cz + sz * hm * 0.5;
-      var q = proyectar(x, alturaEn(x, z) * EXAG + 15, z); if (!q) { cr.restore(); return; }
-      if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]);
-    }
-    cr.fill(); cr.restore();
+  // una sola sombra para todas las tarjetas del mapa (Benjamin, 2026-11-03): la misma transparencia, el mismo desenfoque
+  // y corrida hacia el mismo lado (abajo a la derecha), como con un solo foco de luz arriba a la izquierda. Se dibuja
+  // con la sombra del canvas de una forma puesta fuera de la pantalla, así sólo queda la sombra
+  var SOMBRA = { dx: 12, dy: 18, blur: 14, claro: "rgba(40,30,10,.26)", oscuro: "rgba(0,0,6,.55)" };
+  function sombraCard(x, y, w, h, r) {
+    cr.save(); cr.shadowColor = SOMBRA[tema]; cr.shadowBlur = SOMBRA.blur; cr.shadowOffsetX = SOMBRA.dx + 10000; cr.shadowOffsetY = SOMBRA.dy;
+    cr.fillStyle = "#000"; redondeado(x - 10000, y, w, h, r); cr.fill(); cr.restore();
+  }
+  function sombraCirculo(x, y, r) {
+    cr.save(); cr.shadowColor = SOMBRA[tema]; cr.shadowBlur = SOMBRA.blur; cr.shadowOffsetX = SOMBRA.dx + 10000; cr.shadowOffsetY = SOMBRA.dy;
+    cr.fillStyle = "#000"; cr.beginPath(); cr.arc(x - 10000, y, r, 0, 7); cr.fill(); cr.restore();
   }
   function redondeado(x, y, w, h, r) {
     cr.beginPath();
@@ -731,7 +781,7 @@
     // a su turno, desenfocado al principio); adentro, un gráfico de barras que crece con cada trama que llega; a su
     // izquierda, el rótulo. Dibujada a la escala que le da la distancia
     cr.save();
-    var aN = veloEn(sw.x, sw.y + 20, altMax) * sw.vis;
+    var aN = veloEn(sw.x, sw.y + 20, altMax) * sw.vis * (window.SACEL_PUENTE ? 1 - window.SACEL_PUENTE : 1);   // la lleva el puente (productos-relato.js)
     if ("filter" in cr && sw.vis < 1) cr.filter = "blur(" + ((1 - sw.vis) * 4).toFixed(1) + "px)";
     cr.translate(sw.x, sw.y); cr.scale(sw.esc, sw.esc);
     var COPOS = [[-18, 5, 7], [-11, 0, 10], [-3, -5, 12], [6, -6, 10], [12, 0, 10], [19, 5, 7.5], [-8, 6, 9], [3, 5, 10], [12, 7, 8], [-1, 0, 11]];
@@ -763,7 +813,7 @@
     cr.globalAlpha = 1;
   }
 
-  // ─── «Hardware e IoT», versión 3 (Benjamin, 2026-11-03): una LUPA circular fija sobre el relieve, unida por una línea
+  // ─── «Equipos electrónicos» (antes «Hardware e IoT»; requerimiento de JI, 2026-11-03), versión 3 (Benjamin, 2026-11-03): una LUPA circular fija sobre el relieve, unida por una línea
   // al bus destacado. Adentro, una versión simplificada en 2D (reemplaza la segunda cámara 3D de 033755c): el bus de
   // costado, en corte, sobre un fondo difuminado del mismo mapa (el relieve alrededor del bus, desenfocado), con lo
   // esencial: el equipo en el tablero, la antena GPS en el techo y el cable CAN del motor al equipo, con pulsos de cobre.
@@ -875,6 +925,31 @@
     }
     return { mastil: [ax, ay - 0.16 * r], can: [(cam[1][0] + cam[2][0]) / 2, cam[1][1] - 9] };
   }
+  // el satélite GPS va en el cielo, sobre la silueta de las montañas, para que resalte (Benjamin, 2026-11-03): se busca
+  // la columna con más cielo cerca de la lupa y se pone 60 px sobre la cima de esa columna (la silueta se calcula
+  // proyectando la rejilla del relieve y se guarda mientras la cámara no cambie)
+  var perfilCimas = null, claveSil = "";
+  function siluetaCimas() {
+    var clave = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(4); }).join(",") + "|" + W + "|" + H : "";
+    if (clave === claveSil && perfilCimas) return perfilCimas;
+    claveSil = clave; perfilCimas = new Float32Array(Math.ceil(W / 20) + 1).fill(Infinity);
+    for (var j = 0; j < T.nz; j += 2) for (var i = 0; i < T.nx; i += 2) {
+      var x = T.x0 + i * T.paso, z = T.z0 + j * T.paso, q = proyectar(x, alturas[j * T.nx + i] * EXAG, z);
+      if (!q || q[0] < 0 || q[0] > W) continue;
+      var b = Math.floor(q[0] / 20); if (q[1] < perfilCimas[b]) perfilCimas[b] = q[1];
+    }
+    return perfilCimas;
+  }
+  function posSatelite() {
+    var sil = siluetaCimas(), mejor = null, pref = LUPA.x + LUPA.r;
+    for (var x = Math.max(W * 0.5, LUPA.x - 200); x <= W - 50; x += 20) {
+      var b = Math.floor(x / 20), cima = Math.min(sil[b] || Infinity, sil[b - 1] || Infinity, sil[b + 1] || Infinity, sil[b + 2] || Infinity);
+      if (!isFinite(cima)) cima = H * 0.6;
+      var p = cima - 0.12 * Math.abs(x - pref);
+      if (!mejor || p > mejor.p) mejor = { p: p, x: x, cima: cima };
+    }
+    return [mejor.x, Math.max(96, Math.min(mejor.cima - 60, H * 0.32))];
+  }
   function iot(op) {
     if (!LUPA.ok) return;
     var F = LUPA.F, cb = proyectar(F.centro[0], F.centro[1], F.centro[2]); if (!cb) return;
@@ -887,10 +962,10 @@
     cr.beginPath(); cr.moveTo(cb[0] - Math.cos(ang) * 12, cb[1] - Math.sin(ang) * 12); cr.lineTo(bx, by);
     cr.strokeStyle = P.caja; cr.lineWidth = 4; cr.stroke(); cr.strokeStyle = borde + ".75)"; cr.lineWidth = 1.4; cr.stroke();
     // el aro de la lupa, con su sombra
-    cr.save(); cr.shadowColor = tema === "claro" ? "rgba(0,16,79,.25)" : "rgba(0,0,0,.6)"; cr.shadowBlur = 16; cr.shadowOffsetY = 6;
-    cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke(); cr.restore();
+    sombraCirculo(LUPA.x, LUPA.y, LUPA.r);
+    cr.strokeStyle = borde + ".9)"; cr.lineWidth = 2.2; cr.beginPath(); cr.arc(LUPA.x, LUPA.y, LUPA.r, 0, 7); cr.stroke();
     // GPS: el satélite sobre la cordillera manda arcos al bus real
-    var sat = [Math.min(W - 40, LUPA.x + LUPA.r * 0.9), Math.max(H * 0.14, LUPA.y - 260)];
+    var sat = posSatelite();
     var a = Math.atan2(cb[1] - sat[1], cb[0] - sat[0]), dist = Math.hypot(cb[0] - sat[0], cb[1] - sat[1]);
     for (var k = 0; k < 3; k++) {
       var u = (t * 0.5 + k / 3) % 1, rr = 10 + u * (dist - 10);
@@ -932,6 +1007,178 @@
     rotulo("GPS", sat[0] + 26, sat[1] - 14, "left");
     rotulo("GPS", pz.mastil[0] + 8, pz.mastil[1] - 6, "left");
     rotulo("CAN bus", pz.can[0], pz.can[1], "center");
+    cr.restore();
+  }
+
+  // ─── paradas 1–3 del relato de SACEL en el mapa (Benjamin, 2026-11-03) ───
+  function acelU(u) { return (Math.exp(4 * u) - 1) / (Math.exp(4) - 1); }   // sale lento y llega rápido
+  function arcoNube(o, sw, u) {                  // el mismo arco de las tramas, del bus a la nube
+    var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]), m = 1 - u;
+    return [m * m * o[0] + 2 * m * u * mx + u * u * sw.x, m * m * o[1] + 2 * m * u * my + u * u * sw.y];
+  }
+  function busesEnPantalla() {
+    var out = [];
+    focos.forEach(function (f) { var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (c && c[0] > 0 && c[0] < W && c[1] > 0 && c[1] < H) out.push(c); });
+    return out;
+  }
+  // 1) captura y transmisión: chips con nombre que salen de los buses hacia la nube: uno cada CADA_CHIP s, de un bus distinto cada vez
+  var DATOS_CHIP = ["km/h", "GPS", "conductor", "CAN bus"], CADA_CHIP = 0.9, VUELO_CHIP = 2.2;
+  function chipsDatos() {
+    var sw = posSwitch(); if (!sw || sw.vis < 0.3) return;
+    var bs = busesEnPantalla(); if (!bs.length) return;
+    var op = pDatos * (1 - suave(aFlota)); if (op <= 0.02) return;
+    var P = PULSO[tema], t = quieto ? 3.1 : performance.now() / 1000, n = Math.floor(t / CADA_CHIP);
+    cr.save(); cr.font = "500 11px 'Plex Mono', monospace"; cr.textAlign = "center"; cr.textBaseline = "middle";
+    for (var k = n - Math.ceil(VUELO_CHIP / CADA_CHIP); k <= n; k++) {
+      var u = (t - k * CADA_CHIP) / VUELO_CHIP; if (u < 0 || u > 1) continue;
+      var o = bs[((k % bs.length) + bs.length) % bs.length], q = arcoNube(o, { x: sw.x, y: sw.y + 6 }, acelU(u)), txt = DATOS_CHIP[((k % 4) + 4) % 4];
+      var w = cr.measureText(txt).width + 14;
+      cr.globalAlpha = op * Math.min(1, u / 0.08) * Math.min(1, (1 - u) / 0.15);
+      cr.beginPath(); if (cr.roundRect) cr.roundRect(q[0] - w / 2, q[1] - 10, w, 20, 10); else cr.rect(q[0] - w / 2, q[1] - 10, w, 20);
+      cr.fillStyle = P.caja; cr.fill(); cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.3; cr.stroke();
+      cr.fillStyle = P.texto; cr.fillText(txt, q[0], q[1] + 0.5);
+    }
+    cr.restore();
+  }
+  // 2) operación y seguridad: cada bus con su anillo y su línea a la nube, con un pulso de cobre que sube
+  function redFlota() {
+    var sw = posSwitch(); if (!sw) return;
+    var P = PULSO[tema], op = suave(aFlota) * (1 - suave(aReporte)), t = quieto ? 0.6 : performance.now() / 1000;
+    if (op <= 0.02) return;
+    cr.save(); cr.lineCap = "round";
+    busesEnPantalla().forEach(function (o, i) {
+      cr.globalAlpha = op;
+      cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.beginPath(); cr.moveTo(o[0], o[1]);
+      var mx = (o[0] + sw.x) / 2, my = Math.min(o[1], sw.y) - 0.25 * Math.hypot(sw.x - o[0], sw.y - o[1]);
+      cr.quadraticCurveTo(mx, my, sw.x, sw.y + 6); cr.stroke();
+      cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.6; cr.beginPath(); cr.arc(o[0], o[1], 9, 0, 7); cr.stroke();
+      var f = ((t / 2.2) + i * 0.27) % 1, q = arcoNube(o, { x: sw.x, y: sw.y + 6 }, acelU(f));
+      var g = cr.createRadialGradient(q[0], q[1], 0, q[0], q[1], 6);
+      g.addColorStop(0, "rgba(" + P.normal + "," + (0.95 * Math.sin(f * Math.PI)).toFixed(3) + ")"); g.addColorStop(1, "rgba(" + P.normal + ",0)");
+      cr.fillStyle = g; cr.beginPath(); cr.arc(q[0], q[1], 6, 0, 7); cr.fill();
+    });
+    cr.restore();
+  }
+  // en la fase 2, una geocerca sobre un tramo de la H-25, tendida sobre el relieve, con una ficha chica (Benjamin,
+  // 2026-11-03: «para darle mayor importancia a seguridad»). Los buses que están dentro se marcan; los datos (tramo, límite
+  // y buses dentro) salen de la simulación
+  var GEOCERCA = { s: 0.5, radio: 1900 }, geoCache = null;
+  function datosGeocerca() {
+    if (geoCache) return geoCache;
+    var c = sim.enRuta(GEOCERCA.s * sim.LARGO), s0 = Infinity, s1 = -Infinity;
+    for (var u = 0; u <= 1; u += 0.002) { var q = sim.enRuta(u * sim.LARGO); if (Math.hypot(q[0] - c[0], q[1] - c[1]) < GEOCERCA.radio) { s0 = Math.min(s0, u); s1 = Math.max(s1, u); } }
+    function km(u) { return (u * D.largo / 1000).toFixed(1).replace(".", ","); }
+    geoCache = { x: c[0], z: c[1], km: km(s0) + "–" + km(s1), lim: sim.limiteKmh(GEOCERCA.s * sim.LARGO) };
+    return geoCache;
+  }
+  function geocerca() {
+    var op = suave(aFlota) * (1 - suave(aReporte)); if (op <= 0.02) return;
+    var G = datosGeocerca(), P = PULSO[tema], claro = tema === "claro", t = quieto ? 0 : performance.now() / 1000;
+    // el borde, punto a punto sobre el relieve
+    var pts = [];
+    for (var k = 0; k <= 72; k++) {
+      var a = k / 72 * Math.PI * 2, x = G.x + Math.cos(a) * GEOCERCA.radio, z = G.z + Math.sin(a) * GEOCERCA.radio;
+      var q = proyectar(x, alturaEn(x, z) * EXAG + 20, z); if (!q) return; pts.push(q);
+    }
+    cr.save(); cr.globalAlpha = op;
+    cr.beginPath(); pts.forEach(function (q, k) { if (k) cr.lineTo(q[0], q[1]); else cr.moveTo(q[0], q[1]); }); cr.closePath();
+    cr.fillStyle = "rgba(" + P.normal + "," + (claro ? 0.12 : 0.14) + ")"; cr.fill();
+    cr.setLineDash([6, 5]); cr.lineDashOffset = -t * 12; cr.strokeStyle = "rgba(" + P.normal + ",.95)"; cr.lineWidth = 1.8; cr.stroke(); cr.setLineDash([]);
+    // los buses dentro, con un anillo que late
+    var dentro = 0;
+    focos.forEach(function (f) {
+      var b = f.b, q = sim.enRuta(sim.posicion(b)); if (Math.hypot(q[0] - G.x, q[1] - G.z) > GEOCERCA.radio) return;
+      dentro++;
+      var c = proyectar(f.centro[0], f.centro[1], f.centro[2]); if (!c) return;
+      cr.strokeStyle = "rgba(" + (sim.exceso(b) ? P.alerta : P.normal) + ",.95)"; cr.lineWidth = 1.6;
+      cr.beginPath(); cr.arc(c[0], c[1], 12 + 3 * Math.sin(t * 5), 0, 7); cr.stroke();
+    });
+    // la ficha, a la derecha de la geocerca, con su sombra tendida como las de «Rastreo de flotas»
+    // bien a la derecha de la ruta (2026-11-03)
+    // la ficha, bien a la derecha de la ruta (2026-11-03): a la altura de la geocerca, 90 px a la derecha del punto de la
+    // ruta que más se acerca por la derecha en esa franja de la pantalla
+    var AN = 196, AL = 70, yc = pts.reduce(function (m, q) { return m + q[1]; }, 0) / pts.length;
+    var y = Math.max(96, Math.min(H - AL - 56, yc - AL - 30)), xr = 0;
+    for (var ir = 0; ir < R.length; ir += 4) {
+      var qr = proyectar(R[ir][0], alturaEn(R[ir][0], R[ir][1]) * EXAG, R[ir][1]);
+      if (qr && qr[1] > y - 30 && qr[1] < y + AL + 30) xr = Math.max(xr, qr[0]);
+    }
+    var x = Math.max(W * 0.5, Math.min(W - AN - 24, xr + 90));
+    sombraCard(x, y, AN, AL, 10);
+    var borde = pts.reduce(function (m, q) { return q[0] > m[0] ? q : m; });     // el punto del borde más a la derecha
+    cr.strokeStyle = "rgba(" + P.normal + ",.8)"; cr.lineWidth = 1.2; cr.beginPath(); cr.moveTo(borde[0], borde[1]); cr.lineTo(x, y + AL / 2); cr.stroke();
+    redondeado(x, y, AN, AL, 10);
+    cr.fillStyle = claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)"; cr.fill();
+    cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)"; cr.lineWidth = 1; cr.stroke();
+    cr.save(); redondeado(x, y, AN, AL, 10); cr.clip(); cr.fillStyle = claro ? "#8f5213" : "#d99a55"; cr.fillRect(x, y, 4, AL); cr.restore();
+    var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
+    cr.textAlign = "left"; cr.textBaseline = "alphabetic";
+    cr.font = "600 12.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta; cr.fillText("Geocerca · H-25, km " + G.km, x + 12, y + 20);
+    cr.font = "600 11.5px 'DM Sans', sans-serif"; cr.fillStyle = tinta;
+    var lin = (dentro === 1 ? "1 bus dentro" : dentro + " buses dentro") + " · límite " + G.lim + " km/h";
+    cr.fillText(lin, x + 12, y + 39);
+    cr.font = "400 11px 'DM Sans', sans-serif"; cr.fillStyle = tinta2; cr.fillText("alerta al entrar o salir del tramo", x + 12, y + 57);
+    cr.restore();
+  }
+
+  // 3) registro y cumplimiento: el panel que se despliega desde la nube: el registro de los buses simulados (los segmentos que guarda la
+  // simulación: conducción, descanso o detención, y exceso de velocidad), en los últimos 30 min simulados
+  var panelRect = null, BUSES_PANEL = 4, VENTANA_PANEL = 180;   // 180 s de animación × escala 5 = 15 min simulados
+  function panelReporte() {
+    var sw = posSwitch(); if (!sw) return;
+    // más chico (Benjamin, 2026-11-03): 4 buses y 15 min de línea de tiempo
+    var P = PULSO[tema], claro = tema === "claro", e = suave(aReporte), bs = sim.buses.slice(0, BUSES_PANEL), n = bs.length;
+    if (e <= 0.02) return;
+    var pw = Math.min(330, W * 0.26), fila = 22, ph = 64 + fila * n + 26;
+    // al costado derecho de la H-25 (Benjamin, 2026-11-03: para repartir la información en la página): a la altura del
+    // medio de la ruta en pantalla, a la derecha del punto más a la derecha de la ruta en esa franja
+    var rp = [];
+    for (var ir = 0; ir < R.length; ir += 4) { var qr = proyectar(R[ir][0], alturaEn(R[ir][0], R[ir][1]) * EXAG, R[ir][1]); if (qr) rp.push(qr); }
+    var ys = rp.map(function (q) { return q[1]; }).sort(function (a, b) { return a - b; }), ym = ys.length ? ys[ys.length >> 1] : H / 2;
+    var y0 = Math.max(96, Math.min(H - ph - 56, ym - ph / 2)), xr = 0;
+    rp.forEach(function (q) { if (q[1] > y0 - 20 && q[1] < y0 + ph + 20) xr = Math.max(xr, q[0]); });
+    var x0 = Math.max(W * 0.45, Math.min(W - pw - 24, xr + 44));
+    panelRect = { x: x0, y: y0, w: pw, h: ph };
+    var tinta = claro ? "0,16,79" : "242,237,227", cob = P.normal;
+    cr.save(); cr.globalAlpha = e;
+    // de la nube baja el panel: una línea y la caja que se abre hacia abajo
+    cr.strokeStyle = "rgba(" + P.borde + ",.5)"; cr.setLineDash([3, 4]); cr.lineWidth = 1;
+    cr.beginPath(); cr.moveTo(sw.x, sw.y + 14); cr.lineTo(Math.max(x0 + 20, Math.min(x0 + pw - 20, sw.x)), y0); cr.stroke(); cr.setLineDash([]);
+    var hv = ph * (0.3 + 0.7 * e);
+    sombraCard(x0, y0, pw, hv, 12);
+    cr.save();
+    // caja translúcida (Benjamin, 2026-11-03: «un poco más de transparencia»): deja ver el relieve detrás
+    cr.beginPath(); if (cr.roundRect) cr.roundRect(x0, y0, pw, hv, 12); else cr.rect(x0, y0, pw, hv); cr.fillStyle = P.caja; cr.globalAlpha = e * 0.55; cr.fill(); cr.restore();
+    cr.strokeStyle = "rgba(" + P.borde + ",.35)"; cr.lineWidth = 1; cr.stroke();
+    cr.beginPath(); cr.rect(x0, y0, pw, hv); cr.clip();
+    cr.fillStyle = "rgb(" + tinta + ")"; cr.font = "600 14px 'Archivo', 'DM Sans', sans-serif"; cr.textAlign = "left"; cr.textBaseline = "alphabetic";
+    cr.fillText("Registro de la flota", x0 + 16, y0 + 26);
+    cr.font = "500 10.5px 'Plex Mono', monospace"; cr.fillStyle = "rgba(" + tinta + ",.7)";
+    cr.fillText("conducción y descanso · últimos 15 min", x0 + 16, y0 + 44);
+    var gx = x0 + 58, gw = pw - 58 - 50, top = y0 + 60, pps = gw / VENTANA_PANEL, reloj = sim.reloj, revela = e;
+    bs.forEach(function (b, r) {
+      var y = top + r * fila;
+      cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "right"; cr.textBaseline = "middle"; cr.fillText("Bus " + (r + 1), gx - 10, y + 6);
+      cr.fillStyle = "rgba(" + tinta + ",.07)"; cr.fillRect(gx, y, gw, 12);
+      var cond = 0, tot = 0;
+      b.fila.forEach(function (sg) {
+        var d0 = Math.max(sg[0], reloj - VENTANA_PANEL), d1 = sg[1]; if (d1 <= d0) return;
+        tot += d1 - d0; if (sg[2]) cond += d1 - d0;
+        var x1 = gx + gw - (reloj - d0) * pps, x2 = gx + gw - (reloj - d1) * pps;
+        x1 = Math.max(x1, gx + gw * (1 - revela)); if (x2 <= x1) return;      // se dibuja de derecha a izquierda al abrirse
+        if (sg[2] === 0) { cr.fillStyle = "rgba(" + cob + ",.32)"; cr.fillRect(x1, y + 3, x2 - x1, 6); }
+        else { cr.fillStyle = sg[2] === 2 ? "rgba(" + cob + ",1)" : "rgba(" + tinta + ",.85)"; cr.fillRect(x1, y, x2 - x1, 12); }
+      });
+      cr.textAlign = "left"; cr.fillStyle = "rgba(" + tinta + ",.75)";
+      cr.fillText(tot > 1 ? Math.round(100 * cond / tot) + " %" : "—", gx + gw + 10, y + 6);
+    });
+    // leyenda
+    var ly = top + n * fila + 10, lx = gx;
+    [["conducción", "rgba(" + tinta + ",.85)", 12], ["descanso", "rgba(" + cob + ",.32)", 6], ["exceso", "rgba(" + cob + ",1)", 12]].forEach(function (l) {
+      cr.fillStyle = l[1]; cr.fillRect(lx, ly - l[2] / 2, 10, l[2]); cr.fillStyle = "rgba(" + tinta + ",.75)"; cr.textAlign = "left"; cr.fillText(l[0], lx + 14, ly);
+      lx += 14 + cr.measureText(l[0]).width + 16;
+    });
+    cr.textAlign = "right"; cr.fillText("%", gx + gw + 40, ly);
     cr.restore();
   }
 
@@ -1048,18 +1295,27 @@
   // ─── «Diseño e investigación» (Benjamin, 2026-11-03): al pasar el mouse aparece la diversidad que en reposo no se
   // distingue, como señal del detalle que Andes pone en sus equipos: 1) las plantas toman el color de su grupo (cactus,
   // árboles esclerófilos, arbustos, bromelia), del valle a la cordillera; 2) se encienden los registros reales de
-  // iNaturalist (punto lleno; fauna y exóticas también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
-  // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» y,
-  // si está amenazada, su categoría del RCE. Una leyenda chica en la esquina libre del mapa, sólo mientras dura. Al salir
+  // iNaturalist y GBIF (punto lleno; la fauna también, como puntos) y las modeladas quedan tenues, con un anillo hueco;
+  // 3) un rótulo con el nombre común y científico de la especie más cercana al cursor, «registro iNaturalist · <fecha>» o
+  // «registro GBIF (eBird) · <fecha>» y, si está amenazada, su categoría del RCE. Desde el 24-nov: 30 especies nativas,
+  // sin exóticas, incluidas 4 aves de GBIF. Una leyenda chica aparece en la esquina libre del mapa. Al salir
   // se apaga en orden inverso; con movimiento reducido, todo junto. etapaEsp va de 0 a 3 (una unidad por etapa) ───
-  var etapaEsp = 0, tEsp = 0, DUR_ETAPA_ESP = 0.9, cursor = null, ancladoEsp = false, bordeEsp = 0;
-  function aparece(e, orden) {                  // 0–1 para un elemento con su turno (orden 0–1) dentro de una etapa
-    return Math.max(0, Math.min(1, (e - orden * 0.75) / 0.25));
+  // (2026-11-03, tarde) Benjamin: se veía con pocos fps y sin reactividad. Ahora todo aparece junto y rápido: sin
+  // paquetes, sin turnos de oeste a este y sin destellos; las etapas son sólo el orden (color, registros, rótulo)
+  var DUR_SUBIDA_ESP = 0.22;
+  var etapaEsp = 0, tEsp = 0, DUR_ETAPA_ESP = 0.18, cursor = null, ancladoEsp = false, bordeEsp = 0;
+  function aparece(e) {                         // 0–1 dentro de una etapa (todos a la vez)
+    return Math.max(0, Math.min(1, e));
   }
+  // el extremo izquierdo del mapa, junto a la columna del texto, queda sin especies (Benjamin, 2026-11-03): factor 0–1 según
+  // la x en pantalla, con un fundido de 90 px desde el borde del velo + 230 px
+  function lejosDelTexto(x, mv) { return Math.max(0, Math.min(1, (x - (mv[0] + 230)) / 90)); }
   function pasoEsp() {
     var t = performance.now(), dt = tEsp ? Math.min(0.1, (t - tEsp) / 1000) : 0; tEsp = t;
-    var meta = META.especies ? 3 : 0;
-    etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_ETAPA_ESP, meta - etapaEsp));
+    if (panel && !panel.hidden && (!META.especies || !mapaQuieto() || !esCuaderno())) panel.hidden = true;
+    var meta = META.especies && mapaQuieto() ? 3 : 0;
+    // sube despacio (DUR_SUBIDA_ESP por etapa) y baja rápido (DUR_ETAPA_ESP)
+    etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_SUBIDA_ESP, meta - etapaEsp));
   }
   document.addEventListener("pointermove", function (ev) {
     var b = lienzo.getBoundingClientRect(); cursor = [ev.clientX - b.left, ev.clientY - b.top];
@@ -1127,45 +1383,154 @@
   var puntosEsp = null;
   function prepararPuntos() {                    // todos los registros, del valle (oeste) a la cordillera (este)
     puntosEsp = [];
-    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2] }); }); });
+    // r[6], r[7]: conjunto de GBIF (eBird, CAPES, un herbario…) y registros juntados en ese punto; sin ellos, iNaturalist
+    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], id: r[3], lat: r[4], lon: r[5], conjunto: r[6] || "", n: r[7] || 1 }); }); });
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
+  // los discos van tendidos sobre el terreno (Benjamin, 2026-11-03, opción 1): un círculo de R_MUNDO m en el plano de la
+  // ladera, que en pantalla queda como una elipse inclinada según la pendiente y más chica con la distancia; sus ejes se
+  // limitan a DISCO_PX px para que no se pierdan ni tapen
+  var R_MUNDO = 400, DISCO_PX = [5, 14];
+  // (2026-11-03, después) Benjamin pidió descomponerla en subplanos: el borde se arma con LADOS_DISCO puntos, cada uno a
+  // la altura del relieve, así el disco se dobla sobre crestas y quebradas; luego se escala en pantalla para que su eje
+  // mayor quede entre DISCO_PX px
+  var LADOS_DISCO = 16, ANG_DISCO = [];
+  for (var kd = 0; kd < LADOS_DISCO; kd++) ANG_DISCO.push([Math.cos(kd / LADOS_DISCO * 6.2832), Math.sin(kd / LADOS_DISCO * 6.2832)]);
+  function discoTerreno(c, x, z, q) {
+    var pts = [], m = 0;
+    for (var k = 0; k < LADOS_DISCO; k++) {
+      var px = x + ANG_DISCO[k][0] * R_MUNDO, pz = z + ANG_DISCO[k][1] * R_MUNDO, p = proyectar(px, alturaEn(px, pz) * EXAG, pz);
+      if (!p) { c.beginPath(); c.arc(q[0], q[1], R_DISCO, 0, 7); return; }
+      var d = [p[0] - q[0], p[1] - q[1]]; pts.push(d); m = Math.max(m, Math.hypot(d[0], d[1]));
+    }
+    var e = m > DISCO_PX[1] ? DISCO_PX[1] / m : (m < DISCO_PX[0] ? DISCO_PX[0] / Math.max(m, 0.01) : 1);
+    c.beginPath();
+    pts.forEach(function (d, k) { var X = q[0] + d[0] * e, Y = q[1] + d[1] * e; if (k) c.lineTo(X, Y); else c.moveTo(X, Y); });
+    c.closePath();
+  }
+  var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [], nVisEsp = {};
+  // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
+  var ALFA_TEMA = { claro: { disco: 0.58, modelado: 0.3 }, oscuro: { disco: 0.42, modelado: 0.2 } };
+  var escritorio = matchMedia("(min-width:761px)");
+  var panel = document.querySelector(".cuaderno"), impreso = null, sobreFicha = false;
+  function esCuaderno() { return panel && escritorio.matches; }
+  if (panel) {
+    document.addEventListener("pointermove", function(ev) {
+      sobreFicha = panel.contains(ev.target);
+      if (!recorrido.contains(ev.target)) cursor = null;
+      if (esCuaderno() && !window.FlotaCicloAndando) paso(0);
+    });
+    document.addEventListener("pointerleave", function() {
+      cursor = null;
+      sobreFicha = false;
+      panel.hidden = true;
+    });
+  }
+  function dibujarApunte() {
+    if (!META.especies || !mapaQuieto()) { panel.hidden = true; return; }
+    var cerca = null, distancia = 9;
+    if (sobreFicha && !panel.hidden) cerca = visEsp.find(function(v) { return v.p === impreso; });
+    else if (cursor) visEsp.forEach(function(v) {
+      var d = Math.hypot(v.q[0] - cursor[0], v.q[1] - cursor[1]);
+      if (d < distancia) { distancia = d; cerca = v; }
+    });
+    if (!cerca) { panel.hidden = true; return; }
+    var actual = cerca.p;
+    panel.hidden = false;
+    var x = cerca.q[0] + 8;
+    if (x + panel.offsetWidth > W - 6) x = cerca.q[0] - panel.offsetWidth - 8;
+    panel.style.left = Math.max(6, x) + "px";
+    if (impreso !== actual) escribirApunte(actual);
+    var y = Math.max(6, Math.min(cerca.q[1] - panel.offsetHeight / 2, H - panel.offsetHeight - 6));
+    panel.style.top = y + "px";
+    cr.save();
+    fondoFicha(cerca.q, Math.max(6, x), y, panel.offsetWidth, panel.offsetHeight, false);
+    cr.restore();
+  }
+  function escribirApunte(actual) {
+    impreso = actual;
+    document.querySelector("#comun").textContent = actual.e.n;
+    document.querySelector("#cientifico").textContent = actual.e.s;
+    document.querySelector("#fecha").textContent = new Intl.DateTimeFormat("es-CL",{dateStyle:"long",timeZone:"UTC"}).format(new Date(actual.fecha)) + (actual.n>1 ? " · "+actual.n+" registros agrupados" : "");
+    document.querySelector("#categoria").textContent = actual.e.rce || "";
+    var origen = document.querySelector("#origen"), lugar = document.querySelector("#lugar");
+    origen.textContent = actual.conjunto ? "GBIF · "+actual.conjunto : "iNaturalist";
+    origen.href = (actual.conjunto ? "https://www.gbif.org/occurrence/" : "https://www.inaturalist.org/observations/")+actual.id;
+    lugar.textContent = gms(actual.lat,"N","S")+" · "+gms(actual.lon,"E","O");
+    lugar.href="https://www.google.com/maps/search/?api=1&query="+actual.lat+","+actual.lon;
+  }
   function especies() {
-    if (!alturas || etapaEsp <= 0.005 || !ESP.length) return;
+    if (!alturas || etapaEsp <= 0.005 || !ESP.length) { if (aCoord && !aCoord.hidden) { cajaEsp = null; enlaceCoord(null); } return; }
     if (!puntosEsp) prepararPuntos();
     var C = COLORES_VIDA[tema], P = PULSO[tema], claro = tema === "claro", mejor = null, dMejor = Infinity;
-    var ref = cursor || [W * 0.72, H * 0.5];
+    var ref = cursor || [W * 0.72, H * 0.5], qFijo = null;
+    // los discos se dibujan en un lienzo aparte, que se rehace sólo si cambia la cámara, la etapa o el tema; los puntos
+    // visibles quedan en visEsp para buscar el más cercano al cursor en cada cuadro
+    var ap = aparece(etapaEsp - 1);
+    var vp = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(5); }).join(",") : "";
+    var clave = [vp, ap.toFixed(3), opacVida.toFixed(3), tema, capa.width, capa.height, dpr].join("|");
+    if (!lienzoEsp) { lienzoEsp = document.createElement("canvas"); crEsp = lienzoEsp.getContext("2d"); }
+    if (clave !== claveEsp) {
+      claveEsp = clave; visEsp = [];
+      if (lienzoEsp.width !== capa.width || lienzoEsp.height !== capa.height) { lienzoEsp.width = capa.width; lienzoEsp.height = capa.height; }
+      crEsp.setTransform(1, 0, 0, 1, 0, 0); crEsp.clearRect(0, 0, lienzoEsp.width, lienzoEsp.height); crEsp.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var mv = medidasVelo();
+      if (ap > 0.01) puntosEsp.forEach(function (p) {
+        var y = alturaEn(p.x, p.z) * EXAG, q = proyectar(p.x, y, p.z); if (!q || q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
+        var lt = lejosDelTexto(q[0], mv); if (lt <= 0.02) return;
+        if (!aLaVista(p.x, y, p.z)) return;
+        var dc = Math.hypot(p.x - ojo[0], y - ojo[1], p.z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
+        var a = veloEn(q[0], q[1], y / EXAG) * (1 - 0.6 * fn) * opacVida * ap * lt; if (a <= 0.02) return;
+        // ● registro iNaturalist (Benjamin, 2026-11-03): un disco grande y translúcido del color de su grupo; los que se
+        // sobreponen suman color, así donde hay más registros el color se ve más sólido. Al centro, un punto chico
+        if (esCuaderno()) {
+          crEsp.globalAlpha = a * 0.85;
+          crEsp.fillStyle = claro ? "#fff7db" : "#e9dfbc";
+          crEsp.strokeStyle = "#405345";
+          crEsp.lineWidth = 1;
+          crEsp.beginPath(); crEsp.arc(q[0], q[1], 2.4, 0, 7); crEsp.fill(); crEsp.stroke();
+        } else {
+        crEsp.fillStyle = "rgb(" + colorRegistro(p.e, C).join(",") + ")";
+        crEsp.globalAlpha = a * ALFA_TEMA[tema].disco * (GRUPO[p.e.c] || p.e.i || /cactus|árbol|arbusto|bromelia/.test(p.e.g) ? 1 : ALFA_FAUNA);
+        discoTerreno(crEsp, p.x, p.z, q); crEsp.fill();
+        crEsp.globalAlpha = a * 0.9; crEsp.beginPath(); crEsp.arc(q[0], q[1], 1.3, 0, 7); crEsp.fill();
+        }
+        if (p.e.f && a > 0.3) visEsp.push({ p: p, q: q });
+      });
+      // cuántos puntos a la vista tiene cada especie: el rótulo favorece a las escasas (abajo)
+      nVisEsp = {}; visEsp.forEach(function (v) { nVisEsp[v.p.e.s] = (nVisEsp[v.p.e.s] || 0) + 1; });
+    }
+    cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoEsp, 0, 0); cr.restore();
+    if (esCuaderno()) { dibujarApunte(); return; }
     cr.save();
-    puntosEsp.forEach(function (p) {
-      var ap = aparece(etapaEsp - 1, p.orden); if (ap <= 0.01) return;
-      var y = alturaEn(p.x, p.z) * EXAG, q = proyectar(p.x, y, p.z); if (!q || q[0] < 0 || q[0] > W || q[1] < 0 || q[1] > H) return;
-      if (!aLaVista(p.x, y, p.z)) return;
-      var dc = Math.hypot(p.x - ojo[0], y - ojo[1], p.z - ojo[2]), fn = Math.max(0, Math.min(1, (dc - nieblaAct[0]) / (nieblaAct[1] - nieblaAct[0])));
-      var a = veloEn(q[0], q[1], y / EXAG) * (1 - 0.6 * fn) * opacVida * ap; if (a <= 0.02) return;
-      var col = "rgb(" + colorRegistro(p.e, C).join(",") + ")";
-      cr.globalAlpha = a;
-      // el punto se enciende: un destello que se abre y queda un punto con borde de papel; las exóticas, huecas
-      if (ap < 1) { cr.strokeStyle = col; cr.lineWidth = 1; cr.beginPath(); cr.arc(q[0], q[1], 2 + 8 * ap, 0, 7); cr.globalAlpha = a * (1 - ap); cr.stroke(); cr.globalAlpha = a; }
-      cr.beginPath(); cr.arc(q[0], q[1], 2.6, 0, 7);
-      cr.fillStyle = P.caja; cr.fill();
-      cr.beginPath(); cr.arc(q[0], q[1], 1.9, 0, 7); cr.fillStyle = col; cr.fill();   // ● registro iNaturalist
-      if (p.e.f && a > 0.3) { var d = Math.hypot(q[0] - ref[0], q[1] - ref[1]); if (d < dMejor) { dMejor = d; mejor = { p: p, q: q }; } }
+    // con GBIF (2026-11-24) hay puntos de eBird con decenas de registros en los mismos lugares (tricahue, tenca, loica):
+    // para que no tapen a las especies escasas, la distancia al cursor se castiga 0,25 px por cada punto a la vista de su
+    // especie (38 del tricahue: 9,5 px; 2 de la yaca: 0,5 px)
+    visEsp.forEach(function (v) {
+      var d = Math.hypot(v.q[0] - ref[0], v.q[1] - ref[1]) + 0.25 * (nVisEsp[v.p.e.s] || 0); if (d < dMejor) { dMejor = d; mejor = v; }
+      if (cajaEsp && v.p === cajaEsp.p) qFijo = v.q;
     });
-    // c) el rótulo de la especie más cercana al cursor
+    // c) el rótulo de la especie más cercana al cursor; mientras el cursor esté sobre el rótulo (p. ej. camino al enlace de
+    // las coordenadas) se mantiene el mismo registro
     var al = Math.max(0, Math.min(1, etapaEsp - 2));
+    if (cajaEsp && qFijo && cursor && cursor[0] > cajaEsp.x0 - 8 && cursor[0] < cajaEsp.x1 + 8 && cursor[1] > cajaEsp.y0 - 8 && cursor[1] < cajaEsp.y1 + 8) mejor = { p: cajaEsp.p, q: qFijo };
+    if (!mejor || al <= 0.01) { cajaEsp = null; enlaceCoord(null); }
     leyenda(Math.max(0, Math.min(1, etapaEsp)), C, P, claro);
     if (mejor && al > 0.01) {
       var m = mejor, x = m.q[0], y0 = m.q[1];
       cr.globalAlpha = al;
       cr.strokeStyle = "rgba(" + P.borde + ",.9)"; cr.lineWidth = 1.4; cr.beginPath(); cr.arc(x, y0, 6, 0, 7); cr.stroke();
-      var tx = x + 12, ty = y0 - 30, l1 = m.p.e.n, l2 = m.p.e.s, l3 = "registro iNaturalist · " + m.p.fecha + (m.p.e.i ? " · introducida" : "");
+      // la fuente del registro (Benjamin, 2026-11-24): iNaturalist o GBIF con su conjunto; si en ese punto se juntaron
+      // varios registros de GBIF (listas de eBird en el mismo lugar), cuántos, con la fecha del más reciente
+      var fuente = m.p.conjunto ? "registro GBIF (" + m.p.conjunto + ")" : "registro iNaturalist";
+      var tx = x + 12, ty = y0 - 30, l1 = m.p.e.n, l2 = m.p.e.s, l3 = fuente + (m.p.fecha ? " · " + m.p.fecha : "") + (m.p.n > 1 ? " · " + m.p.n + " aquí" : "");
       cr.font = "600 13px 'DM Sans', sans-serif"; var w = cr.measureText(l1).width;
       cr.font = "italic 12.5px 'Source Serif', serif"; w = Math.max(w, cr.measureText(l2).width);
       cr.font = "500 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l3).width);
       var l4 = m.p.e.rce || "";                  // p. ej. «NT · Casi amenazada (RCE)», sólo si está amenazada
       if (l4) { cr.font = "600 10.5px 'Plex Mono', monospace"; w = Math.max(w, cr.measureText(l4).width); }
-      if (tx + w > W - 12) tx = x - 12 - w;
+      if (tx + w > W - 12) tx = Math.max(8, x - 12 - w);   // a la izquierda si no cabe, sin salirse de la pantalla (celular)
       cr.beginPath(); cr.moveTo(x + (tx > x ? 5 : -5), y0 - 4); cr.lineTo(tx + (tx > x ? -3 : w + 3), ty + 4); cr.lineWidth = 1; cr.stroke();
       cr.textBaseline = "middle"; cr.textAlign = "left"; cr.lineJoin = "round"; cr.lineWidth = 4; cr.strokeStyle = P.caja; cr.fillStyle = P.texto;
       function linea(txt, fuente, yy, color) { cr.font = fuente; cr.strokeText(txt, tx, yy); cr.fillStyle = color || P.texto; cr.fillText(txt, tx, yy); }
@@ -1174,8 +1539,32 @@
       linea(l2, "italic 12.5px 'Source Serif', serif", ty + 16, tinta);
       linea(l3, "500 10.5px 'Plex Mono', monospace", ty + 31);
       if (l4) linea(l4, "600 10.5px 'Plex Mono', monospace", ty + 45, claro ? "#8a3c12" : "#f0b07a");
+      // las coordenadas del registro, como enlace a Google Maps (un <a> sobre el lienzo, en la línea siguiente)
+      var yc = ty + (l4 ? 59 : 45);
+      enlaceCoord(m.p, tx, yc, al);
+      cajaEsp = { p: m.p, x0: Math.min(x, tx), x1: Math.max(x, tx + Math.max(w, 150)), y0: ty - 10, y1: yc + 10 };
     }
     cr.restore();
+  }
+  // enlace a Google Maps con la latitud y longitud del registro del rótulo (Benjamin, 2026-11-03); sólo se toca el DOM
+  // cuando cambia algo
+  var cajaEsp = null, aCoord = null, estadoCoord = "";
+  function gms(v, pos, neg) { return Math.abs(v).toFixed(4).replace(".", ",") + "° " + (v >= 0 ? pos : neg); }
+  function enlaceCoord(p, x, y, al) {
+    if (!aCoord) {
+      aCoord = document.createElement("a"); aCoord.className = "coord-esp"; aCoord.target = "_blank"; aCoord.rel = "noopener";
+      lienzo.parentNode.appendChild(aCoord);
+    }
+    var ok = p && p.lat != null && al > 0.05;
+    var est = ok ? [p.lat, p.lon, Math.round(x), Math.round(y), al > 0.5 ? 1 : 0, (al * 20 | 0)].join("|") : "";
+    if (est === estadoCoord) return; estadoCoord = est;
+    if (!ok) { aCoord.hidden = true; aCoord.tabIndex = -1; return; }
+    aCoord.hidden = false; aCoord.tabIndex = al > 0.5 ? 0 : -1;
+    aCoord.href = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lon;
+    aCoord.textContent = gms(p.lat, "N", "S") + " · " + gms(p.lon, "E", "O") + " ↗";
+    aCoord.setAttribute("aria-label", "Ver el registro de " + p.e.n + " en Google Maps (" + aCoord.textContent.replace(" ↗", "") + ")");
+    aCoord.style.left = Math.round(x) + "px"; aCoord.style.top = Math.round(y) + "px";
+    aCoord.style.opacity = al.toFixed(2); aCoord.style.pointerEvents = al > 0.5 ? "auto" : "none";
   }
   // la leyenda de «Diseño e investigación», abajo a la derecha (la esquina libre del mapa, sobre «Pausar animación»)
   function leyenda(al, C, P, claro) {
@@ -1193,26 +1582,28 @@
       cr.fillStyle = tinta; cr.fillText(f[1], x0 + 20, y);
     });
     var y = y0 + filas.length * alto + 4, gris = "rgb(" + C.otras.join(",") + ")";
-    cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
-    cr.fillStyle = tinta; cr.fillText("registro iNat", x0 + 20, y);
-    cr.strokeStyle = gris; cr.lineWidth = 1; cr.beginPath(); cr.arc(x0 + 122, y, 2.4, 0, 7); cr.stroke();
+    cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].disco; cr.beginPath(); cr.arc(x0 + 6, y, 5.5, 0, 7); cr.fill();
+    cr.globalAlpha = al; cr.beginPath(); cr.arc(x0 + 6, y, 1.3, 0, 7); cr.fill();
+    cr.fillStyle = tinta; cr.fillText("registro real", x0 + 20, y);
+    cr.fillStyle = gris; cr.globalAlpha = al * ALFA_TEMA[tema].modelado * 1.4; cr.beginPath(); cr.arc(x0 + 122, y, 5.5, 0, 7); cr.fill(); cr.globalAlpha = al;
     cr.fillText("modelado", x0 + 132, y);
     y += alto;
+    // sin exóticas desde el 24-nov (Benjamin): la fila queda para la fauna y las fuentes
     cr.fillStyle = gris; cr.beginPath(); cr.arc(x0 + 6, y, 2.6, 0, 7); cr.fill();
     cr.fillStyle = tinta; cr.fillText("fauna", x0 + 20, y);
-    cr.fillStyle = "rgb(" + C.introducida.join(",") + ")"; cr.beginPath(); cr.arc(x0 + 122, y, 2.6, 0, 7); cr.fill();
-    cr.fillStyle = tinta; cr.fillText("introducida", x0 + 132, y);
+    cr.fillText("iNaturalist · GBIF", x0 + 82, y);
     cr.restore();
   }
-  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores (etapa 2, con los registros)
+  // el aguilucho (informe.md §5): planea en círculos sobre sus registros, solo y más bajo que los cóndores. Siempre
+  // dibujado de día, como el tricahue y el cóndor (Benjamin, 2026-11-24); de noche, sólo con «Diseño e investigación»
   function aguiluchos() {
-    var ap = Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;   // con los registros (etapa 2)
-    var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232";
+    var ap = tema === "claro" ? 1 : Math.max(0, Math.min(1, etapaEsp - 1)); if (ap <= 0.01 || !alturas) return;
+    var regs = registrosDe("aguilucho", 400), t = sim.reloj, col = tema === "claro" ? "28,26,34" : "214,218,232", mv = medidasVelo();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     regs.slice(0, 3).forEach(function (r, k) {
       var a = t * 0.12 + k * 2.1, x = r[0] + Math.cos(a) * 500, z = r[1] + Math.sin(a) * 380;
       var y = (alturaEn(x, z) + 300) * EXAG, q = proyectar(x, y, z); if (!q) return;
-      var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna()); if (al <= 0.02) return;
+      var al = Math.min(1, veloEn(q[0], q[1], y / EXAG) * opacVida * ap * opacFauna() * lejosDelTexto(q[0], mv)); if (al <= 0.02) return;
       var sp = 6 * Math.max(0.7, Math.min(1.6, 2600 / tamPantalla(x, y, z, 100)));
       cr.globalAlpha = al; cr.strokeStyle = "rgba(" + col + ",.9)"; cr.lineWidth = 1.6;
       cr.beginPath(); cr.moveTo(q[0] - sp, q[1] + sp * 0.12); cr.quadraticCurveTo(q[0] - sp * 0.45, q[1] - sp * 0.28, q[0], q[1]);
@@ -1221,14 +1612,20 @@
     });
     cr.restore();
   }
-
   // Transparencia de la flora y fauna (Benjamin, 2026-11-03): en reposo, más transparentes que antes; cuando el mapa se
   // activa (hover de cualquier tarjeta del panorama), más opacas, para que se integren al mapa como parte del mini mapa.
   // Multiplica el alfa de las plantas, el aguilucho, los loros y los cóndores
-  var FAUNA_REPOSO = 0.5, FAUNA_ACTIVO = 1.15;
+  // R4 de JI (2026-11-03, decidido por A7 a pedido de Benjamin): las plantas en reposo algo más patentes (0,5 → 0,75),
+  // con el mismo tono del relieve, y menos atenuadas en el valle de abajo a la izquierda (0,7 → 0,4); siguen sin color ni
+  // contraste hasta activar «Diseño e investigación», y el extremo junto al texto sigue vacío (lejosDelTexto)
+  var FAUNA_REPOSO = 0.5, FLORA_REPOSO = 0.75, FAUNA_ACTIVO = 1.15, ATENUA_VALLE = 0.4;   // la fauna sigue en 0,5
   function opacFauna() {
     var act = Math.min(1, Math.max(RES.flota, RES.nube, RES.bus, RES.iot, RES.ruta, etapaEsp));
     return FAUNA_REPOSO + (FAUNA_ACTIVO - FAUNA_REPOSO) * act;
+  }
+  function opacFlora() {
+    var act = Math.min(1, Math.max(RES.flota, RES.nube, RES.bus, RES.iot, RES.ruta, etapaEsp));
+    return FLORA_REPOSO + (FAUNA_ACTIVO - FLORA_REPOSO) * act;
   }
   // las plantas se dibujan en un lienzo aparte y se redibujan sólo cuando cambia algo que las mueve o las tiñe (cámara,
   // etapa, transparencias, tema, tamaño); el resto de los cuadros se copia de una vez (risk-006: el raster de ~200 siluetas
@@ -1238,7 +1635,7 @@
     if (!alturas || opacVida <= 0.02) return;
     if (!seres) prepararVida();
     var vp = VP ? Array.prototype.map.call(VP, function (v) { return v.toFixed(5); }).join(",") : "";
-    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFauna().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
+    var clave = [vp, pCam.toFixed(4), etapaEsp.toFixed(3), opacVida.toFixed(3), opacFlora().toFixed(3), tema, capa.width, capa.height, dpr, nieblaAct[0].toFixed(0), nieblaAct[1].toFixed(0)].join("|");
     if (!lienzoVida) { lienzoVida = document.createElement("canvas"); crVida = lienzoVida.getContext("2d"); }
     if (clave !== claveVida) {
       claveVida = clave;
@@ -1250,7 +1647,7 @@
     cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoVida, 0, 0); cr.restore();
   }
   function dibujarVida() {
-    var C = COLORES_VIDA[tema], fa = opacFauna();
+    var C = COLORES_VIDA[tema], fa = opacFlora();
     cr.save(); cr.lineCap = "round"; cr.lineJoin = "round";
     var e2 = Math.max(0, Math.min(1, etapaEsp - 1));   // etapa 2: las modeladas quedan tenues y huecas
     var mv = medidasVelo();                        // una vez por cuadro (lee el estilo del documento)
@@ -1264,16 +1661,16 @@
       fn = fn * fn * (3 - 2 * fn);
       // abajo a la izquierda (inicio de la H-25, junto al texto) van más tenues, para que no resalten (2026-10-30)
       var izq = 1 - Math.max(0, Math.min(1, (q[0] - mv[0]) / (W * 0.3))), baja = Math.max(0, Math.min(1, (q[1] / H - 0.45) / 0.35));
-      var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - 0.7 * izq * baja); if (a2 <= 0.02) return;
+      var a2 = veloEn(q[0], q[1], y / EXAG) * (1 - 0.75 * fn) * opacVida * (1 - ATENUA_VALLE * izq * baja) * lejosDelTexto(q[0], mv); if (a2 <= 0.02) return;
       var f = 0.8 * Math.max(0.55, Math.min(1.8, 2600 / tamPantalla(x, y, z, 100)));   // tamaño de juguete, según la distancia (60 % del primero)
-      var g = aparece(etapaEsp, o.orden), tenue = o.real ? 1 : 1 - 0.65 * e2;
+      var g = aparece(etapaEsp), tenue = o.real ? 1 : 1 - 0.65 * e2;
       a2 = Math.min(1, a2 * fa);
       cr.globalAlpha = a2 * tenue;
       silueta(o, q, f, C, fn, g);
-      if (!o.real && e2 > 0.01) {                  // ○ modelado: un anillo del color del grupo al pie
-        cr.globalAlpha = Math.min(1, a2 * 1.6) * e2;
-        cr.strokeStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")"; cr.lineWidth = 1;
-        cr.beginPath(); cr.arc(q[0], q[1], 2.2, 0, 7); cr.stroke();
+      if (!o.real && e2 > 0.01) {                  // modelado: un disco del color del grupo, más tenue que el de un registro
+        cr.globalAlpha = Math.min(1, a2 * 1.6) * e2 * ALFA_TEMA[tema].modelado;
+        cr.fillStyle = "rgb(" + C.grupos[GRUPO[o.tipo]].map(Math.round).join(",") + ")";
+        discoTerreno(cr, o.x, o.z, q); cr.fill();
       }
     });
     cr.restore();
@@ -1458,10 +1855,21 @@
   function paso(dt) {
     // la parada de SACEL (Benjamin, 2026-11-02: tres paradas en una): el scroll elige la meta y la animación va sola
     // con reloj propio (no el dt del ciclo, que se recorta a 50 ms por cuadro): dura DUR_SACEL aunque el equipo sea lento
-    var meta = pAct >= 0.5 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
+    nivelMapa = Math.round(pAct * PARADAS_MAPA);
+    var meta = nivelMapa >= 1 ? 1 : 0, ahora = performance.now(), dReal = tSacel ? Math.min(0.25, (ahora - tSacel) / 1000) : 0;
     tSacel = ahora;
     if (quieto || (!dt && !window.FlotaCicloAndando)) aSacel = meta;
     else aSacel = meta > aSacel ? Math.min(meta, aSacel + dReal / DUR_SACEL) : Math.max(meta, aSacel - dReal / DUR_SACEL);
+    // flota y reporte, cuando SACEL ya está completo
+    // orden de las fases (Benjamin, 2026-11-03, noche: se cambian 2 y 3): 2) operación y seguridad (la flota);
+    // 3) registro y cumplimiento (el panel). Para que fluya, la fase siguiente parte de inmediato y se funde con la
+    // anterior (sin esperar a que termine)
+    var mF = nivelMapa >= 2 && aSacel > 0.9 ? 1 : 0, mR = nivelMapa >= 3 && aSacel > 0.9 ? 1 : 0;
+    if (quieto || (!dt && !window.FlotaCicloAndando)) { aFlota = nivelMapa >= 2 ? 1 : 0; aReporte = nivelMapa >= 3 ? 1 : 0; }
+    else {
+      aFlota = mF > aFlota ? Math.min(1, aFlota + dReal / DUR_NIVEL) : Math.max(mF, aFlota - (mR ? 0 : dReal / DUR_NIVEL));
+      aReporte = mR > aReporte ? Math.min(1, aReporte + dReal / DUR_NIVEL) : Math.max(mR, aReporte - dReal / DUR_NIVEL);
+    }
     if (dt) sim.avanzar(dt * (1 + (1 / ESCALA_SIM - 1) * Math.max(RES.flota, RES.iot)));
     if (listo === 2 && alturas) dibujar();
   }   // la simulación corre desde el comienzo: cóndores y buses ya andan cuando se ven
@@ -1480,12 +1888,12 @@
     // con movimiento reducido el ciclo no corre ni escucha el scroll: aquí se redibuja al cruzar entre el panorama y
     // SACEL, de golpe (2026-11-03)
     if (quieto) window.addEventListener("scroll", function () {
-      var p = progreso(); if ((p >= 0.5) === (pAct >= 0.5)) { pAct = p; return; }
+      var p = progreso(); if (Math.round(p * PARADAS_MAPA) === Math.round(pAct * PARADAS_MAPA)) { pAct = p; return; }
       pAct = p; paso(0); textos();
     }, { passive: true });
   }
   // --sacel y --datos para .heroe; el enlace de la capa que no se ve sale del orden del tabulador
-  var capaVisible = null;
+  var capaVisible = null, pasoDestacado = "x";
   function textos() {
     if (!heroe) return;
     var pc = suave(aSacel);
@@ -1493,6 +1901,14 @@
     var d = suave(Math.max(0, Math.min(1, (pc - 0.5) / 0.4)));
     heroe.style.setProperty("--sacel", s.toFixed(3));
     heroe.style.setProperty("--datos", d.toFixed(3));
+    // en las paradas 2 y 3 se destaca su paso: Operación (la flota) y Registro y cumplimiento (el panel)
+    // cada parada destaca su fase, que muestra su texto: 1) captura y transmisión (los chips); 2) operación y seguridad
+    // (la flota); 3) registro y cumplimiento (el panel). Sin líneas que los unan: el texto y la animación van a la par
+    var nv = Math.round(pAct * PARADAS_MAPA), dest = PASOS_PARADA[nv] || [];
+    if (dest.join() !== pasoDestacado) {
+      pasoDestacado = dest.join();
+      heroe.querySelectorAll(".sacel-datos .pasos li").forEach(function (li, i) { var d = dest.indexOf(i) >= 0; li.classList.toggle("destacado", d); li.classList.toggle("atenuado", dest.length > 0 && !d); });
+    }
     var v = s > 0.5 ? "sacel" : "empresa";
     if (v === capaVisible) return; capaVisible = v;
     heroe.setAttribute("data-capa", v);           // la capa que no se ve no toma el puntero (base.css)
