@@ -952,9 +952,17 @@ class AndesCasona extends HTMLElement {
     this.onScroll();
   }
   measure() {
+    const empresa=this.closest('.empresa-casona');
+    this.panorama=empresa && matchMedia('(min-width: 47.51rem)').matches;
     if(this.motion?.matches){this.desired=.5;return;}
     const fixed=this.getAttribute('progress');
     if(fixed!==null && Number.isFinite(Number(fixed))){this.desired=clamp(Number(fixed));return;}
+    if(this.panorama){
+      const rect=empresa.getBoundingClientRect();
+      const tramo=rect.height-empresa.firstElementChild.offsetHeight;
+      this.desired=tramo>0?clamp(-rect.top/(tramo*.75)):.5;
+      return;
+    }
     let target;
     try{target=this.getAttribute('scroll-target')?document.querySelector(this.getAttribute('scroll-target')):null;}catch{}
     const r=(target||this).getBoundingClientRect(),y=window.scrollY;
@@ -977,7 +985,7 @@ class AndesCasona extends HTMLElement {
     const raw=Number(this.getAttribute('strength')??1),strength=clamp(Number.isFinite(raw)?raw:1,0,2);
     try{
       const rg=(this.getAttribute('rango')||'').split(',').map(Number),es=Number(this.getAttribute('escala'));
-      ENCUADRE={rango:rg.length===2&&rg.every(Number.isFinite)?rg:[0,1],escala:Number.isFinite(es)&&es>0?es:1};
+      ENCUADRE=this.panorama?{rango:[0,1],escala:1.03}:{rango:rg.length===2&&rg.every(Number.isFinite)?rg:[0,1],escala:Number.isFinite(es)&&es>0?es:1};
       this.drawing.render(this.progress,strength);
       this.setAttribute('ready','');
       const angle=windowAngle(this.progress)*180/Math.PI;

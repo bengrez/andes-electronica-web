@@ -10,7 +10,7 @@
      externo; sin formularios ni objetos incrustados. scripts/ensamblar.py completa los hashes de los scripts en línea. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-i1uhbxgs379buIGf1G29L+VIdlkQ9jLfFOSW2JcQ5h0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <link rel="icon" href="img/logo-andes.svg" type="image/svg+xml">
-<link rel="stylesheet" href="base.css?v=20261124a">
+<link rel="stylesheet" href="base.css?v=trayectoria1">
 <script>
 /* Antes de pintar: tema elegido (o el del sistema). */
 (function () {
@@ -65,6 +65,15 @@
           data-relieve-oscuro="img/relieve-3d-noche.webp" data-relieve-claro="img/relieve-3d-dia.webp"></canvas>
   <div class="camara" aria-hidden="true"><canvas id="flota" data-relieve-oscuro="img/relieve-noche.webp" data-relieve-claro="img/relieve-dia.webp"></canvas></div>
   <canvas id="flota-reg" aria-hidden="true"></canvas>
+  <aside class="cuaderno" hidden aria-label="Cuaderno de campo">
+    <small>Cuaderno de campo · H-25</small>
+    <h3 id="comun"></h3>
+    <i id="cientifico"></i>
+    <p id="fecha"></p>
+    <p id="categoria"></p>
+    <a id="origen" target="_blank" rel="noopener"></a>
+    <p><a id="lugar" target="_blank" rel="noopener"></a></p>
+  </aside>
   <div class="heroe">
     <p class="mapa-marca" aria-hidden="true">Andes Electrónica</p>   <!-- lugar al que llega el h1 de la portada (sitio.js) -->
     <!-- panorama de Andes antes de SACEL (Benjamin, 2026-11-02), adaptado de la frase del sitio oficial; con el mapa quieto.
@@ -75,10 +84,10 @@
            actividades son las de la frase del sitio oficial, agrupadas en 4 (Benjamin); las descripciones salen de sus fichas (Diseño PCB, Sistema
            SACEL, I+D) y de servicios.html. Las que tienen lugar en el mapa lo señalan al pasar o enfocar (data-resalta) -->
       <ul class="haceres">
-        <li data-resalta="flota" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/></svg><span><b>Rastreo de flotas</b><small>Con <span class="marca-sacel">SACEL</span>, la conducción de buses interurbanos y camiones de carga pesada, en línea.</small></span></li>
-        <li data-resalta="iot nube" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="14" height="11" rx="1.5"/><rect class="ac" x="6" y="12" width="5" height="5" rx=".8"/><path d="M13 13h2M13 16h2M17 9V5"/><path class="ac" d="M19.5 3.5a3.5 3.5 0 0 1 0 4M21.5 2a6 6 0 0 1 0 7"/></svg><span><b>Equipos electrónicos</b><small>Diseñamos y fabricamos los equipos que van a bordo: el tacógrafo y sus periféricos.</small></span></li>
-        <li data-resalta="ruta" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span><b>Soporte técnico</b><small>Soporte in situ, por nuestros técnicos capacitados, para empresas del transporte; instalamos SACEL en buses y camiones.</small></span></li>
-        <li data-resalta="especies" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span><b>Diseño e investigación</b><small>Investigamos y desarrollamos a la medida de cada cliente, cuidando cada detalle, y conocemos el terreno donde trabajan sus equipos: del valle a la cordillera, con su flora y su fauna.</small></span></li>
+        <li data-resalta="flota" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle class="ac" cx="12" cy="11" r="2.2"/></svg><span><b>Rastreo de flotas</b><small><span class="marca-sacel">SACEL</span> muestra en línea cómo circulan los buses y camiones.</small></span></li>
+        <li data-resalta="iot nube" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="14" height="11" rx="1.5"/><rect class="ac" x="6" y="12" width="5" height="5" rx=".8"/><path d="M13 13h2M13 16h2M17 9V5"/><path class="ac" d="M19.5 3.5a3.5 3.5 0 0 1 0 4M21.5 2a6 6 0 0 1 0 7"/></svg><span><b>Equipos electrónicos</b><small>Fabricamos tacógrafos y periféricos para buses y camiones.</small></span></li>
+        <li data-resalta="ruta" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-2.5-.5-.5-2.5z"/></svg><span><b>Soporte técnico</b><small>Instalamos y mantenemos los equipos SACEL en terreno.</small></span></li>
+        <li data-resalta="especies" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h6l3 3h7M4 17h5l3-3h8M13 10v4"/><circle class="ac" cx="13" cy="10" r="1.6"/><circle class="ac" cx="12" cy="14" r="1.6"/><circle cx="4" cy="7" r="1.3"/><circle cx="4" cy="17" r="1.3"/></svg><span><b>Diseño e investigación</b><small>Desarrollamos electrónica a medida. En el mapa puedes explorar registros de flora y fauna a lo largo de la ruta H-25.</small></span></li>
       </ul>
     </div>
     <section class="capa capa-sacel" aria-labelledby="t-sacel">
@@ -204,17 +213,35 @@
   </section>
   </div>
 
-  <!-- Empresa, certificación y clientes en una sola sección (Benjamin, 2026-11-03): la casona de fondo, a todo el ancho y
-       de una pantalla de alto; encima, el texto (arriba a la izquierda), los sellos de la certificación ISO 9001 y las
-       resoluciones (arriba a la derecha) y una fila tenue de logos de clientes a los pies de la casona, como parte de la
-       ilustración. La sección «Clientes» sigue más abajo, como antes. -->
-  <section class="empresa-casona" aria-labelledby="t-empresa">
+  <section id="empresa" class="empresa-casona" aria-labelledby="t-empresa">
+    <div class="empresa-escena">
     <div class="casona-fondo" aria-hidden="true"><andes-casona rango="0.335,0.665" escala="0.8"></andes-casona></div>
     <div class="empresa-capas">
       <div class="empresa-texto">
         <p class="sello">Empresa</p><h2 id="t-empresa">Más de 30 años <em>de electrónica chilena.</em></h2>
-        <p>Andes Electrónica inició sus actividades el 1° de diciembre de 1991 en Santiago. Hoy atiende transporte, minería, retail, defensa, universidades y telecomunicaciones.</p>
-        <div class="acciones"><a class="enlace" href="empresa.html">Conocer la empresa</a></div>
+        <div class="empresa-resena">
+          <details name="trayectoria-andes" open>
+            <summary><b>1991</b> Andes nace en Santiago</summary>
+            <p>El 1 de diciembre, Enrique Morchio y Cía. Ltda. inicia sus actividades. El equipo diseña circuitos, fabrica equipos electrónicos y se encarga de instalarlos y mantenerlos.</p>
+          </details>
+          <details name="trayectoria-andes">
+            <summary><b>2004</b> Primera certificación ISO 9001</summary>
+            <p>Andes obtiene por primera vez la certificación de su sistema de gestión de calidad. Hoy sus registros permiten seguir la trayectoria de cada equipo.</p>
+          </details>
+          <details name="trayectoria-andes">
+            <summary><b>2009</b> La Dirección del Trabajo certifica SACEL</summary>
+            <p>El 2 de febrero, la Dirección del Trabajo certifica SACEL mediante la Resolución N.º 139. El sistema registra las actividades del conductor y sus tiempos de conducción y descanso.</p>
+          </details>
+          <details name="trayectoria-andes">
+            <summary><b>2012</b> Turbus se suma como cliente de SACEL</summary>
+            <p>Desde diciembre de 2012, Turbus figura como cliente de referencia del sistema. <a href="sacel.html">Conocer SACEL</a></p>
+          </details>
+          <details name="trayectoria-andes">
+            <summary><b>Hoy</b> Del circuito a la puesta en marcha</summary>
+            <p>Diseñamos y armamos circuitos, desarrollamos sistemas de control e instalamos los equipos en terreno. También damos soporte a quienes los operan.</p>
+          </details>
+          <div class="acciones"><a class="enlace" href="empresa.html">Conocer la empresa</a></div>
+        </div>
       </div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="sello-anillos" viewBox="0 0 200 200">
       <circle cx="100" cy="100" r="96"/><circle class="anillo-2" cx="100" cy="100" r="89"/>
@@ -230,17 +257,7 @@
         </ul>
         <a class="enlace" href="iso.html">Ver el certificado ISO</a>
       </div>
-      <ul class="logos-casona" aria-hidden="true">
-        <li><img src="img/clientes/turbus.svg" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/cruz-del-sur.svg" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/efe.svg" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/metro.svg" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/armada.webp" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/link-plus.svg" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/etm.png" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/transantin.png" alt="" loading="lazy"></li>
-        <li><img src="img/clientes/cormar.webp" alt="" loading="lazy"></li>
-      </ul>
+    </div>
     </div>
   </section>
 
@@ -300,10 +317,10 @@
 <script src="flota-sim.js?v=20261124a"></script>
 <script src="flota-mapa.js?v=20261124a"></script>
 <script src="datos/especies-h25.js?v=20261124a"></script>
-<script src="flota-3d.js?v=20261125a"></script>
+<script src="flota-3d.js?v=cuaderno3"></script>
 <script src="clientes.js?v=20261124a"></script>
 <script src="productos-relato.js?v=20261124a"></script>
-<script src="casona.js?v=20261124a"></script>
+<script src="casona.js?v=20261125b"></script>
 <script src="etapas.js?v=20261124a"></script>
 </body>
 </html>

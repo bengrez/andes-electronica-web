@@ -613,6 +613,22 @@
   // ─── fichas de los buses (Benjamin, 2026-11-02): al pasar sobre «Rastreo de flotas», una tarjeta semitransparente a la
   // derecha de cada uno de los 3 buses más cerca de la cámara, unida a él por una línea y con su sombra sobre el mapa.
   // Datos de la simulación (no son de un cliente): velocidad y límite del tramo, altitud, km de la ruta, sentido y estado ───
+  function fondoFicha(punto, x, y, ancho, alto, arriba) {
+    var claro = tema === "claro", borde = punto[0] > x + ancho ? x + ancho : x;
+    sombraCard(x, y, ancho, alto, 10);
+    var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
+    cr.strokeStyle = azul; cr.lineWidth = 1.4;
+    cr.beginPath(); cr.moveTo(punto[0], punto[1]); cr.lineTo(borde, y + alto / 2); cr.stroke();
+    cr.fillStyle = azul; cr.beginPath(); cr.arc(punto[0], punto[1], 3, 0, 7); cr.fill();
+    cr.beginPath(); cr.arc(borde, y + alto / 2, 2.2, 0, 7); cr.fill();
+    var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
+    var franja = arriba ? (claro ? "#8f5213" : "#d99a55") : (claro ? "#2f5fb3" : "#8fb0f0");
+    cr.fillStyle = tinte;
+    cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
+    redondeado(x, y, ancho, alto, 10); cr.fill(); cr.stroke();
+    cr.save(); redondeado(x, y, ancho, alto, 10); cr.clip(); cr.fillStyle = franja; cr.fillRect(x, y, 4, alto); cr.restore();
+    return franja;
+  }
   function fichas(op) {
     var cerca = focos.map(function (f, i) {
       return { f: f, i: i, d: Math.hypot(f.centro[0] - ojo[0], f.centro[1] - ojo[1], f.centro[2] - ojo[2]), c: proyectar(f.centro[0], f.centro[1], f.centro[2]) };
@@ -643,22 +659,7 @@
       // ficha de subida y otro para la de bajada; sólo la línea sigue al bus
       var A = anclaFicha(o.ancla); if (!A) return;   // la ficha de su lugar (no la de su sentido)
       var x = Math.min(A.p[0], W - ANCHO - 12), y = A.p[1] - ALTO;
-      // su sombra sobre el terreno, como la de la nube de SACEL
-      sombraCard(x, y, ANCHO, ALTO, 10);
-      // conexión con el bus, en azul Andes
-      var azul = claro ? "rgba(0,16,79,.8)" : "rgba(122,152,232,.85)";
-      cr.strokeStyle = azul; cr.lineWidth = 1.4;
-      cr.beginPath(); cr.moveTo(o.c[0], o.c[1]); cr.lineTo(x, y + ALTO / 2); cr.stroke();
-      cr.fillStyle = azul; cr.beginPath(); cr.arc(o.c[0], o.c[1], 3, 0, 7); cr.fill();
-      cr.beginPath(); cr.arc(x, y + ALTO / 2, 2.2, 0, 7); cr.fill();
-      // tarjeta, con color por sentido (Benjamin, 2026-11-02: «un poco de color»): cálida (cobre) si sube, fría (azul) si baja
-      var arriba = b.dir > 0;
-      var tinte = arriba ? (claro ? "rgba(255,238,220,.84)" : "rgba(58,34,12,.78)") : (claro ? "rgba(226,234,250,.84)" : "rgba(8,22,64,.80)");
-      var franja = arriba ? (claro ? "#8f5213" : "#d99a55") : (claro ? "#2f5fb3" : "#8fb0f0");
-      cr.fillStyle = tinte;
-      cr.strokeStyle = claro ? "rgba(0,16,79,.14)" : "rgba(242,237,227,.18)";
-      redondeado(x, y, ANCHO, ALTO, 10); cr.fill(); cr.stroke();
-      cr.save(); redondeado(x, y, ANCHO, ALTO, 10); cr.clip(); cr.fillStyle = franja; cr.fillRect(x, y, 4, ALTO); cr.restore();
+      var franja = fondoFicha(o.c, x, y, ANCHO, ALTO, b.dir > 0);
       var tinta = claro ? "#00104f" : "#f2ede3", tinta2 = claro ? "rgba(0,16,79,.68)" : "rgba(242,237,227,.72)";
       var alerta = estado === "Sobre el límite", acento = claro ? "#8f5213" : "#d99a55";
       cr.textBaseline = "alphabetic";
@@ -1311,6 +1312,7 @@
   function lejosDelTexto(x, mv) { return Math.max(0, Math.min(1, (x - (mv[0] + 230)) / 90)); }
   function pasoEsp() {
     var t = performance.now(), dt = tEsp ? Math.min(0.1, (t - tEsp) / 1000) : 0; tEsp = t;
+    if (panel && !panel.hidden && (!META.especies || !mapaQuieto() || !esCuaderno())) panel.hidden = true;
     var meta = META.especies && mapaQuieto() ? 3 : 0;
     // sube despacio (DUR_SUBIDA_ESP por etapa) y baja rápido (DUR_ETAPA_ESP)
     etapaEsp = quieto ? meta : etapaEsp + Math.max(-dt / DUR_ETAPA_ESP, Math.min(dt / DUR_SUBIDA_ESP, meta - etapaEsp));
@@ -1382,7 +1384,7 @@
   function prepararPuntos() {                    // todos los registros, del valle (oeste) a la cordillera (este)
     puntosEsp = [];
     // r[6], r[7]: conjunto de GBIF (eBird, CAPES, un herbario…) y registros juntados en ese punto; sin ellos, iNaturalist
-    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], lat: r[4], lon: r[5], conjunto: r[6] || "", n: r[7] || 1 }); }); });
+    ESP.forEach(function (e) { e.r.forEach(function (r) { puntosEsp.push({ e: e, x: r[0], z: r[1], fecha: r[2], id: r[3], lat: r[4], lon: r[5], conjunto: r[6] || "", n: r[7] || 1 }); }); });
     puntosEsp.sort(function (a, b) { return a.x - b.x; });
     puntosEsp.forEach(function (p, k) { p.orden = k / Math.max(1, puntosEsp.length - 1); });
   }
@@ -1410,6 +1412,54 @@
   var R_DISCO = 8, ALFA_FAUNA = 0.6, lienzoEsp = null, crEsp = null, claveEsp = "", visEsp = [], nVisEsp = {};
   // sobre el relieve claro los colores de grupo se lavan más: discos algo más opacos
   var ALFA_TEMA = { claro: { disco: 0.58, modelado: 0.3 }, oscuro: { disco: 0.42, modelado: 0.2 } };
+  var escritorio = matchMedia("(min-width:761px)");
+  var panel = document.querySelector(".cuaderno"), impreso = null, sobreFicha = false;
+  function esCuaderno() { return panel && escritorio.matches; }
+  if (panel) {
+    document.addEventListener("pointermove", function(ev) {
+      sobreFicha = panel.contains(ev.target);
+      if (!recorrido.contains(ev.target)) cursor = null;
+      if (esCuaderno() && !window.FlotaCicloAndando) paso(0);
+    });
+    document.addEventListener("pointerleave", function() {
+      cursor = null;
+      sobreFicha = false;
+      panel.hidden = true;
+    });
+  }
+  function dibujarApunte() {
+    if (!META.especies || !mapaQuieto()) { panel.hidden = true; return; }
+    var cerca = null, distancia = 9;
+    if (sobreFicha && !panel.hidden) cerca = visEsp.find(function(v) { return v.p === impreso; });
+    else if (cursor) visEsp.forEach(function(v) {
+      var d = Math.hypot(v.q[0] - cursor[0], v.q[1] - cursor[1]);
+      if (d < distancia) { distancia = d; cerca = v; }
+    });
+    if (!cerca) { panel.hidden = true; return; }
+    var actual = cerca.p;
+    panel.hidden = false;
+    var x = cerca.q[0] + 8;
+    if (x + panel.offsetWidth > W - 6) x = cerca.q[0] - panel.offsetWidth - 8;
+    panel.style.left = Math.max(6, x) + "px";
+    if (impreso !== actual) escribirApunte(actual);
+    var y = Math.max(6, Math.min(cerca.q[1] - panel.offsetHeight / 2, H - panel.offsetHeight - 6));
+    panel.style.top = y + "px";
+    cr.save();
+    fondoFicha(cerca.q, Math.max(6, x), y, panel.offsetWidth, panel.offsetHeight, false);
+    cr.restore();
+  }
+  function escribirApunte(actual) {
+    impreso = actual;
+    document.querySelector("#comun").textContent = actual.e.n;
+    document.querySelector("#cientifico").textContent = actual.e.s;
+    document.querySelector("#fecha").textContent = new Intl.DateTimeFormat("es-CL",{dateStyle:"long",timeZone:"UTC"}).format(new Date(actual.fecha)) + (actual.n>1 ? " · "+actual.n+" registros agrupados" : "");
+    document.querySelector("#categoria").textContent = actual.e.rce || "";
+    var origen = document.querySelector("#origen"), lugar = document.querySelector("#lugar");
+    origen.textContent = actual.conjunto ? "GBIF · "+actual.conjunto : "iNaturalist";
+    origen.href = (actual.conjunto ? "https://www.gbif.org/occurrence/" : "https://www.inaturalist.org/observations/")+actual.id;
+    lugar.textContent = gms(actual.lat,"N","S")+" · "+gms(actual.lon,"E","O");
+    lugar.href="https://www.google.com/maps/search/?api=1&query="+actual.lat+","+actual.lon;
+  }
   function especies() {
     if (!alturas || etapaEsp <= 0.005 || !ESP.length) { if (aCoord && !aCoord.hidden) { cajaEsp = null; enlaceCoord(null); } return; }
     if (!puntosEsp) prepararPuntos();
@@ -1434,16 +1484,25 @@
         var a = veloEn(q[0], q[1], y / EXAG) * (1 - 0.6 * fn) * opacVida * ap * lt; if (a <= 0.02) return;
         // ● registro iNaturalist (Benjamin, 2026-11-03): un disco grande y translúcido del color de su grupo; los que se
         // sobreponen suman color, así donde hay más registros el color se ve más sólido. Al centro, un punto chico
+        if (esCuaderno()) {
+          crEsp.globalAlpha = a * 0.85;
+          crEsp.fillStyle = claro ? "#fff7db" : "#e9dfbc";
+          crEsp.strokeStyle = "#405345";
+          crEsp.lineWidth = 1;
+          crEsp.beginPath(); crEsp.arc(q[0], q[1], 2.4, 0, 7); crEsp.fill(); crEsp.stroke();
+        } else {
         crEsp.fillStyle = "rgb(" + colorRegistro(p.e, C).join(",") + ")";
         crEsp.globalAlpha = a * ALFA_TEMA[tema].disco * (GRUPO[p.e.c] || p.e.i || /cactus|árbol|arbusto|bromelia/.test(p.e.g) ? 1 : ALFA_FAUNA);
         discoTerreno(crEsp, p.x, p.z, q); crEsp.fill();
         crEsp.globalAlpha = a * 0.9; crEsp.beginPath(); crEsp.arc(q[0], q[1], 1.3, 0, 7); crEsp.fill();
+        }
         if (p.e.f && a > 0.3) visEsp.push({ p: p, q: q });
       });
       // cuántos puntos a la vista tiene cada especie: el rótulo favorece a las escasas (abajo)
       nVisEsp = {}; visEsp.forEach(function (v) { nVisEsp[v.p.e.s] = (nVisEsp[v.p.e.s] || 0) + 1; });
     }
     cr.save(); cr.setTransform(1, 0, 0, 1, 0, 0); cr.globalAlpha = 1; cr.drawImage(lienzoEsp, 0, 0); cr.restore();
+    if (esCuaderno()) { dibujarApunte(); return; }
     cr.save();
     // con GBIF (2026-11-24) hay puntos de eBird con decenas de registros en los mismos lugares (tricahue, tenca, loica):
     // para que no tapen a las especies escasas, la distancia al cursor se castiga 0,25 px por cada punto a la vista de su
